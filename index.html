@@ -445,9 +445,9 @@ textarea{resize:none;font-weight:400;font-size:12px}
         <div class="skill-score"><input type="text" id="scr_sense" readonly></div>
       </div>
       <div class="skill-row">
-        <input type="checkbox" class="skill-check" id="chk_Animal Bond" onchange="recalc()">
-        <label class="skill-label" for="chk_Animal Bond">Animal Bond</label>
-        <div class="skill-score"><input type="text" id="scr_Animal Bond" readonly></div>
+        <input type="checkbox" class="skill-check" id="chk_Animalbond" onchange="recalc()">
+        <label class="skill-label" for="chk_Animalbond">Animal Bond</label>
+        <div class="skill-score"><input type="text" id="scr_Animalbond" readonly></div>
       </div>
       <div class="skill-row">
         <input type="checkbox" class="skill-check" id="chk_religion" onchange="recalc()">
@@ -1274,7 +1274,7 @@ const CLASS_SAVES={
 };
 const CLASS_SKILL_CHOICES={
   'Warrior':['Prowess','Strategy','Looting','Dexterity','Religion','Medicine','Perception','Negotiation'],
-  'Survivalist':['Prowess','Management','Looting','Dexterity','Animal Bond','Stealth','Perception','Negotiation'],
+  'Survivalist':['Prowess','Management','Looting','Dexterity','Animalbond','Stealth','Perception','Negotiation'],
   'Priest':['Persuasion','Management','Strategy','Sense','Religion','History','Forgery','Medicine'],
   'Envoy':['Perception','Management','Looting','Dexterity','Haggling','Deception','Forgery','Negotiation']
 };
@@ -1539,15 +1539,16 @@ function openWeaponModal(prefix, idx){
   const dEl=document.getElementById(`${prefix}_d_${idx}`);
   const existingName=wEl?wEl.value.replace('⚔ click to add','').trim():'';
   const existingRange=mEl?mEl.value:'';
+  const existingAR=aEl?aEl.value:'';
   const existingDR=dEl?dEl.value:'';
  
   // Figure out which stat was previously chosen
   let existingStat='prowess';
   if(existingDR.toLowerCase().includes('dex')) existingStat='dexterity';
  
-  // Extract existing custom modifier from DR string if present (e.g. "1d6 +3 +2" → 2)
+  // Extract existing custom AR modifier if present (e.g. "+3 +2" → 2)
   let existingCustomMod='';
-  const customModMatch=existingDR.match(/[+-]\d+\s*([+-]\d+)\s*$/);
+  const customModMatch=existingAR.match(/[+-]\d+\s*([+-]\d+)\s*$/);
   if(customModMatch) existingCustomMod=customModMatch[1].replace('+','');
  
   const diceHTML=DAMAGE_DICE.map(d=>`
@@ -1572,16 +1573,16 @@ function openWeaponModal(prefix, idx){
  
     <span class="wpn-lbl">ATTACK RATING (AR)</span>
     <div class="wpn-ar-preview" id="wpn_ar_preview">${aEl&&aEl.value?aEl.value:'—'}</div>
-    <p style="font-family:'IM Fell English',serif;font-size:10px;color:#666;margin-top:-10px;margin-bottom:16px;text-align:center;">Stat skill score + Proficiency Bonus</p>
+    <p style="font-family:'IM Fell English',serif;font-size:10px;color:#666;margin-top:-10px;margin-bottom:10px;text-align:center;">Stat skill score + Proficiency Bonus + Custom Modifier</p>
+ 
+    <span class="wpn-lbl">CUSTOM ATTACK MODIFIER</span>
+    <input class="wpn-inp" id="wpn_custom_mod" type="number" placeholder="e.g. 2 or -1 (leave empty for 0)" value="${existingCustomMod}" style="width:200px;" oninput="recalcWpnAR()">
+    <p style="font-family:'IM Fell English',serif;font-size:10px;color:#666;margin-top:-10px;margin-bottom:16px;">Added on top of the AR. Leave empty to use 0.</p>
  
     <span class="wpn-lbl">DAMAGE ROLL (DR)</span>
     <div class="wpn-radio-row" id="wpn_dice_row">${diceHTML}</div>
  
-    <span class="wpn-lbl" style="margin-top:12px;">CUSTOM DAMAGE MODIFIER</span>
-    <input class="wpn-inp" id="wpn_custom_mod" type="number" placeholder="e.g. 2 or -1 (leave empty for 0)" value="${existingCustomMod}" style="width:200px;">
-    <p style="font-family:'IM Fell English',serif;font-size:10px;color:#666;margin-top:-10px;margin-bottom:16px;">Added on top of the stat modifier. Leave empty to use 0.</p>
- 
-    <div style="display:flex;gap:10px;margin-top:4px;">
+    <div style="display:flex;gap:10px;margin-top:16px;">
       <button onclick="confirmWeapon('${prefix}',${idx})" style="flex:2;">Confirm</button>
       <button onclick="clearWeapon('${prefix}',${idx})" style="flex:1;background:rgba(80,20,4,.4);color:#cc6644;border-color:#883311;">Clear</button>
       <button onclick="document.getElementById('wpnModal').remove()" style="flex:1;background:rgba(30,25,10,.5);color:#888;border-color:rgba(100,80,0,.3);">Cancel</button>
@@ -1596,7 +1597,6 @@ function openWeaponModal(prefix, idx){
 function selectWpnStat(el){
   document.querySelectorAll('#wpnModal [data-stat]').forEach(e=>e.classList.remove('selected'));
   el.classList.add('selected');
-  // Also sync damage stat
   const stat=el.dataset.stat;
   document.querySelectorAll('#wpnModal [data-dmgstat]').forEach(e=>{
     e.classList.toggle('selected', e.dataset.dmgstat===stat);
@@ -1618,8 +1618,10 @@ function recalcWpnAR(){
   const statEl=document.querySelector('#wpnModal [data-stat].selected');
   const stat=statEl?statEl.dataset.stat:'prowess';
   const skillVal=parseInt(document.getElementById('scr_'+stat)?.value)||0;
+  const customModVal=parseInt(document.getElementById('wpn_custom_mod')?.value)||0;
+  const total=skillVal+customModVal;
   const preview=document.getElementById('wpn_ar_preview');
-  if(preview) preview.textContent = skillVal >= 0 ? '+'+skillVal : String(skillVal);
+  if(preview) preview.textContent = total >= 0 ? '+'+total : String(total);
 }
  
 function confirmWeapon(prefix, idx){
@@ -1632,16 +1634,16 @@ function confirmWeapon(prefix, idx){
   const skillVal=parseInt(document.getElementById('scr_'+stat)?.value)||0;
   const profVal=parseInt(document.getElementById('proficiency')?.value)||0;
  
-  // Custom modifier: default to 0 if left empty
+  // Custom modifier for AR: default to 0 if left empty
   const customModVal=parseInt(document.getElementById('wpn_custom_mod')?.value)||0;
  
-  const arTotal=skillVal+profVal;
+  // AR = stat modifier + proficiency + custom modifier
+  const arTotal=skillVal+profVal+customModVal;
   const arStr=arTotal>=0?'+'+arTotal:String(arTotal);
  
-  // DR = die + stat modifier + custom modifier
+  // DR unchanged: die + stat modifier only
   const drMod=skillVal>=0?'+'+skillVal:String(skillVal);
-  const customModStr=customModVal>=0?'+'+customModVal:String(customModVal);
-  const drStr=customModVal!==0?`${die} ${drMod} ${customModStr}`:`${die} ${drMod}`;
+  const drStr=`${die} ${drMod}`;
  
   const wEl=document.getElementById(`${prefix}_w_${idx}`);
   const mEl=document.getElementById(`${prefix}_m_${idx}`);
