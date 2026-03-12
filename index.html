@@ -1274,7 +1274,7 @@ const CLASS_SAVES={
 };
 const CLASS_SKILL_CHOICES={
   'Warrior':['Prowess','Strategy','Looting','Dexterity','Religion','Medicine','Perception','Negotiation'],
-  'Survivalist':['Prowess','Management','Looting','Dexterity','Sense','Stealth','Perception','Negotiation'],
+  'Survivalist':['Prowess','Management','Looting','Dexterity','Animal Bond','Stealth','Perception','Negotiation'],
   'Priest':['Persuasion','Management','Strategy','Sense','Religion','History','Forgery','Medicine'],
   'Envoy':['Perception','Management','Looting','Dexterity','Haggling','Deception','Forgery','Negotiation']
 };
@@ -1530,7 +1530,7 @@ function load(){
 }
 // ── WEAPON CONFIGURATION MODAL ──
 const DAMAGE_DICE=['1d4','2d4','1d6','2d6','1d8','1d10','1d12'];
-
+ 
 function openWeaponModal(prefix, idx){
   // Read existing values to pre-populate
   const wEl=document.getElementById(`${prefix}_w_${idx}`);
@@ -1540,37 +1540,47 @@ function openWeaponModal(prefix, idx){
   const existingName=wEl?wEl.value.replace('⚔ click to add','').trim():'';
   const existingRange=mEl?mEl.value:'';
   const existingDR=dEl?dEl.value:'';
-
+ 
   // Figure out which stat was previously chosen
   let existingStat='prowess';
   if(existingDR.toLowerCase().includes('dex')) existingStat='dexterity';
-
+ 
+  // Extract existing custom modifier from DR string if present (e.g. "1d6 +3 +2" → 2)
+  let existingCustomMod='';
+  const customModMatch=existingDR.match(/[+-]\d+\s*([+-]\d+)\s*$/);
+  if(customModMatch) existingCustomMod=customModMatch[1].replace('+','');
+ 
   const diceHTML=DAMAGE_DICE.map(d=>`
     <div class="wpn-radio${existingDR.startsWith(d)?' selected':''}" data-die="${d}" onclick="selectWpnDie(this)">${d}</div>`).join('');
-
+ 
   const o=document.createElement('div');o.className='modal-overlay';o.id='wpnModal';
   o.innerHTML=`<div class="modal" style="max-width:640px;padding:32px 48px;text-align:left;">
     <h2 style="font-size:22px;margin-bottom:6px;">⚔ Configure Weapon</h2>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:#888;margin-bottom:20px;">Set the weapon's name, range and combat statistics.</p>
-
+ 
     <span class="wpn-lbl">WEAPON NAME</span>
     <input class="wpn-inp" id="wpn_name" type="text" placeholder="e.g. Longsword, Shortbow…" value="${existingName}">
-
+ 
     <span class="wpn-lbl">RANGE (m.)</span>
     <input class="wpn-inp" id="wpn_range" type="text" placeholder="e.g. 5, 20/60…" value="${existingRange}" style="width:120px;">
-
+ 
     <span class="wpn-lbl">ATTACK ROLL BASED ON</span>
     <div class="wpn-radio-row" style="margin-bottom:14px;">
       <div class="wpn-radio${existingStat==='prowess'?' selected':''}" data-stat="prowess" onclick="selectWpnStat(this)">⚔ Prowess</div>
       <div class="wpn-radio${existingStat==='dexterity'?' selected':''}" data-stat="dexterity" onclick="selectWpnStat(this)">🏹 Dexterity</div>
     </div>
-
+ 
     <span class="wpn-lbl">ATTACK RATING (AR)</span>
     <div class="wpn-ar-preview" id="wpn_ar_preview">${aEl&&aEl.value?aEl.value:'—'}</div>
     <p style="font-family:'IM Fell English',serif;font-size:10px;color:#666;margin-top:-10px;margin-bottom:16px;text-align:center;">Stat skill score + Proficiency Bonus</p>
-
+ 
     <span class="wpn-lbl">DAMAGE ROLL (DR)</span>
     <div class="wpn-radio-row" id="wpn_dice_row">${diceHTML}</div>
+ 
+    <span class="wpn-lbl" style="margin-top:12px;">CUSTOM DAMAGE MODIFIER</span>
+    <input class="wpn-inp" id="wpn_custom_mod" type="number" placeholder="e.g. 2 or -1 (leave empty for 0)" value="${existingCustomMod}" style="width:200px;">
+    <p style="font-family:'IM Fell English',serif;font-size:10px;color:#666;margin-top:-10px;margin-bottom:16px;">Added on top of the stat modifier. Leave empty to use 0.</p>
+ 
     <div style="display:flex;gap:10px;margin-top:4px;">
       <button onclick="confirmWeapon('${prefix}',${idx})" style="flex:2;">Confirm</button>
       <button onclick="clearWeapon('${prefix}',${idx})" style="flex:1;background:rgba(80,20,4,.4);color:#cc6644;border-color:#883311;">Clear</button>
@@ -1582,7 +1592,7 @@ function openWeaponModal(prefix, idx){
   // Trigger AR preview on open
   recalcWpnAR();
 }
-
+ 
 function selectWpnStat(el){
   document.querySelectorAll('#wpnModal [data-stat]').forEach(e=>e.classList.remove('selected'));
   el.classList.add('selected');
@@ -1593,17 +1603,17 @@ function selectWpnStat(el){
   });
   recalcWpnAR();
 }
-
+ 
 function selectWpnDmgStat(el){
   document.querySelectorAll('#wpnModal [data-dmgstat]').forEach(e=>e.classList.remove('selected'));
   el.classList.add('selected');
 }
-
+ 
 function selectWpnDie(el){
   document.querySelectorAll('#wpnModal [data-die]').forEach(e=>e.classList.remove('selected'));
   el.classList.add('selected');
 }
-
+ 
 function recalcWpnAR(){
   const statEl=document.querySelector('#wpnModal [data-stat].selected');
   const stat=statEl?statEl.dataset.stat:'prowess';
@@ -1611,7 +1621,7 @@ function recalcWpnAR(){
   const preview=document.getElementById('wpn_ar_preview');
   if(preview) preview.textContent = skillVal >= 0 ? '+'+skillVal : String(skillVal);
 }
-
+ 
 function confirmWeapon(prefix, idx){
   const name=(document.getElementById('wpn_name')?.value||'').trim();
   const range=(document.getElementById('wpn_range')?.value||'').trim();
@@ -1621,11 +1631,18 @@ function confirmWeapon(prefix, idx){
   const die=dieEl?dieEl.dataset.die:'1d6';
   const skillVal=parseInt(document.getElementById('scr_'+stat)?.value)||0;
   const profVal=parseInt(document.getElementById('proficiency')?.value)||0;
+ 
+  // Custom modifier: default to 0 if left empty
+  const customModVal=parseInt(document.getElementById('wpn_custom_mod')?.value)||0;
+ 
   const arTotal=skillVal+profVal;
   const arStr=arTotal>=0?'+'+arTotal:String(arTotal);
+ 
+  // DR = die + stat modifier + custom modifier
   const drMod=skillVal>=0?'+'+skillVal:String(skillVal);
-  const drStr=`${die} ${drMod}`;
-
+  const customModStr=customModVal>=0?'+'+customModVal:String(customModVal);
+  const drStr=customModVal!==0?`${die} ${drMod} ${customModStr}`:`${die} ${drMod}`;
+ 
   const wEl=document.getElementById(`${prefix}_w_${idx}`);
   const mEl=document.getElementById(`${prefix}_m_${idx}`);
   const aEl=document.getElementById(`${prefix}_a_${idx}`);
@@ -1634,11 +1651,11 @@ function confirmWeapon(prefix, idx){
   if(mEl) mEl.value=range;
   if(aEl) aEl.value=arStr;
   if(dEl) dEl.value=drStr;
-
+ 
   document.getElementById('wpnModal').remove();
   save();
 }
-
+ 
 function clearWeapon(prefix, idx){
   ['w','m','a','d'].forEach(f=>{
     const el=document.getElementById(`${prefix}_${f}_${idx}`);
