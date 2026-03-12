@@ -445,9 +445,9 @@ textarea{resize:none;font-weight:400;font-size:12px}
         <div class="skill-score"><input type="text" id="scr_sense" readonly></div>
       </div>
       <div class="skill-row">
-        <input type="checkbox" class="skill-check" id="chk_Animal Handling" onchange="recalc()">
-        <label class="skill-label" for="chk_Animal Handling">Animal Handling</label>
-        <div class="skill-score"><input type="text" id="scr_Animal Handling" readonly></div>
+        <input type="checkbox" class="skill-check" id="chk_Animal Bond" onchange="recalc()">
+        <label class="skill-label" for="chk_Animal Bond">Animal Bond</label>
+        <div class="skill-score"><input type="text" id="scr_Animal Bond" readonly></div>
       </div>
       <div class="skill-row">
         <input type="checkbox" class="skill-check" id="chk_religion" onchange="recalc()">
@@ -797,7 +797,7 @@ function uploadBg(e){
 
 // RECALC
 const ABILITY_SAVE={charisma:'sv_dip',subtlety:'sv_int',wisdom:'sv_ste',strength:'sv_mar',knowledge:'sv_lea',spirit:'sv_att'};
-const ABILITY_SKILLS={charisma:['persuasion','negotiation','intimidation'],subtlety:['deception','forgery','stealth'],wisdom:['haggling','looting','management'],strength:['prowess','strategy','dexterity'],knowledge:['history','medicine','perception'],spirit:['sense','Animal Handling','religion']};
+const ABILITY_SKILLS={charisma:['persuasion','negotiation','intimidation'],subtlety:['deception','forgery','stealth'],wisdom:['haggling','looting','management'],strength:['prowess','strategy','dexterity'],knowledge:['history','medicine','perception'],spirit:['sense','Animal Bond','religion']};
 const fmt=n=>n>=0?'+'+n:String(n);
 function scoreToMod(score) {
   const s = parseInt(score);
