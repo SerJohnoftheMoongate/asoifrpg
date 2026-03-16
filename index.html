@@ -1542,7 +1542,16 @@ function openWeaponModal(prefix, idx){
   const mEl=document.getElementById(`${prefix}_m_${idx}`);
   const aEl=document.getElementById(`${prefix}_a_${idx}`);
   const dEl=document.getElementById(`${prefix}_d_${idx}`);
-  const existingName=wEl?wEl.value.replace('⚔ click to add','').trim():'';
+
+  // Strip damage-type emoji prefix from the stored name
+  const DMG_EMOJIS = {'⚔️':'slashing','🏹':'piercing','🔨':'bludgeoning'};
+  let rawName = wEl ? wEl.value.replace('⚔ click to add','').trim() : '';
+  let existingDmgType = '';
+  for(const [emoji, type] of Object.entries(DMG_EMOJIS)){
+    if(rawName.startsWith(emoji+' ')){ existingDmgType=type; rawName=rawName.slice(emoji.length+1).trim(); break; }
+    if(rawName.startsWith(emoji)){ existingDmgType=type; rawName=rawName.slice(emoji.length).trim(); break; }
+  }
+  const existingName = rawName;
   const existingRange=mEl?mEl.value:'';
   const existingAR=aEl?aEl.value:'';
   const existingDR=dEl?dEl.value:'';
@@ -1558,12 +1567,21 @@ function openWeaponModal(prefix, idx){
  
   const diceHTML=DAMAGE_DICE.map(d=>`
     <div class="wpn-radio${existingDR.startsWith(d)?' selected':''}" data-die="${d}" onclick="selectWpnDie(this)">${d}</div>`).join('');
+
+  const dmgTypeHTML = [
+    {key:'slashing', label:'Slashing', emoji:'⚔️'},
+    {key:'piercing', label:'Piercing', emoji:'🏹'},
+    {key:'bludgeoning', label:'Bludgeoning', emoji:'🔨'},
+  ].map(t=>`<div class="wpn-radio${existingDmgType===t.key?' selected':''}" data-dmgtype="${t.key}" onclick="selectWpnDmgType(this)" style="gap:6px;">${t.emoji} ${t.label}</div>`).join('');
  
   const o=document.createElement('div');o.className='modal-overlay';o.id='wpnModal';
   o.innerHTML=`<div class="modal" style="max-width:640px;padding:32px 48px;text-align:left;">
     <h2 style="font-size:22px;margin-bottom:6px;">⚔ Configure Weapon</h2>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:#888;margin-bottom:20px;">Set the weapon's name, range and combat statistics.</p>
  
+    <span class="wpn-lbl">DAMAGE TYPE</span>
+    <div class="wpn-radio-row" style="margin-bottom:16px;" id="wpn_dmgtype_row">${dmgTypeHTML}</div>
+
     <span class="wpn-lbl">WEAPON NAME</span>
     <input class="wpn-inp" id="wpn_name" type="text" placeholder="e.g. Longsword, Shortbow…" value="${existingName}">
  
@@ -1618,6 +1636,11 @@ function selectWpnDie(el){
   document.querySelectorAll('#wpnModal [data-die]').forEach(e=>e.classList.remove('selected'));
   el.classList.add('selected');
 }
+
+function selectWpnDmgType(el){
+  document.querySelectorAll('#wpnModal [data-dmgtype]').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+}
  
 function recalcWpnAR(){
   const statEl=document.querySelector('#wpnModal [data-stat].selected');
@@ -1639,6 +1662,12 @@ function confirmWeapon(prefix, idx){
   const skillVal=parseInt(document.getElementById('scr_'+stat)?.value)||0;
   const profVal=parseInt(document.getElementById('proficiency')?.value)||0;
  
+  // Damage type emoji prefix
+  const dmgTypeEl=document.querySelector('#wpnModal [data-dmgtype].selected');
+  const dmgTypeEmojis={slashing:'⚔️', piercing:'🏹', bludgeoning:'🔨'};
+  const dmgEmoji=dmgTypeEl?dmgTypeEmojis[dmgTypeEl.dataset.dmgtype]||'':'';
+  const displayName=(dmgEmoji?(dmgEmoji+' '):'')+( name||'Unnamed');
+
   // Custom modifier for AR: default to 0 if left empty
   const customModVal=parseInt(document.getElementById('wpn_custom_mod')?.value)||0;
  
@@ -1654,7 +1683,7 @@ function confirmWeapon(prefix, idx){
   const mEl=document.getElementById(`${prefix}_m_${idx}`);
   const aEl=document.getElementById(`${prefix}_a_${idx}`);
   const dEl=document.getElementById(`${prefix}_d_${idx}`);
-  if(wEl) wEl.value=name||'Unnamed';
+  if(wEl) wEl.value=displayName;
   if(mEl) mEl.value=range;
   if(aEl) aEl.value=arStr;
   if(dEl) dEl.value=drStr;
@@ -3035,7 +3064,7 @@ const SPEC_LEVEL_FEATURES = {
     },
     {
       name: "Kiss of R'hllor",
-      action_type: 'A', recovery: 'LR',
+      action_type: null, recovery: 'LR',
       uses_fn: () => 1,
       desc_fn: () => `Attempt to resurrect a creature that has died within the past 24 hours. Perform 8 hours of continuous prayer over the body, burning precious offerings — R'hllor believes only death can pay for life, so you must burn another being, as innocent or high-status as you can find. This is crucial for the ritual to succeed.\n\nAt the ritual's conclusion, make an Attunement check:\n• DC 15 if they died within 6 hours\n• DC 18 if they died within 12 hours\n• DC 22 if they died within 24 hours\n\nUsable once per long rest.`,
       level_required: 15
@@ -3085,7 +3114,7 @@ const SPEC_LEVEL_FEATURES = {
     },
     {
       name: "The Stranger's Mercy",
-      action_type: 'A', recovery: 'LR',
+      action_type: null, recovery: 'LR',
       uses_fn: () => 1,
       desc_fn: () => `Attempt to resurrect a creature that has died within the past 24 hours. Perform funeral rites for 8 hours, calling upon each of the Seven to intercede with the Stranger. You must have seven witnesses present and sacred items representing each god (worth at least 500 gold total).\n\nAt the ritual's conclusion, make an Attunement check:\n• DC 15 if they died within 6 hours\n• DC 18 if they died within 12 hours\n• DC 22 if they died within 24 hours\n\nUsable once per long rest.`,
       level_required: 15
