@@ -982,6 +982,10 @@ function doRest(type){
     // Reset Hedge Knight daily oath on long rest
     _hedgeKnightOath='';
     saveHedgeKnightOath();
+    // Reset Septon daily aspect on long rest
+    _applyAspectProficiency(''); // removes prof from old aspect skill
+    _septonAspect='';
+    saveSeptonAspect();
     applySpecFeatures();
     save();
   } else {
@@ -1526,6 +1530,8 @@ function load(){
     else { _pendingCultureBonus[ability] = bonus; }
   });
   recalc();
+  // Restore septon aspect proficiency
+  if(_septonAspect) _applyAspectProficiency(_septonAspect);
 }
 // ── WEAPON CONFIGURATION MODAL ──
 const DAMAGE_DICE=['1d4','2d4','1d6','2d6','1d8','1d10','1d12'];
@@ -2154,6 +2160,169 @@ let _hedgeKnightOath='';
 (function(){ try{ _hedgeKnightOath=localStorage.getItem('cs_hk_oath')||''; }catch(e){ _hedgeKnightOath=''; } })();
 function saveHedgeKnightOath(){ try{ localStorage.setItem('cs_hk_oath',_hedgeKnightOath); }catch(e){} }
 
+// ── SEPTON ASPECTS OF THE SEVEN ──
+const SEPTON_ASPECTS = [
+  { key:'father',   name:'⚖ The Father',   skill:'persuasion',
+    desc:'The Father portrays the aspect of justice. You gain advantage on the Persuasion skill.' },
+  { key:'mother',   name:'🕊 The Mother',   skill:'negotiation',
+    desc:'The Mother is a loving and forgiving aspect of the Seven. You gain advantage on the Negotiation skill.' },
+  { key:'warrior',  name:'⚔ The Warrior',  skill:'prowess',
+    desc:'The Warrior protects followers of the Seven from their foes. You gain advantage on the Prowess skill.' },
+  { key:'maiden',   name:'🌸 The Maiden',   skill:'medicine',
+    desc:'The Maiden lends courage to young women and protects their innocence. You gain advantage on the Medicine skill.' },
+  { key:'smith',    name:'🔨 The Smith',    skill:'management',
+    desc:'The Smith is the mender of broken things, who puts the world of men to right. You gain advantage on the Management skill.' },
+  { key:'crone',    name:'🦉 The Crone',    skill:'sense',
+    desc:'The Crone is often prayed to for wisdom and guidance. You gain advantage on the Sense skill.' },
+  { key:'stranger', name:'🌑 The Stranger', skill:'deception',
+    desc:'The Stranger is the outcast, the wanderer from far places, less and more than human, unknown and unknowable. You gain advantage on the Deception skill.' },
+];
+let _septonAspect = '';
+(function(){ try{ _septonAspect = localStorage.getItem('cs_septon_aspect') || ''; } catch(e){ _septonAspect = ''; } })();
+function saveSeptonAspect(){ try{ localStorage.setItem('cs_septon_aspect', _septonAspect); } catch(e){} }
+// Track which skill proficiency was toggled by the current aspect so we can clear it on change
+let _septonAspectProfSkill = '';
+(function(){ try{ _septonAspectProfSkill = localStorage.getItem('cs_septon_aspect_prof') || ''; } catch(e){ _septonAspectProfSkill = ''; } })();
+function saveSeptonAspectProf(){ try{ localStorage.setItem('cs_septon_aspect_prof', _septonAspectProfSkill); } catch(e){} }
+
+function _applyAspectProficiency(aspectKey){
+  // Remove proficiency from the previous aspect's skill
+  if(_septonAspectProfSkill){
+    const prevEl = document.getElementById('chk_' + _septonAspectProfSkill);
+    if(prevEl && prevEl.dataset.byAspect){
+      prevEl.checked = false;
+      delete prevEl.dataset.byAspect;
+    }
+    _septonAspectProfSkill = '';
+    saveSeptonAspectProf();
+  }
+  // Apply proficiency to the new aspect's skill
+  if(aspectKey){
+    const asp = SEPTON_ASPECTS.find(a => a.key === aspectKey);
+    if(asp){
+      const skillEl = document.getElementById('chk_' + asp.skill);
+      if(skillEl){
+        skillEl.checked = true;
+        skillEl.dataset.byAspect = '1';
+        _septonAspectProfSkill = asp.skill;
+        saveSeptonAspectProf();
+      }
+    }
+  }
+  recalc();
+}
+
+function openAspectModal(){
+  const existing = document.getElementById('aspectModal');
+  if(existing) existing.remove();
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'aspectModal';
+  o.innerHTML = `<div class="modal" style="max-width:560px;padding:30px 36px;">
+    <div style="font-family:var(--got);font-size:22px;color:var(--text-gold);letter-spacing:.5px;margin-bottom:6px;">Choose Today's Aspect</div>
+    <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:22px;font-style:italic;">Each day you may choose one aspect of the Seven to guide you through the day. The chosen aspect grants you a skill proficiency advantage until you take a long rest.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;" id="aspect_cards">
+      ${SEPTON_ASPECTS.map(asp => `<div class="aspect-card" data-key="${asp.key}" style="cursor:pointer;border:2px solid ${_septonAspect===asp.key?'var(--gold)':'rgba(180,140,60,.35)'};border-radius:5px;padding:14px 16px;background:${_septonAspect===asp.key?'rgba(120,80,0,.35)':'rgba(20,12,0,.5)'};transition:border .15s,background .15s;">
+        <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--text-gold);margin-bottom:5px;">${asp.name}</div>
+        <div style="font-family:'IM Fell English',serif;font-size:12px;color:#c8b87a;line-height:1.5;">${asp.desc}</div>
+      </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button id="aspect_confirm" class="rest-btn" style="flex:1;">✓ Choose Aspect</button>
+      <button class="rest-btn" style="background:rgba(80,40,0,.4);" onclick="document.getElementById('aspectModal').remove()">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  let _picked = _septonAspect;
+  o.querySelectorAll('.aspect-card').forEach(card => {
+    card.addEventListener('click', () => {
+      _picked = card.dataset.key;
+      o.querySelectorAll('.aspect-card').forEach(c => {
+        const active = c.dataset.key === _picked;
+        c.style.border = `2px solid ${active ? 'var(--gold)' : 'rgba(180,140,60,.35)'}`;
+        c.style.background = active ? 'rgba(120,80,0,.35)' : 'rgba(20,12,0,.5)';
+      });
+    });
+  });
+  o.querySelector('#aspect_confirm').addEventListener('click', () => {
+    if(!_picked){ alert('Please choose an aspect first.'); return; }
+    _septonAspect = _picked;
+    saveSeptonAspect();
+    _applyAspectProficiency(_septonAspect);
+    o.remove();
+    applySpecFeatures();
+  });
+  o.addEventListener('click', e => { if(e.target === o) o.remove(); });
+}
+
+// ── CHILD OF DARKNESS STAT POPUP ──
+function openChildOfDarknessModal(){
+  const existing = document.getElementById('codModal');
+  if(existing) existing.remove();
+  const prof = (LEVEL_TABLE.find(r => r.lvl === _cachedLevel) || {prof:2}).prof;
+  const ac = 14 + prof;
+  const attEl = document.getElementById('attunement_bonus');
+  const attVal = (attEl && attEl.value) ? attEl.value : '—';
+
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'codModal';
+  o.innerHTML = `<div class="modal" style="max-width:560px;padding:32px 44px;text-align:left;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+      <div style="font-size:36px;line-height:1;filter:drop-shadow(0 0 10px #aa44ff);">🌑</div>
+      <div>
+        <div style="font-family:var(--got);font-size:22px;color:var(--text-gold);letter-spacing:.5px;">Child of Darkness</div>
+        <div style="font-family:'IM Fell English',serif;font-size:12px;color:#9966cc;font-style:italic;margin-top:2px;">Translucent shadow of the Red Priest · Magical construct</div>
+      </div>
+    </div>
+    <div style="height:1px;background:linear-gradient(to right,rgba(180,60,255,.6),transparent);margin:12px 0 16px;"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+      <div style="background:rgba(80,0,120,.3);border:1px solid rgba(180,60,255,.4);border-radius:4px;padding:10px;text-align:center;">
+        <div style="font-family:var(--got);font-size:9px;color:#bb88ff;letter-spacing:.6px;margin-bottom:4px;">ARMOUR CLASS</div>
+        <div style="font-family:'Cinzel',serif;font-size:26px;color:#e8c84a;font-weight:700;line-height:1;">${ac}</div>
+        <div style="font-family:'IM Fell English',serif;font-size:10px;color:#9966cc;margin-top:2px;">14 + Proficiency (${prof})</div>
+      </div>
+      <div style="background:rgba(80,0,120,.3);border:1px solid rgba(180,60,255,.4);border-radius:4px;padding:10px;text-align:center;">
+        <div style="font-family:var(--got);font-size:9px;color:#bb88ff;letter-spacing:.6px;margin-bottom:4px;">HIT POINTS</div>
+        <div style="font-family:'Cinzel',serif;font-size:26px;color:#e05050;font-weight:700;line-height:1;">1</div>
+        <div style="font-family:'IM Fell English',serif;font-size:10px;color:#9966cc;margin-top:2px;">Fragile — protect it</div>
+      </div>
+      <div style="background:rgba(80,0,120,.3);border:1px solid rgba(180,60,255,.4);border-radius:4px;padding:10px;text-align:center;">
+        <div style="font-family:var(--got);font-size:9px;color:#bb88ff;letter-spacing:.6px;margin-bottom:4px;">SAVING THROWS</div>
+        <div style="font-family:'Cinzel',serif;font-size:26px;color:var(--text-gold);font-weight:700;line-height:1;">${attVal}</div>
+        <div style="font-family:'IM Fell English',serif;font-size:10px;color:#9966cc;margin-top:2px;">Uses your save bonus</div>
+      </div>
+    </div>
+    <div style="background:rgba(40,0,80,.4);border:1px solid rgba(140,40,200,.3);border-radius:4px;padding:10px 14px;margin-bottom:14px;">
+      <span style="font-family:var(--got);font-size:9px;color:#bb88ff;letter-spacing:.6px;">IMMUNITIES &nbsp;</span>
+      <span style="font-family:'IM Fell English',serif;font-size:13px;color:#cc99ff;">All conditions</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+      <div style="border-left:3px solid rgba(180,60,255,.6);padding-left:12px;">
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text-gold);margin-bottom:3px;">Movement <span style="font-size:10px;color:#9966cc;">(Free · up to 30 ft.)</span></div>
+        <div style="font-family:'IM Fell English',serif;font-size:13px;color:#ccc;line-height:1.5;">On your turn, mentally command the shadow to move up to <strong style="color:#e8c84a;">30 feet</strong> in any direction — no action required. If it ends your turn more than 30 feet from you, it is destroyed.</div>
+      </div>
+      <div style="border-left:3px solid rgba(180,60,255,.6);padding-left:12px;">
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text-gold);margin-bottom:3px;">Swap Places <span style="font-size:10px;color:#9966cc;">(Bonus Action · costs 15 ft. of movement)</span></div>
+        <div style="font-family:'IM Fell English',serif;font-size:13px;color:#ccc;line-height:1.5;">Teleport and magically swap places with your shadow at a cost of 15 feet of your movement, regardless of the distance between the two of you.</div>
+      </div>
+      <div style="border-left:3px solid rgba(180,60,255,.6);padding-left:12px;">
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text-gold);margin-bottom:3px;">Attack Through Shadow <span style="font-size:10px;color:#9966cc;">(When you Attack)</span></div>
+        <div style="font-family:'IM Fell English',serif;font-size:13px;color:#ccc;line-height:1.5;">When you take the Attack action, any attack you make can originate from your space or the shadow's space. You choose for each individual attack.</div>
+      </div>
+      <div style="border-left:3px solid rgba(180,60,255,.6);padding-left:12px;">
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text-gold);margin-bottom:3px;">Child's Grasp <span style="font-size:10px;color:#9966cc;">(Reaction)</span></div>
+        <div style="font-family:'IM Fell English',serif;font-size:13px;color:#ccc;line-height:1.5;">When a creature you can see within 5 feet of your shadow moves at least 5 feet away from it, use your reaction to make an opportunity attack as if you were in the shadow's space.</div>
+      </div>
+    </div>
+    <div style="background:rgba(120,20,20,.35);border:1px solid rgba(200,50,50,.4);border-radius:4px;padding:10px 14px;margin-bottom:18px;">
+      <span style="font-family:var(--got);font-size:9px;color:#ff6666;letter-spacing:.6px;">⚠ IF DESTROYED IN COMBAT &nbsp;</span>
+      <span style="font-family:'IM Fell English',serif;font-size:13px;color:#ff9999;">You take <strong>2d6 cold damage</strong> as the darkness touches your soul. This damage cannot be reduced or prevented.</span>
+    </div>
+    <button onclick="document.getElementById('codModal').remove()" style="width:100%;background:rgba(80,0,120,.4);border-color:rgba(180,60,255,.5);color:#bb88ff;">Close</button>
+  </div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if(e.target === o) o.remove(); });
+}
+
 function openOathModal(){
   const existing=document.getElementById('oathModal');
   if(existing) existing.remove();
@@ -2305,6 +2474,193 @@ const HOME_TURF_ENVIRONMENTS = [
 let _chosenTerrains = [];
 (function(){ try{ _chosenTerrains=JSON.parse(localStorage.getItem('cs_home_turf')||'[]'); }catch(e){ _chosenTerrains=[]; } })();
 function saveChosenTerrains(){ try{ localStorage.setItem('cs_home_turf',JSON.stringify(_chosenTerrains)); }catch(e){} }
+
+// ── GREENSEER: WARG BOND ANIMALS ──
+const WARG_BOND_ANIMALS = [
+  { key:'crow_raven', name:'Crow / Raven', emoji:'🪶' },
+  { key:'red_fox', name:'Red Fox', emoji:'🦊' },
+  { key:'rat', name:'Rat', emoji:'🐀' },
+  { key:'hedgehog', name:'Hedgehog', emoji:'🦔' },
+  { key:'hawk', name:'Hawk', emoji:'🦅' },
+  { key:'barn_owl', name:'Barn Owl', emoji:'🦉' },
+  { key:'stoat_ermine', name:'Stoat / Ermine', emoji:'🐾' },
+  { key:'hare', name:'Hare', emoji:'🐇' },
+  { key:'pine_marten', name:'Pine Marten', emoji:'🐾' },
+  { key:'snake', name:'Snake', emoji:'🐍' },
+  { key:'lynx', name:'Lynx', emoji:'🐈' },
+  { key:'bat', name:'Bat', emoji:'🦇' },
+  { key:'badger', name:'Badger', emoji:'🦡' },
+  { key:'otter', name:'Otter', emoji:'🦦' },
+  { key:'falcon', name:'Falcon', emoji:'🦅' },
+];
+const GREATER_WARG_BOND_ANIMALS = [
+  { key:'direwolf', name:'Direwolf', emoji:'🐺' },
+  { key:'shadowcat', name:'Shadowcat', emoji:'🐆' },
+  { key:'bear', name:'Bear', emoji:'🐻' },
+  { key:'elk_great_elk', name:'Elk / Great Elk', emoji:'🦌' },
+  { key:'boar', name:'Boar', emoji:'🐗' },
+  { key:'giant_eagle', name:'Giant Eagle', emoji:'🦅' },
+  { key:'auroch', name:'Auroch', emoji:'🐃' },
+  { key:'snow_bear', name:'Snow Bear', emoji:'🐻‍❄️' },
+  { key:'lion', name:'Lion', emoji:'🦁' },
+  { key:'stag', name:'Stag', emoji:'🦌' },
+  { key:'horse', name:'Horse', emoji:'🐴' },
+  { key:'lizard_lion', name:'Lizard Lion', emoji:'🐊' },
+  { key:'shadowlynx', name:'Shadowlynx', emoji:'🐈' },
+  { key:'cave_bear', name:'Cave Bear', emoji:'🐻' },
+  { key:'gray_wolf', name:'Gray Wolf', emoji:'🐺' },
+];
+let _wargBondAnimals = [];
+(function(){ try{ _wargBondAnimals = JSON.parse(localStorage.getItem('cs_warg_bond')||'[]'); }catch(e){ _wargBondAnimals=[]; } })();
+function saveWargBondAnimals(){ try{ localStorage.setItem('cs_warg_bond', JSON.stringify(_wargBondAnimals)); }catch(e){} }
+let _greaterWargBondAnimals = [];
+(function(){ try{ _greaterWargBondAnimals = JSON.parse(localStorage.getItem('cs_greater_warg_bond')||'[]'); }catch(e){ _greaterWargBondAnimals=[]; } })();
+function saveGreaterWargBondAnimals(){ try{ localStorage.setItem('cs_greater_warg_bond', JSON.stringify(_greaterWargBondAnimals)); }catch(e){} }
+
+function openWargBondModal(){
+  const existing=document.getElementById('wargBondModal'); if(existing) existing.remove();
+  const maxPicks = 1;
+  const knownKeys = WARG_BOND_ANIMALS.map(a=>a.key);
+  // Separate list picks from any custom entry
+  let _picked = _wargBondAnimals.filter(k=>knownKeys.includes(k)).slice(0,maxPicks);
+  let _customText = _wargBondAnimals.find(k=>!knownKeys.includes(k)) || '';
+  const o=document.createElement('div'); o.className='modal-overlay'; o.id='wargBondModal';
+  function isCustomActive(){ return _picked.length===0 && _customText.trim()!==''; }
+  function cardBorder(key){ return _picked.includes(key)?'var(--gold)':'rgba(100,160,80,.35)'; }
+  function cardBg(key){ return _picked.includes(key)?'rgba(0,60,20,.55)':'rgba(5,20,5,.5)'; }
+  o.innerHTML=`<div class="modal" style="max-width:520px;padding:28px 32px;">
+    <div style="font-family:var(--got);font-size:17px;color:#8ecf6a;margin-bottom:6px;text-shadow:0 0 10px rgba(80,200,60,.4);">🐾 Warg Bond — Small Animals</div>
+    <div style="color:#b0c890;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:18px;font-style:italic;">Choose one small animal to bond with through the gift of the Old Gods.</div>
+    <div id="wb_cards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">${WARG_BOND_ANIMALS.map(a=>`<div class="wb-card" data-key="${a.key}" style="cursor:pointer;border:2px solid ${cardBorder(a.key)};border-radius:5px;padding:10px 14px;background:${cardBg(a.key)};transition:border .15s,background .15s;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">${a.emoji}</span><span style="font-family:'Cinzel',serif;font-size:12px;color:#d4e8a0;">${a.name}</span>${_picked.includes(a.key)?'<span style="margin-left:auto;color:#8ecf6a;font-size:14px;">✓</span>':''}</div>`).join('')}
+    <div id="wb_custom_tile" style="grid-column:span 2;border:2px solid rgba(100,160,80,.35);border-radius:5px;padding:10px 14px;background:rgba(5,20,5,.5);display:flex;align-items:center;gap:10px;transition:border .15s,background .15s;">
+      <span style="font-size:20px;">✏️</span>
+      <span style="font-family:'Cinzel',serif;font-size:11px;color:#8aaa70;flex-shrink:0;">Other:</span>
+      <input id="wb_custom_input" type="text" placeholder="Type a custom animal name…" value="${_customText}" style="flex:1;background:transparent;border:none;border-bottom:1px solid rgba(100,160,80,.4);color:#d4e8a0;font-family:'IM Fell English',serif;font-size:13px;outline:none;padding:2px 0;">
+      <span id="wb_custom_chk" style="color:#8ecf6a;font-size:14px;display:${isCustomActive()?'inline':'none'};">✓</span>
+    </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button id="wb_confirm" class="rest-btn" style="flex:1;background:rgba(0,80,20,.5);border-color:rgba(80,200,60,.6);color:#8ecf6a;">✓ Confirm Bond</button>
+      <button class="rest-btn" style="background:rgba(80,40,0,.4);" onclick="document.getElementById('wargBondModal').remove()">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  function refreshCards(){
+    o.querySelectorAll('.wb-card').forEach(card=>{
+      const key=card.dataset.key;
+      card.style.border=`2px solid ${cardBorder(key)}`; card.style.background=cardBg(key);
+      const chk=card.querySelector('span[style*="8ecf6a"]');
+      if(_picked.includes(key)){ if(!chk){ const s=document.createElement('span'); s.style.cssText='margin-left:auto;color:#8ecf6a;font-size:14px;'; s.textContent='✓'; card.appendChild(s); } }
+      else { if(chk) chk.remove(); }
+    });
+    const cust=o.querySelector('#wb_custom_tile');
+    const custChk=o.querySelector('#wb_custom_chk');
+    const active=isCustomActive();
+    cust.style.border=`2px solid ${active?'var(--gold)':'rgba(100,160,80,.35)'}`;
+    cust.style.background=active?'rgba(0,60,20,.55)':'rgba(5,20,5,.5)';
+    if(custChk) custChk.style.display=active?'inline':'none';
+  }
+  o.querySelectorAll('.wb-card').forEach(card=>{
+    card.addEventListener('click',()=>{
+      const key=card.dataset.key; const idx=_picked.indexOf(key);
+      if(idx>=0){ _picked.splice(idx,1); } else { _picked=[key]; }
+      refreshCards();
+    });
+  });
+  const custInput=o.querySelector('#wb_custom_input');
+  custInput.addEventListener('input',()=>{ _customText=custInput.value; refreshCards(); });
+  custInput.addEventListener('click',e=>e.stopPropagation());
+  o.querySelector('#wb_custom_tile').addEventListener('click',()=>{
+    if(_customText.trim()){ _picked=[]; refreshCards(); }
+  });
+  o.querySelector('#wb_confirm').addEventListener('click',()=>{
+    let final=_picked.slice();
+    if(final.length===0 && _customText.trim()){ final=[_customText.trim()]; }
+    if(final.length===0){ alert('Please choose or type a bonded animal.'); return; }
+    _wargBondAnimals=final; saveWargBondAnimals(); o.remove(); applySpecFeatures();
+  });
+  o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
+}
+
+function openGreaterWargBondModal(){
+  const existing=document.getElementById('greaterWargModal'); if(existing) existing.remove();
+  const maxPicks = 2;
+  const knownKeys = GREATER_WARG_BOND_ANIMALS.map(a=>a.key);
+  // Separate list picks from any custom entry
+  let _picked = _greaterWargBondAnimals.filter(k=>knownKeys.includes(k)).slice(0,maxPicks);
+  let _customText = _greaterWargBondAnimals.find(k=>!knownKeys.includes(k)) || '';
+  const o=document.createElement('div'); o.className='modal-overlay'; o.id='greaterWargModal';
+  function totalCount(){ return _picked.length + (_customText.trim()&&!_picked.some(k=>!knownKeys.includes(k))?1:0); }
+  function isCustomActive(){ return _customText.trim()!=='' && !_picked.includes(_customText.trim()); }
+  // custom is "active" (selected) when there's text and it's not a list key — shown as extra slot
+  function customSelected(){ return _greaterWargBondAnimals.some(k=>!knownKeys.includes(k)) && _customText===(_greaterWargBondAnimals.find(k=>!knownKeys.includes(k))||''); }
+  let _customActive = _greaterWargBondAnimals.some(k=>!knownKeys.includes(k));
+  function cardBorder(key){ return _picked.includes(key)?'var(--gold)':'rgba(100,160,80,.35)'; }
+  function cardBg(key){ return _picked.includes(key)?'rgba(0,60,20,.55)':'rgba(5,20,5,.5)'; }
+  o.innerHTML=`<div class="modal" style="max-width:560px;padding:28px 32px;">
+    <div style="font-family:var(--got);font-size:17px;color:#8ecf6a;margin-bottom:6px;text-shadow:0 0 10px rgba(80,200,60,.4);">🐺 Greater Warg Bond — Large Beasts</div>
+    <div style="color:#b0c890;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:4px;font-style:italic;">Choose up to 2 large beasts to bond with. The Old Gods grant dominion over greater creatures.</div>
+    <div style="color:#6a8a40;font-size:11px;font-family:'IM Fell English',serif;margin-bottom:16px;font-style:italic;">(Second bonded animal unlocks with Greater Warg Bond at Lvl 10)</div>
+    <div id="gwb_cards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">${GREATER_WARG_BOND_ANIMALS.map(a=>`<div class="gwb-card" data-key="${a.key}" style="cursor:pointer;border:2px solid ${cardBorder(a.key)};border-radius:5px;padding:10px 14px;background:${cardBg(a.key)};transition:border .15s,background .15s;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">${a.emoji}</span><span style="font-family:'Cinzel',serif;font-size:12px;color:#d4e8a0;">${a.name}</span>${_picked.includes(a.key)?'<span style="margin-left:auto;color:#8ecf6a;font-size:14px;">✓</span>':''}</div>`).join('')}
+    <div id="gwb_custom_tile" style="grid-column:span 2;border:2px solid ${_customActive?'var(--gold)':'rgba(100,160,80,.35)'};border-radius:5px;padding:10px 14px;background:${_customActive?'rgba(0,60,20,.55)':'rgba(5,20,5,.5)'};display:flex;align-items:center;gap:10px;transition:border .15s,background .15s;">
+      <span style="font-size:20px;">✏️</span>
+      <span style="font-family:'Cinzel',serif;font-size:11px;color:#8aaa70;flex-shrink:0;">Other:</span>
+      <input id="gwb_custom_input" type="text" placeholder="Type a custom beast name…" value="${_customText}" style="flex:1;background:transparent;border:none;border-bottom:1px solid rgba(100,160,80,.4);color:#d4e8a0;font-family:'IM Fell English',serif;font-size:13px;outline:none;padding:2px 0;">
+      <span id="gwb_custom_chk" style="color:#8ecf6a;font-size:14px;display:${_customActive?'inline':'none'};">✓</span>
+    </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button id="gwb_confirm" class="rest-btn" style="flex:1;background:rgba(0,80,20,.5);border-color:rgba(80,200,60,.6);color:#8ecf6a;">✓ Confirm Bond</button>
+      <button class="rest-btn" style="background:rgba(80,40,0,.4);" onclick="document.getElementById('greaterWargModal').remove()">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  function refreshCards(){
+    o.querySelectorAll('.gwb-card').forEach(card=>{
+      const key=card.dataset.key;
+      card.style.border=`2px solid ${cardBorder(key)}`; card.style.background=cardBg(key);
+      const chk=card.querySelector('span[style*="8ecf6a"]');
+      if(_picked.includes(key)){ if(!chk){ const s=document.createElement('span'); s.style.cssText='margin-left:auto;color:#8ecf6a;font-size:14px;'; s.textContent='✓'; card.appendChild(s); } }
+      else { if(chk) chk.remove(); }
+    });
+    const custTile=o.querySelector('#gwb_custom_tile');
+    const custChk=o.querySelector('#gwb_custom_chk');
+    custTile.style.border=`2px solid ${_customActive?'var(--gold)':'rgba(100,160,80,.35)'}`;
+    custTile.style.background=_customActive?'rgba(0,60,20,.55)':'rgba(5,20,5,.5)';
+    if(custChk) custChk.style.display=_customActive?'inline':'none';
+  }
+  o.querySelectorAll('.gwb-card').forEach(card=>{
+    card.addEventListener('click',()=>{
+      const key=card.dataset.key; const idx=_picked.indexOf(key);
+      const listCount = _picked.length;
+      const hasCustomSlot = _customActive ? 1 : 0;
+      if(idx>=0){ _picked.splice(idx,1); }
+      else if(listCount + hasCustomSlot < maxPicks){ _picked.push(key); }
+      refreshCards();
+    });
+  });
+  const custInput=o.querySelector('#gwb_custom_input');
+  custInput.addEventListener('input',()=>{
+    _customText=custInput.value;
+    // auto-activate when there's text and there's a slot available
+    if(_customText.trim()){ _customActive=true; } else { _customActive=false; }
+    refreshCards();
+  });
+  custInput.addEventListener('click',e=>e.stopPropagation());
+  o.querySelector('#gwb_custom_tile').addEventListener('click',()=>{
+    if(_customText.trim()){
+      _customActive=!_customActive;
+      refreshCards();
+    }
+  });
+  o.querySelector('#gwb_confirm').addEventListener('click',()=>{
+    let final=_picked.slice();
+    if(_customActive && _customText.trim() && final.length < maxPicks){ final.push(_customText.trim()); }
+    if(final.length===0){ alert('Please choose at least one bonded beast.'); return; }
+    _greaterWargBondAnimals=final; saveGreaterWargBondAnimals(); o.remove(); applySpecFeatures();
+  });
+  o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
+}
 
 function openHomeTurfModal(){
   const existing=document.getElementById('htModal');
@@ -2628,6 +2984,113 @@ const SPEC_LEVEL_FEATURES = {
       level_required: 15
     }
   ]
+  ,'Red Priest': [
+    {
+      name: 'A Flame in the Night',
+      action_type: 'BA', recovery: 'LR',
+      uses_fn: (lvl) => {
+        const attEl = document.getElementById('attunement_bonus');
+        const att = Math.max(0, parseInt((attEl||{}).value) || 0);
+        return 1 + att;
+      },
+      desc_fn: (lvl) => {
+        const attEl = document.getElementById('attunement_bonus');
+        const att = Math.max(0, parseInt((attEl||{}).value) || 0);
+        const uses = 1 + att;
+        return `You can light torches and bonfires simply by touching burning material with your hands — bringing light to darkness, or impressing the rural townsfolk.\n\nUse a Bonus Action to activate. Usable ${uses} time${uses!==1?'s':''} per day (1 + your Attunement modifier).`;
+      },
+      level_required: 1
+    },
+    {
+      name: "The Pink Priest's Boon",
+      action_type: 'A', recovery: null,
+      uses_fn: () => 0,
+      desc_fn: () => `Sacrifice 1 HP and take an Action to light your weapon — or someone else's — on fire for 1 minute.\n\nWhile ablaze, each attack with that weapon deals an additional 1d6 fire damage. On a hit, the target must succeed on a Martial saving throw or be frightened for their next turn.`,
+      level_required: 3
+    },
+    {
+      name: 'The Guile of Glamour',
+      action_type: 'A', recovery: 'LR',
+      uses_fn: (lvl) => {
+        const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
+        return Math.max(1, Math.floor(prof / 2));
+      },
+      desc_fn: (lvl) => {
+        const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
+        const uses = Math.max(1, Math.floor(prof / 2));
+        return `Use an Action to weave a glamour around yourself (often channeled through a gemstone or crystal). Lasts 1 hour or until dismissed.\n\nWhile glamoured:\n• Alter your physical appearance, face and hair (clothing unchanged)\n• Creatures interacting with you must succeed an Attunement saving throw vs. your DC (10 + Proficiency + Attunement). On failure they regard you as a friendly acquaintance, have disadvantage on Deception rolls to see through your disguise, and are inclined to believe and follow reasonable requests.\n\nUsable ${uses} time${uses!==1?'s':''} per day (half Proficiency rounded down).`;
+      },
+      level_required: 7
+    },
+    {
+      name: 'Child of Darkness',
+      action_type: null, recovery: 'LR',
+      uses_fn: () => 1,
+      special: 'child_of_darkness',
+      desc_fn: (lvl) => {
+        const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
+        return `After performing a ritual (burning a human being), manifest a Child of Darkness — a translucent shadow silhouette of yourself — in an unoccupied space within 15 feet.\n\nAC ${14 + prof} | 1 HP | Immune to all conditions | Uses your saving throw bonus.\n\n• Move it up to 30 ft. on your turn (free)\n• Swap places with it (Bonus Action, costs 15 ft. of movement)\n• Make attacks originating from its space\n• Reaction opportunity attack when a creature moves 5+ ft. away from it\n\nIf destroyed in combat: you take 2d6 cold damage (unpreventable). Destroyed if more than 30 ft. from you at end of turn.`;
+      },
+      level_required: 10
+    },
+    {
+      name: "Kiss of R'hllor",
+      action_type: 'A', recovery: 'LR',
+      uses_fn: () => 1,
+      desc_fn: () => `Attempt to resurrect a creature that has died within the past 24 hours. Perform 8 hours of continuous prayer over the body, burning precious offerings — R'hllor believes only death can pay for life, so you must burn another being, as innocent or high-status as you can find. This is crucial for the ritual to succeed.\n\nAt the ritual's conclusion, make an Attunement check:\n• DC 15 if they died within 6 hours\n• DC 18 if they died within 12 hours\n• DC 22 if they died within 24 hours\n\nUsable once per long rest.`,
+      level_required: 15
+    }
+  ]
+  ,'Septon': [
+    {
+      name: 'Aspect of the Septon',
+      action_type: null, recovery: 'LR',
+      uses_fn: () => 1,
+      special: 'aspect_picker',
+      desc_fn: (lvl) => {
+        const asp = SEPTON_ASPECTS.find(a => a.key === _septonAspect);
+        if(asp) return `Today's aspect: ${asp.name}.\n\n${asp.desc}\n\nThe chosen aspect grants proficiency (advantage) on the associated skill for the day. Resets on long rest.`;
+        return `Each day, choose one of the Seven Aspects to guide you:\n\n⚖ The Father — advantage on Persuasion\n🕊 The Mother — advantage on Negotiation\n⚔ The Warrior — advantage on Prowess\n🌸 The Maiden — advantage on Medicine\n🔨 The Smith — advantage on Management\n🦉 The Crone — advantage on Sense\n🌑 The Stranger — advantage on Deception`;
+      },
+      level_required: 1
+    },
+    {
+      name: "A Father's Face",
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      desc_fn: () => `Spending time traveling from town to town has gained you the benefit of a face who is trusted. When spending a long rest in a settlement, you can choose to learn one of the following:\n\n• A local rumour\n• A piece of history about the location\n• A local folklore story\n• A local song\n• Or something specific you can discuss with the GM`,
+      level_required: 3
+    },
+    {
+      name: 'A Vessel for the Warrior',
+      action_type: 'BA', recovery: null,
+      uses_fn: (lvl) => {
+        const attEl = document.getElementById('attunement_bonus');
+        const att = Math.max(1, parseInt((attEl||{}).value) || 1);
+        return att;
+      },
+      desc_fn: (lvl) => {
+        const attEl = document.getElementById('attunement_bonus');
+        const att = Math.max(1, parseInt((attEl||{}).value) || 1);
+        return `Use a Bonus Action to invoke the spirit of the Warrior in one of your allies for one turn. When an enemy attempts to attack that ally, it must make an Attunement saving throw against your save DC (10 + Proficiency + Attunement modifier). When it fails, it misses its attack.\n\nUsable ${att} time${att>1?'s':''} per day (equal to your Attunement modifier).`;
+      },
+      level_required: 7
+    },
+    {
+      name: 'A Chronicle for the Crone',
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      desc_fn: () => `You gain proficiency in calligrapher's tools and leatherworker's tools.\n\nSpend 10 hours writing a novella about a person, house, or story of your choice. Decide the subject, tone (heroic epic, scandalous exposé, tragic tale, etc.), and whether it's based on truth or fiction.\n\nSpreading the story can cause the following effects:\n• Scandalous Tale = −5 Reputation\n• Heroic Tale = +5 Reputation\n\nRoll a d6 to determine distribution pace (months). Then make a Performance check:\n• 10 or below: Mediocre — rep change reduced to ±2, takes double months\n• 11–15: Competent — full ±5 effect in normal time\n• 16–20: Exceptional — full ±5 in half the rolled months\n• 21+: Masterpiece — ±6 rep change, spreads in half the rolled months, remembered for years`,
+      level_required: 10
+    },
+    {
+      name: "The Stranger's Mercy",
+      action_type: 'A', recovery: 'LR',
+      uses_fn: () => 1,
+      desc_fn: () => `Attempt to resurrect a creature that has died within the past 24 hours. Perform funeral rites for 8 hours, calling upon each of the Seven to intercede with the Stranger. You must have seven witnesses present and sacred items representing each god (worth at least 500 gold total).\n\nAt the ritual's conclusion, make an Attunement check:\n• DC 15 if they died within 6 hours\n• DC 18 if they died within 12 hours\n• DC 22 if they died within 24 hours\n\nUsable once per long rest.`,
+      level_required: 15
+    }
+  ]
   ,'Martial Archer': [
     {
       name: 'Unlimited Supply',
@@ -2662,6 +3125,65 @@ const SPEC_LEVEL_FEATURES = {
       action_type: null, recovery: null,
       uses_fn: () => 0,
       desc_fn: () => `Your ranged attacks score a critical hit on an attack roll of 18–20.`,
+      level_required: 15
+    }
+  ]
+  ,'Greenseer': [
+    {
+      name: 'Laws of Hospitality',
+      action_type: null, recovery: 'LR',
+      uses_fn: (lvl) => lvl >= 6 ? 2 : 1,
+      desc_fn: (lvl) => {
+        const uses = lvl >= 6 ? 'twice' : 'once';
+        const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
+        const attEl = document.getElementById('attunement_bonus');
+        const att = Math.max(0, parseInt((attEl||{}).value) || 0);
+        const dc = 10 + prof + att;
+        return `You can invoke the ancient Laws of Hospitality with a Persuasion combat roll (advantage). Must be used outside of combat.\n\nOn success, share bread and salt with another person (1 minute ritual). Both are bound by guest right for 24 hours or until one leaves the location. While bound, neither party can deliberately harm the other.\n\nIf either party attempts to break guest right, they must succeed on an Attunement saving throw (DC ${dc}) or be unable to complete the action. Those who break guest right are cursed by the Old Gods.\n\nUsable ${uses} per long rest${lvl < 6 ? ' (twice at Lvl 6)' : ''}.`;
+      },
+      level_required: 1
+    },
+    {
+      name: 'Warg Bond',
+      action_type: 'A', recovery: null,
+      uses_fn: () => 0,
+      special: 'warg_bond_small',
+      desc_fn: (lvl) => {
+        const animal = _wargBondAnimals[0] ? (WARG_BOND_ANIMALS.find(a=>a.key===_wargBondAnimals[0])||{name:_wargBondAnimals[0]}).name : 'no animal bonded yet';
+        const hp = lvl * 3;
+        return `The Old Gods grant you the ability to bond with a small animal companion. Bonded animal: ${animal}.\n\nYour bonded animal obeys your commands and acts on your initiative — taking the Dodge action unless commanded otherwise.\n\nAs an Action, enter a trance and warg into your bonded animal, seeing and hearing through its senses (range: half a mile). While warging you are blind and deaf to your surroundings and your body is vulnerable. End the warg as a Bonus Action.\n\nIf your familiar takes damage while warging: Attunement save (DC = 10 or half the damage, whichever is higher) or be ejected — take 1d6 psychic damage, stunned until end of next turn. If your familiar dies while you are warging, you take 2d10 psychic damage and fall unconscious for 1d4 hours.\n\nFamiliar HP: ${hp} (level × 3).`;
+      },
+      level_required: 3
+    },
+    {
+      name: 'The Weirwood Network',
+      action_type: null, recovery: 'LR',
+      uses_fn: () => 1,
+      desc_fn: () => `The Weirwoods serve as a network of vision, used by the Children of the Forest since ancient times.\n\nOnce per long rest, spend 1 hour looking and listening through your established network of Weirwoods. You can only see and hear through Weirwoods you have personally seen and touched. You must be touching a Weirwood at the moment of use.\n\nWhile connected, your body is blind and vulnerable — though you can still hear from your body's location. You may freely shift your focus between any of your known Weirwoods during the hour.`,
+      level_required: 7
+    },
+    {
+      name: 'Greater Warg Bond',
+      action_type: 'BA', recovery: null,
+      uses_fn: () => 0,
+      special: 'warg_bond_large',
+      desc_fn: (lvl) => {
+        const bonded = _greaterWargBondAnimals.map(k => (GREATER_WARG_BOND_ANIMALS.find(a=>a.key===k)||{name:k}).name);
+        const bondedStr = bonded.length ? bonded.join(', ') : 'no beast bonded yet';
+        return `Your warging abilities have grown significantly. You can now bond with large, powerful beasts. Bonded beasts: ${bondedStr}.\n\nYou may have up to 2 bonded animals simultaneously. While warging, you use your own attack bonus and add your proficiency bonus to the beast's damage rolls. Range increases to 1 mile.\n\nAdditional mastery:\n• Warg as a Bonus Action instead of an Action\n• Advantage on Attunement saves to resist ejection when your familiar takes damage`;
+      },
+      level_required: 10
+    },
+    {
+      name: 'Cold Hands',
+      action_type: null, recovery: 'LR',
+      uses_fn: () => 1,
+      desc_fn: (lvl) => {
+        const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
+        const attEl = document.getElementById('attunement_bonus');
+        const att = Math.max(0, parseInt((attEl||{}).value) || 0);
+        return `The Old Gods remember all who die beneath the weirwoods. Through ancient power, a greenseer may call a spirit back from the roots.\n\nAttempt to resurrect a creature that has died within the past 24 hours. Bring their body to a weirwood heart tree and perform an 8-hour ritual, communing with the Old Gods through the roots. Spill your own blood on the roots (2d10 damage, of which 1d10 permanently reduces your maximum HP).\n\nAt the ritual's conclusion, make an Attunement check:\n• DC 15 if they died within 6 hours\n• DC 18 if they died within 12 hours\n• DC 22 if they died within 24 hours\n\nUsable once per long rest.`;
+      },
       level_required: 15
     }
   ]
@@ -2702,10 +3224,18 @@ function _applyFeatureToSlot(slot, f){
       if(oldOathBtn) oldOathBtn.remove();
       const oldMpBtn = block.querySelector('.mnvr-pick-btn');
       if(oldMpBtn) oldMpBtn.remove();
+      const oldAspBtn = block.querySelector('.asp-pick-btn');
+      if(oldAspBtn) oldAspBtn.remove();
+      const oldCodBtn = block.querySelector('.cod-popup-btn');
+      if(oldCodBtn) oldCodBtn.remove();
       const oldFsBtn = block.querySelector('.fs-pick-btn');
       if(oldFsBtn) oldFsBtn.remove();
       const oldHtBtn = block.querySelector('.ht-pick-btn');
       if(oldHtBtn) oldHtBtn.remove();
+      const oldWbSmBtn = block.querySelector('.wb-small-btn');
+      if(oldWbSmBtn) oldWbSmBtn.remove();
+      const oldWbLgBtn = block.querySelector('.wb-large-btn');
+      if(oldWbLgBtn) oldWbLgBtn.remove();
     }
     return;
   }
@@ -2746,8 +3276,35 @@ function _applyFeatureToSlot(slot, f){
           : 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(140,0,0,.55);border-color:rgba(220,40,40,.7);color:#ffaaaa;';
         oathBtn.onclick = openOathModal;
       } else if(oathBtn){ oathBtn.remove(); }
-      let fsBtn = block.querySelector('.fs-pick-btn');
-      if(f.special && f.special.startsWith('fs_')){
+      // Aspect picker button for Septon's Aspect of the Septon
+      let aspBtn = block.querySelector('.asp-pick-btn');
+      if(f.special === 'aspect_picker'){
+        if(!aspBtn){
+          aspBtn = document.createElement('button');
+          aspBtn.className = 'asp-pick-btn rest-btn';
+          aspBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;';
+          block.appendChild(aspBtn);
+        }
+        const chosenAsp = SEPTON_ASPECTS.find(a => a.key === _septonAspect);
+        aspBtn.textContent = chosenAsp ? `Today's Aspect: ${chosenAsp.name}` : 'Choose Today\'s Aspect…';
+        aspBtn.style.cssText = chosenAsp
+          ? 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(0,80,100,.55);border-color:rgba(0,160,200,.6);color:#aaeeff;'
+          : 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(140,0,0,.55);border-color:rgba(220,40,40,.7);color:#ffaaaa;';
+        aspBtn.onclick = openAspectModal;
+      } else if(aspBtn){ aspBtn.remove(); }
+      // Child of Darkness stat popup button
+      let codBtn = block.querySelector('.cod-popup-btn');
+      if(f.special === 'child_of_darkness'){
+        if(!codBtn){
+          codBtn = document.createElement('button');
+          codBtn.className = 'cod-popup-btn rest-btn';
+          codBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(80,0,120,.45);border-color:rgba(180,60,255,.5);color:#cc99ff;';
+          block.appendChild(codBtn);
+        }
+        codBtn.textContent = '🌑 View Child of Darkness Stats';
+        codBtn.onclick = openChildOfDarknessModal;
+      } else if(codBtn){ codBtn.remove(); }
+      let fsBtn = block.querySelector('.fs-pick-btn');      if(f.special && f.special.startsWith('fs_')){
         if(!fsBtn){
           fsBtn = document.createElement('button');
           fsBtn.className = 'fs-pick-btn rest-btn';
@@ -2776,6 +3333,40 @@ function _applyFeatureToSlot(slot, f){
         htBtn.onclick = openHomeTurfModal;
         htBtn.style.pointerEvents = 'auto'; htBtn.style.cursor = 'pointer';
       } else if(htBtn){ htBtn.remove(); }
+      // Warg Bond animal picker (small animals)
+      let wbSmBtn = block.querySelector('.wb-small-btn');
+      if(f.special === 'warg_bond_small'){
+        if(!wbSmBtn){
+          wbSmBtn = document.createElement('button');
+          wbSmBtn.className = 'wb-small-btn rest-btn';
+          wbSmBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(0,60,20,.45);border-color:rgba(80,180,60,.5);color:#8ecf6a;';
+          block.appendChild(wbSmBtn);
+        }
+        const bonded = _wargBondAnimals[0] ? (WARG_BOND_ANIMALS.find(a=>a.key===_wargBondAnimals[0])||{name:_wargBondAnimals[0]}).name : null;
+        wbSmBtn.textContent = bonded ? `🐾 Bonded: ${bonded} (change)` : '🐾 Choose Bonded Animal…';
+        wbSmBtn.style.cssText = bonded
+          ? 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(0,80,20,.55);border-color:rgba(80,200,60,.6);color:#8ecf6a;'
+          : 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(80,40,0,.4);border-color:rgba(220,40,40,.7);color:#ffaaaa;';
+        wbSmBtn.onclick = openWargBondModal;
+        wbSmBtn.style.pointerEvents = 'auto'; wbSmBtn.style.cursor = 'pointer';
+      } else if(wbSmBtn){ wbSmBtn.remove(); }
+      // Greater Warg Bond animal picker (large beasts)
+      let wbLgBtn = block.querySelector('.wb-large-btn');
+      if(f.special === 'warg_bond_large'){
+        if(!wbLgBtn){
+          wbLgBtn = document.createElement('button');
+          wbLgBtn.className = 'wb-large-btn rest-btn';
+          wbLgBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;';
+          block.appendChild(wbLgBtn);
+        }
+        const bonded = _greaterWargBondAnimals.map(k=>(GREATER_WARG_BOND_ANIMALS.find(a=>a.key===k)||{name:k}).name);
+        wbLgBtn.textContent = bonded.length ? `🐺 Bonded: ${bonded.join(', ')} (change)` : '🐺 Choose Bonded Beasts…';
+        wbLgBtn.style.cssText = bonded.length
+          ? 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(0,80,20,.55);border-color:rgba(80,200,60,.6);color:#8ecf6a;'
+          : 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(80,40,0,.4);border-color:rgba(220,40,40,.7);color:#ffaaaa;';
+        wbLgBtn.onclick = openGreaterWargBondModal;
+        wbLgBtn.style.pointerEvents = 'auto'; wbLgBtn.style.cursor = 'pointer';
+      } else if(wbLgBtn){ wbLgBtn.remove(); }
     }
     if(aBtn)  aBtn.classList.remove('active');
     if(baBtn) baBtn.classList.remove('active');
@@ -2814,6 +3405,9 @@ function _applyFeatureToSlot(slot, f){
     [aBtn,baBtn,srBtn,lrBtn].forEach(b=>{ if(b) b.classList.remove('active'); });
     const oldFsBtn2=block?block.querySelector('.fs-pick-btn'):null; if(oldFsBtn2) oldFsBtn2.remove();
     const oldHtBtn2=block?block.querySelector('.ht-pick-btn'):null; if(oldHtBtn2) oldHtBtn2.remove();
+    const oldCodBtn2=block?block.querySelector('.cod-popup-btn'):null; if(oldCodBtn2) oldCodBtn2.remove();
+    const oldWbSmBtn2=block?block.querySelector('.wb-small-btn'):null; if(oldWbSmBtn2) oldWbSmBtn2.remove();
+    const oldWbLgBtn2=block?block.querySelector('.wb-large-btn'):null; if(oldWbLgBtn2) oldWbLgBtn2.remove();
     for(let d=0;d<6;d++){
       const dot=document.getElementById(slot.dotPfx+'_'+d);
       if(dot){ dot.style.display='none'; dot.checked=false; }
