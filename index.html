@@ -1005,7 +1005,7 @@ function doRest(type){
   const title=isShort?'⚔ Short Rest':'🌙 Long Rest';
   const quote=isShort
     ?`<em>"Sleep is good. And books are better."</em><br><span style="font-size:13px;opacity:.85">~ Tyrion Lannister</span>`
-    :`<em>"I think mothers and fathers made up the Gods because they wanted their children to sleep through the night."</em><br><span style="font-size:13px;opacity:.85">— Davos Seaworth</span>`;
+    :`<em>"I think mothers and fathers made up the Gods because they wanted their children to sleep through the night."</em><br><span style="font-size:13px;opacity:.85"> Davos Seaworth</span>`;
 
   const srRemaining=MAX_SHORT_RESTS-_shortRestCount;
   const srNote=isShort?`<p style="font-family:var(--got);font-size:9px;color:${srRemaining===0?'#ff4444':'rgba(232,200,74,.5)'};letter-spacing:.5px;margin-bottom:6px;">${srRemaining===0?'⚠ No short rests remaining today':'Short rests remaining today: '+srRemaining}</p>`:'';
@@ -1147,7 +1147,7 @@ const ORIGIN_CULTURES = {
 function updateCultureDropdown(origin) {
   const sel = document.getElementById('culture');
   const cultures = ORIGIN_CULTURES[origin] || [];
-  sel.innerHTML = '<option value="">— Culture —</option>';
+  sel.innerHTML = '<option value=""> Culture </option>';
   cultures.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c; opt.textContent = c;
@@ -1372,7 +1372,7 @@ function updateSpecOptions(showModal){
   const cls=document.getElementById('class_').value;
   const sel=document.getElementById('spec');
   const prev=sel.value;
-  sel.innerHTML='<option value="">— Specialisation —</option>';
+  sel.innerHTML='<option value=""> Specialisation </option>';
   const opts=CLASS_SPECS[cls]||[];
   opts.forEach(s=>{
     const o=document.createElement('option');
@@ -1845,7 +1845,7 @@ async function parseFeatureFile(file){
           body: JSON.stringify({
             model: 'claude-sonnet-4-20250514',
             max_tokens: 600,
-            system: `You are a tabletop RPG rules extractor. Read the uploaded feature card and return ONLY a JSON object — no markdown fences, no preamble — with exactly these fields:
+            system: `You are a tabletop RPG rules extractor. Read the uploaded feature card and return ONLY a JSON object, no markdown fences, no preamble, with exactly these fields:
 {
   "name": "<feature name>",
   "level_required": <integer, the level needed to unlock this feature>,
@@ -1907,7 +1907,7 @@ function openFeaturesModal(){
   o.id = 'featuresModal';
   o.innerHTML = `<div class="modal" style="max-width:680px;padding:30px 46px;text-align:left;">
     <h2 style="font-size:22px;margin-bottom:6px;">&#9733; Specialisation Features</h2>
-    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:#aaa;margin-bottom:22px;">Upload up to 5 feature cards (image or PDF). Claude will extract the details and automatically populate the <em>Additional Features</em> column when you reach the required level — including charges, action cost and rest recovery.</p>
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:#aaa;margin-bottom:22px;">Upload up to 5 feature cards (image or PDF). Claude will extract the details and automatically populate the <em>Additional Features</em> column when you reach the required level, including charges, action cost and rest recovery.</p>
     <div>${slotsHTML}</div>
     <div style="display:flex;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid rgba(139,106,0,.3);">
       <button onclick="applySpecFeatures();document.getElementById('featuresModal').remove();" style="flex:2;">✓ Apply &amp; Close</button>
@@ -1934,7 +1934,7 @@ async function handleFeatureUpload(idx, input){
     openFeaturesModal();
     applySpecFeatures();
   } catch(e) {
-    if(statusEl){ statusEl.className = 'feat-parse-status err'; statusEl.innerHTML = '⚠ Could not parse — try a clearer image'; }
+    if(statusEl){ statusEl.className = 'feat-parse-status err'; statusEl.innerHTML = '⚠ Could not parse, try a clearer image'; }
     console.error('Feature parse error:', e);
   }
 }
@@ -1985,7 +1985,7 @@ const CLASS_LEVEL_FEATURES = {
       name: 'Fighting Style II',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => { const s=FIGHTING_STYLES.find(x=>x.key===(_chosenStyles['warrior_2']||'')); return s?`${s.name}: ${s.desc}`:`At level 9 you adopt a second fighting style specialty — choose one you don't already have.`; },
+      desc_fn: () => { const s=FIGHTING_STYLES.find(x=>x.key===(_chosenStyles['warrior_2']||'')); return s?`${s.name}: ${s.desc}`:`At level 9 you adopt a second fighting style specialty, choose one you don't already have.`; },
       special: 'fs_warrior_2',
       level_required: 9
     },
@@ -2074,7 +2074,7 @@ const CLASS_LEVEL_FEATURES = {
       uses_fn: (lvl) => lvl >= 19 ? 2 : 1,
       desc_fn: (lvl) => {
         const twoAbil = lvl >= 19;
-        return `When you witness someone committing an act your religion considers gravely sinful (murder, oath-breaking, desecration, etc.), pronounce divine judgment upon them. The target makes a combat roll — their Attunement vs. your Attunement + Intimidation modifiers. On your success they suffer disadvantage on all skills related to ${twoAbil ? 'two abilities' : 'one ability'} of your choice for the rest of the day${twoAbil ? ' (second ability choice unlocked at Lvl 19)' : ' (two abilities at Lvl 19)'}.\n\nUsable once per long rest.`;
+        return `When you witness someone committing an act your religion considers gravely sinful (murder, oath-breaking, desecration, etc.), pronounce divine judgment upon them. The target makes a combat roll, their Attunement vs. your Attunement + Intimidation modifiers. On your success they suffer disadvantage on all skills related to ${twoAbil ? 'two abilities' : 'one ability'} of your choice for the rest of the day${twoAbil ? ' (second ability choice unlocked at Lvl 19)' : ' (two abilities at Lvl 19)'}.\n\nUsable once per long rest.`;
       },
       level_required: 2
     },
@@ -2115,7 +2115,7 @@ const CLASS_LEVEL_FEATURES = {
       name: 'Divine Attunement',
       action_type: null, recovery: 'LR',
       uses_fn: () => 1,
-      desc_fn: () => `Once per day, enter a meditative state for 1 hour to receive vague guidance, omens, or warnings from your god. The GM provides cryptic information about dangers, opportunities, or divine will — delivered as visions in flames, whispers in the wind, dreams, or instinctive knowing.`,
+      desc_fn: () => `Once per day, enter a meditative state for 1 hour to receive vague guidance, omens, or warnings from your god. The GM provides cryptic information about dangers, opportunities, or divine will, delivered as visions in flames, whispers in the wind, dreams, or instinctive knowing.`,
       level_required: 9
     },
   ]
@@ -2127,11 +2127,11 @@ const MANEUVERS = [
   { name:'Ambush', action_type:null,
     desc:'When you make a Dexterity check or an initiative roll, you can expend one Valor die and add the die to the roll, provided you aren\'t incapacitated.' },
   { name:'Bait and Switch', action_type:null,
-    desc:'When within 5 feet of a willing creature on your turn, expend one Valor die and switch places with it (costs at least 5 feet of movement, no opportunity attacks). Roll the Valor die — you or the other creature gains that number as a bonus to AC until the start of your next turn.' },
+    desc:'When within 5 feet of a willing creature on your turn, expend one Valor die and switch places with it (costs at least 5 feet of movement, no opportunity attacks). Roll the Valor die, you or the other creature gains that number as a bonus to AC until the start of your next turn.' },
   { name:'Brace', action_type:null,
     desc:'Reaction: When a creature you can see moves into your melee reach, expend one Valor die to make one melee weapon attack against it. If it hits, add the Valor die to the damage roll.' },
   { name:"Commander's Strike", action_type:'BA',
-    desc:'When you take the Attack action, forgo one attack and use a Bonus Action to direct a companion. Expend one Valor die — a friendly creature that can see or hear you may immediately use its Reaction to make one weapon attack, adding the Valor die to the damage.' },
+    desc:'When you take the Attack action, forgo one attack and use a Bonus Action to direct a companion. Expend one Valor die, a friendly creature that can see or hear you may immediately use its Reaction to make one weapon attack, adding the Valor die to the damage.' },
   { name:'Commanding Presence (Maneuver)', action_type:null,
     desc:'When you make a Diplomacy (Negotiation), Diplomacy (Persuasion), or Diplomacy (Intimidation) check, you can expend one Valor die and add it to the ability check.' },
   { name:'Disarming Attack', action_type:'A',
@@ -2181,7 +2181,7 @@ function saveKnightManeuvers(){ localStorage.setItem('cs_knight_mnvr', JSON.stri
 // ── HEDGE KNIGHT OATH ──
 const OATHS = [
   { key:'shelter', name:'⚔ Oath of Shelter',
-    desc:(prof)=>`When an ally within 5 ft. of you is being attacked, you may use your reaction to deflect half the damage they receive — to another target within 5 ft. of the original target, or to yourself. Usable up to ${prof} times (your proficiency modifier) before the Oath is fulfilled.` },
+    desc:(prof)=>`When an ally within 5 ft. of you is being attacked, you may use your reaction to deflect half the damage they receive, to another target within 5 ft. of the original target, or to yourself. Usable up to ${prof} times (your proficiency modifier) before the Oath is fulfilled.` },
   { key:'coin', name:'💰 Oath of Coin',
     desc:()=>`When negotiating a contract or offering your services, you gain advantage on Haggling skill rolls. Once the contract is sealed, the Oath is fulfilled and the advantage ends.` },
   { key:'vengeance', name:'🗡 Oath of Vengeance',
@@ -2314,7 +2314,7 @@ function openChildOfDarknessModal(){
       <div style="background:rgba(80,0,120,.3);border:1px solid rgba(180,60,255,.4);border-radius:4px;padding:10px;text-align:center;">
         <div style="font-family:var(--got);font-size:9px;color:#bb88ff;letter-spacing:.6px;margin-bottom:4px;">HIT POINTS</div>
         <div style="font-family:'Cinzel',serif;font-size:26px;color:#e05050;font-weight:700;line-height:1;">1</div>
-        <div style="font-family:'IM Fell English',serif;font-size:10px;color:#9966cc;margin-top:2px;">Fragile — protect it</div>
+        <div style="font-family:'IM Fell English',serif;font-size:10px;color:#9966cc;margin-top:2px;">Fragile, protect it</div>
       </div>
       <div style="background:rgba(80,0,120,.3);border:1px solid rgba(180,60,255,.4);border-radius:4px;padding:10px;text-align:center;">
         <div style="font-family:var(--got);font-size:9px;color:#bb88ff;letter-spacing:.6px;margin-bottom:4px;">SAVING THROWS</div>
@@ -2329,7 +2329,7 @@ function openChildOfDarknessModal(){
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
       <div style="border-left:3px solid rgba(180,60,255,.6);padding-left:12px;">
         <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text-gold);margin-bottom:3px;">Movement <span style="font-size:10px;color:#9966cc;">(Free · up to 30 ft.)</span></div>
-        <div style="font-family:'IM Fell English',serif;font-size:13px;color:#ccc;line-height:1.5;">On your turn, mentally command the shadow to move up to <strong style="color:#e8c84a;">30 feet</strong> in any direction — no action required. If it ends your turn more than 30 feet from you, it is destroyed.</div>
+        <div style="font-family:'IM Fell English',serif;font-size:13px;color:#ccc;line-height:1.5;">On your turn, mentally command the shadow to move up to <strong style="color:#e8c84a;">30 feet</strong> in any direction. No action required. If it ends your turn more than 30 feet from you, it is destroyed.</div>
       </div>
       <div style="border-left:3px solid rgba(180,60,255,.6);padding-left:12px;">
         <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text-gold);margin-bottom:3px;">Swap Places <span style="font-size:10px;color:#9966cc;">(Bonus Action · costs 15 ft. of movement)</span></div>
@@ -2403,7 +2403,7 @@ function openManeuverModal(){
   const sel=_knightManeuvers;
   const ddStyle='width:100%;padding:8px 10px;background:#1a1200;border:1px solid var(--gold);color:var(--text-gold);font-family:"IM Fell English",serif;font-size:13px;border-radius:3px;cursor:pointer;';
   function opts(current){
-    return '<option value="">— pick a maneuver —</option>'+sortedNames.map(n=>`<option value="${n}"${n===current?' selected':''}>${n}</option>`).join('');
+    return '<option value=""> pick a maneuver </option>'+sortedNames.map(n=>`<option value="${n}"${n===current?' selected':''}>${n}</option>`).join('');
   }
   const o=document.createElement('div');
   o.className='modal-overlay'; o.id='mnvrModal';
@@ -2560,7 +2560,7 @@ function openWargBondModal(){
   function cardBorder(key){ return _picked.includes(key)?'var(--gold)':'rgba(100,160,80,.35)'; }
   function cardBg(key){ return _picked.includes(key)?'rgba(0,60,20,.55)':'rgba(5,20,5,.5)'; }
   o.innerHTML=`<div class="modal" style="max-width:520px;padding:28px 32px;">
-    <div style="font-family:var(--got);font-size:17px;color:#8ecf6a;margin-bottom:6px;text-shadow:0 0 10px rgba(80,200,60,.4);">🐾 Warg Bond — Small Animals</div>
+    <div style="font-family:var(--got);font-size:17px;color:#8ecf6a;margin-bottom:6px;text-shadow:0 0 10px rgba(80,200,60,.4);">🐾 Warg Bond: Small Animals</div>
     <div style="color:#b0c890;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:18px;font-style:italic;">Choose one small animal to bond with through the gift of the Old Gods.</div>
     <div id="wb_cards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">${WARG_BOND_ANIMALS.map(a=>`<div class="wb-card" data-key="${a.key}" style="cursor:pointer;border:2px solid ${cardBorder(a.key)};border-radius:5px;padding:10px 14px;background:${cardBg(a.key)};transition:border .15s,background .15s;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">${a.emoji}</span><span style="font-family:'Cinzel',serif;font-size:12px;color:#d4e8a0;">${a.name}</span>${_picked.includes(a.key)?'<span style="margin-left:auto;color:#8ecf6a;font-size:14px;">✓</span>':''}</div>`).join('')}
     <div id="wb_custom_tile" style="grid-column:span 2;border:2px solid rgba(100,160,80,.35);border-radius:5px;padding:10px 14px;background:rgba(5,20,5,.5);display:flex;align-items:center;gap:10px;transition:border .15s,background .15s;">
@@ -2629,7 +2629,7 @@ function openGreaterWargBondModal(){
   function cardBorder(key){ return _picked.includes(key)?'var(--gold)':'rgba(100,160,80,.35)'; }
   function cardBg(key){ return _picked.includes(key)?'rgba(0,60,20,.55)':'rgba(5,20,5,.5)'; }
   o.innerHTML=`<div class="modal" style="max-width:560px;padding:28px 32px;">
-    <div style="font-family:var(--got);font-size:17px;color:#8ecf6a;margin-bottom:6px;text-shadow:0 0 10px rgba(80,200,60,.4);">🐺 Greater Warg Bond — Large Beasts</div>
+    <div style="font-family:var(--got);font-size:17px;color:#8ecf6a;margin-bottom:6px;text-shadow:0 0 10px rgba(80,200,60,.4);">🐺 Greater Warg Bond: Large Beasts</div>
     <div style="color:#b0c890;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:4px;font-style:italic;">Choose up to 2 large beasts to bond with. The Old Gods grant dominion over greater creatures.</div>
     <div style="color:#6a8a40;font-size:11px;font-family:'IM Fell English',serif;margin-bottom:16px;font-style:italic;">(Second bonded animal unlocks with Greater Warg Bond at Lvl 10)</div>
     <div id="gwb_cards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">${GREATER_WARG_BOND_ANIMALS.map(a=>`<div class="gwb-card" data-key="${a.key}" style="cursor:pointer;border:2px solid ${cardBorder(a.key)};border-radius:5px;padding:10px 14px;background:${cardBg(a.key)};transition:border .15s,background .15s;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">${a.emoji}</span><span style="font-family:'Cinzel',serif;font-size:12px;color:#d4e8a0;">${a.name}</span>${_picked.includes(a.key)?'<span style="margin-left:auto;color:#8ecf6a;font-size:14px;">✓</span>':''}</div>`).join('')}
@@ -2705,7 +2705,7 @@ function openHomeTurfModal(){
   function cardBg(key){ return _picked.includes(key)?'rgba(120,80,0,.35)':'rgba(20,12,0,.5)'; }
   o.innerHTML=`<div class="modal" style="max-width:500px;padding:30px 36px;">
     <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Home Turf</div>
-    <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:6px;font-style:italic;">Choose up to ${maxPicks} favoured environment${maxPicks>1?'s':''} — click to select, click again to deselect.</div>
+    <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:6px;font-style:italic;">Choose up to ${maxPicks} favoured environment${maxPicks>1?'s':''}. Click to select, click again to deselect.</div>
     ${maxPicks>1?`<div style="color:#8a7040;font-size:11px;font-family:'IM Fell English',serif;margin-bottom:16px;font-style:italic;">(Second environment unlocks at Lvl 13 · Third at Lvl 19)</div>`:'<div style="margin-bottom:16px;"></div>'}
     <div id="ht_cards" style="display:flex;flex-direction:column;gap:8px;margin-bottom:22px;">${HOME_TURF_ENVIRONMENTS.map(e=>`<div class="ht-card" data-key="${e.key}" style="cursor:pointer;border:2px solid ${cardBorder(e.key)};border-radius:5px;padding:10px 14px;background:${cardBg(e.key)};transition:border .15s,background .15s;display:flex;align-items:center;gap:10px;"><span style="font-family:'Cinzel',serif;font-size:13px;color:var(--text-gold);">${e.name}</span>${_picked.includes(e.key)?`<span data-label="1" style="margin-left:auto;font-family:'IM Fell English',serif;font-size:11px;color:#c8b87a;font-style:italic;">${slotLabels[_picked.indexOf(e.key)]}</span>`:''}</div>`).join('')}</div>
     <div style="display:flex;gap:10px;">
@@ -2801,10 +2801,10 @@ const SPEC_LEVEL_FEATURES = {
         if(rep === 0) return 'Your Reputation shapes your knightly conduct. Famed reputation (+1 to +10): gain half your rep score (rounded down) as a bonus to Persuasion rolls. Notorious reputation (-1 to -10): gain half the absolute value (rounded down) as a bonus to Intimidation rolls.';
         if(rep > 0){
           const bonus = Math.floor(rep / 2);
-          return `Your honorable deeds are renowned throughout the realm (Famed ${rep>0?'+':''}${rep}). You gain +${bonus} to Persuasion rolls — people are naturally inclined to trust and follow your noble character.`;
+          return `Your honorable deeds are renowned throughout the realm (Famed ${rep>0?'+':''}${rep}). You gain +${bonus} to Persuasion rolls, people are naturally inclined to trust and follow your noble character.`;
         } else {
           const bonus = Math.floor(Math.abs(rep) / 2);
-          return `Your fearsome reputation precedes you (Notorious ${rep}). You gain +${bonus} to Intimidation rolls — people know you are capable of terrible things and are cowed by your mere presence.`;
+          return `Your fearsome reputation precedes you (Notorious ${rep}). You gain +${bonus} to Intimidation rolls, people know you are capable of terrible things and are cowed by your mere presence.`;
         }
       },
       level_required: 1
@@ -2822,7 +2822,7 @@ const SPEC_LEVEL_FEATURES = {
       uses_fn: (lvl) => lvl >= 12 ? 5 : 4,
       desc_fn: (lvl) => {
         const dice = lvl >= 12 ? 5 : 4;
-        return `You learn 3 battle maneuvers and gain ${dice} Valor Dice (d8s). Expend one when using a maneuver; regain all on a short or long rest${lvl>=12?' — 5th die gained at Lvl 12':''}.\n\nSave DC = 8 + Proficiency + Prowess or Dexterity modifier.`;
+        return `You learn 3 battle maneuvers and gain ${dice} Valor Dice (d8s). Expend one when using a maneuver; regain all on a short or long rest${lvl>=12?', 5th die gained at Lvl 12':''}.\n\nSave DC = 8 + Proficiency + Prowess or Dexterity modifier.`;
       },
       special: 'maneuver_picker',
       level_required: 7
@@ -2865,7 +2865,7 @@ const SPEC_LEVEL_FEATURES = {
       name: "Mother Nature's Medicine",
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `You gain proficiency with herbalism kits and healer's kits.\n\nDuring a short rest, you can tend to a number of creatures equal to your Learning modifier — each regains 1d10 + your Learning modifier in additional hit points.\n\nYou can craft antitoxins, antidotes, and healing salves from foraged materials (1 hour of work produces items worth 10 gold).\n\nWhen you stabilize a dying creature, they regain 1 hit point instead of staying at 0.`,
+      desc_fn: () => `You gain proficiency with herbalism kits and healer's kits.\n\nDuring a short rest, you can tend to a number of creatures equal to your Learning modifier, each regains 1d10 + your Learning modifier in additional hit points.\n\nYou can craft antitoxins, antidotes, and healing salves from foraged materials (1 hour of work produces items worth 10 gold).\n\nWhen you stabilize a dying creature, they regain 1 hit point instead of staying at 0.`,
       level_required: 7
     },
     {
@@ -2891,7 +2891,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'A Band of Broken Men',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `You have advantage when convincing desperate smallfolk, deserters, and other outcasts to join your band — whether through Intimidation, Persuasion, or Negotiation — provided they are of the same or lower social standing as you (based on Renown).`,
+      desc_fn: () => `You have advantage when convincing desperate smallfolk, deserters, and other outcasts to join your band, whether through Intimidation, Persuasion, or Negotiation, provided they are of the same or lower social standing as you (based on Renown).`,
       level_required: 1
     },
     {
@@ -2904,7 +2904,7 @@ const SPEC_LEVEL_FEATURES = {
       desc_fn: (lvl) => {
         const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
         const dice = Math.min(1 + prof, 6);
-        return `You gain ${dice} Strategy Dice (d10s), regained on a short or long rest. Add a die to any Strategy check or combat roll to:\n\n• Spot a weakness in a heavily armoured target — on success, gain advantage on your next attack against them.\n• Set an ambush to gain a surprise round.\n• Set traps to harm or catch enemies who trigger them.`;
+        return `You gain ${dice} Strategy Dice (d10s), regained on a short or long rest. Add a die to any Strategy check or combat roll to:\n\n• Spot a weakness in a heavily armoured target, on success, gain advantage on your next attack against them.\n• Set an ambush to gain a surprise round.\n• Set traps to harm or catch enemies who trigger them.`;
       },
       level_required: 3
     },
@@ -2912,7 +2912,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Illusive Shadow',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `In forests, hills, mountains, swamps, or jungle you have advantage on Stealth checks and leave little trace. Pursuers have disadvantage when tracking you.\n\nYou are proficient with disguise kits and are confident moving through urban areas unrecognised — years on the run have made your face a stranger to most.`,
+      desc_fn: () => `In forests, hills, mountains, swamps, or jungle you have advantage on Stealth checks and leave little trace. Pursuers have disadvantage when tracking you.\n\nYou are proficient with disguise kits and are confident moving through urban areas unrecognised, years on the run have made your face a stranger to most.`,
       level_required: 7
     },
     {
@@ -2960,7 +2960,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Adrenaline Fuelled',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `Reaction: When you are hit by a targeted wounding strike, you may negate the severity of the wound by one level — critical becomes moderate, moderate becomes mild, and a mild wound is shaken off entirely (you still take the hit's damage).`,
+      desc_fn: () => `Reaction: When you are hit by a targeted wounding strike, you may negate the severity of the wound by one level, critical becomes moderate, moderate becomes mild, and a mild wound is shaken off entirely (you still take the hit's damage).`,
       level_required: 10
     },
     {
@@ -2976,7 +2976,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Sleeping with One Eye Open',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `You have learned to keep your guard up even in sleep. When taking a long rest while camping, you cannot be surprised by an ambush of any sort — your instincts alert you before any threat reaches you.\n\nHardened by years of sleeping in ditches and hedges beneath the open sky, you only need 4 hours of sleep per night to benefit fully from a long rest.`,
+      desc_fn: () => `You have learned to keep your guard up even in sleep. When taking a long rest while camping, you cannot be surprised by an ambush of any sort, your instincts alert you before any threat reaches you.\n\nHardened by years of sleeping in ditches and hedges beneath the open sky, you only need 4 hours of sleep per night to benefit fully from a long rest.`,
       level_required: 1
     },
     {
@@ -2986,7 +2986,7 @@ const SPEC_LEVEL_FEATURES = {
       special: 'oath_picker',
       desc_fn: (lvl) => {
         const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
-        return `It is said that Hedge Knights are the truest of knights — they protect the weak and bring justice to the wicked. Once per long rest, choose one Oath to fulfil:\n\n⚔ OATH OF SHELTER\nWhen an ally within 5 ft. of you is being attacked, you may use your reaction to deflect half the damage they receive — either to another target within 5 ft. of the original target, or to yourself. Usable up to ${prof} times (equal to your proficiency modifier) before the Oath is fulfilled.\n\n💰 OATH OF COIN\nWhen negotiating a contract or offering your services, you gain advantage on Haggling skill rolls. Once the contract is sealed, the Oath is fulfilled and the advantage ends.\n\n🗡 OATH OF VENGEANCE\nSwear vengeance against a target you can see. You deal an extra 1d4 damage against that target until they perish. When they fall, the Oath is fulfilled.`;
+        return `It is said that Hedge Knights are the truest of knights, they protect the weak and bring justice to the wicked. Once per long rest, choose one Oath to fulfil:\n\n⚔ OATH OF SHELTER\nWhen an ally within 5 ft. of you is being attacked, you may use your reaction to deflect half the damage they receive, either to another target within 5 ft. of the original target, or to yourself. Usable up to ${prof} times (equal to your proficiency modifier) before the Oath is fulfilled.\n\n💰 OATH OF COIN\nWhen negotiating a contract or offering your services, you gain advantage on Haggling skill rolls. Once the contract is sealed, the Oath is fulfilled and the advantage ends.\n\n🗡 OATH OF VENGEANCE\nSwear vengeance against a target you can see. You deal an extra 1d4 damage against that target until they perish. When they fall, the Oath is fulfilled.`;
       },
       level_required: 3
     },
@@ -2996,7 +2996,7 @@ const SPEC_LEVEL_FEATURES = {
       uses_fn: (lvl) => (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof,
       desc_fn: (lvl) => {
         const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
-        return `You have fought in countless melees and jousts to earn your coin. You are skilled at reading opponents in single combat and know the unspoken rules — and how to bend them — of organised fighting.\n\nAs an action, make a Strategy combat roll against an enemy. On a success, you spot their weakness and gain advantage on all attack rolls against that enemy until the end of combat. Usable ${prof} times per long rest (equal to your proficiency bonus).\n\nYou also have contacts at various tourneys and know how to enter competitions without a proper sponsor or recommendation from a knight or lord.`;
+        return `You have fought in countless melees and jousts to earn your coin. You are skilled at reading opponents in single combat and know the unspoken rules, and how to bend them, of organised fighting.\n\nAs an action, make a Strategy combat roll against an enemy. On a success, you spot their weakness and gain advantage on all attack rolls against that enemy until the end of combat. Usable ${prof} times per long rest (equal to your proficiency bonus).\n\nYou also have contacts at various tourneys and know how to enter competitions without a proper sponsor or recommendation from a knight or lord.`;
       },
       level_required: 7
     },
@@ -3011,7 +3011,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Relentless Retaliation',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `When you move outside an enemy's melee range, you impose disadvantage on any opportunity attacks they make against you — your footwork and instincts make you a difficult target to punish.\n\nAdditionally, when an attack misses you entirely, you can use your reaction to immediately retaliate with a weapon attack against the attacker, provided they are within range of your weapon.`,
+      desc_fn: () => `When you move outside an enemy's melee range, you impose disadvantage on any opportunity attacks they make against you, your footwork and instincts make you a difficult target to punish.\n\nAdditionally, when an attack misses you entirely, you can use your reaction to immediately retaliate with a weapon attack against the attacker, provided they are within range of your weapon.`,
       level_required: 15
     }
   ]
@@ -3028,7 +3028,7 @@ const SPEC_LEVEL_FEATURES = {
         const attEl = document.getElementById('attunement_bonus');
         const att = Math.max(0, parseInt((attEl||{}).value) || 0);
         const uses = 1 + att;
-        return `You can light torches and bonfires simply by touching burning material with your hands — bringing light to darkness, or impressing the rural townsfolk.\n\nUse a Bonus Action to activate. Usable ${uses} time${uses!==1?'s':''} per day (1 + your Attunement modifier).`;
+        return `You can light torches and bonfires simply by touching burning material with your hands, bringing light to darkness, or impressing the rural townsfolk.\n\nUse a Bonus Action to activate. Usable ${uses} time${uses!==1?'s':''} per day (1 + your Attunement modifier).`;
       },
       level_required: 1
     },
@@ -3036,7 +3036,7 @@ const SPEC_LEVEL_FEATURES = {
       name: "The Pink Priest's Boon",
       action_type: 'A', recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `Sacrifice 1 HP and take an Action to light your weapon — or someone else's — on fire for 1 minute.\n\nWhile ablaze, each attack with that weapon deals an additional 1d6 fire damage. On a hit, the target must succeed on a Martial saving throw or be frightened for their next turn.`,
+      desc_fn: () => `Sacrifice 1 HP and take an Action to light your weapon, or someone else's, on fire for 1 minute.\n\nWhile ablaze, each attack with that weapon deals an additional 1d6 fire damage. On a hit, the target must succeed on a Martial saving throw or be frightened for their next turn.`,
       level_required: 3
     },
     {
@@ -3060,7 +3060,7 @@ const SPEC_LEVEL_FEATURES = {
       special: 'child_of_darkness',
       desc_fn: (lvl) => {
         const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
-        return `After performing a ritual (burning a human being), manifest a Child of Darkness — a translucent shadow silhouette of yourself — in an unoccupied space within 15 feet.\n\nAC ${14 + prof} | 1 HP | Immune to all conditions | Uses your saving throw bonus.\n\n• Move it up to 30 ft. on your turn (free)\n• Swap places with it (Bonus Action, costs 15 ft. of movement)\n• Make attacks originating from its space\n• Reaction opportunity attack when a creature moves 5+ ft. away from it\n\nIf destroyed in combat: you take 2d6 cold damage (unpreventable). Destroyed if more than 30 ft. from you at end of turn.`;
+        return `After performing a ritual (burning a human being), manifest a Child of Darkness, a translucent shadow silhouette of yourself, in an unoccupied space within 15 feet.\n\nAC ${14 + prof} | 1 HP | Immune to all conditions | Uses your saving throw bonus.\n\n• Move it up to 30 ft. on your turn (free)\n• Swap places with it (Bonus Action, costs 15 ft. of movement)\n• Make attacks originating from its space\n• Reaction opportunity attack when a creature moves 5+ ft. away from it\n\nIf destroyed in combat: you take 2d6 cold damage (unpreventable). Destroyed if more than 30 ft. from you at end of turn.`;
       },
       level_required: 10
     },
@@ -3068,7 +3068,7 @@ const SPEC_LEVEL_FEATURES = {
       name: "Kiss of R'hllor",
       action_type: null, recovery: 'LR',
       uses_fn: () => 1,
-      desc_fn: () => `Attempt to resurrect a creature that has died within the past 24 hours. Perform 8 hours of continuous prayer over the body, burning precious offerings — R'hllor believes only death can pay for life, so you must burn another being, as innocent or high-status as you can find. This is crucial for the ritual to succeed.\n\nAt the ritual's conclusion, make an Attunement check:\n• DC 15 if they died within 6 hours\n• DC 18 if they died within 12 hours\n• DC 22 if they died within 24 hours\n\nUsable once per long rest.`,
+      desc_fn: () => `Attempt to resurrect a creature that has died within the past 24 hours. Perform 8 hours of continuous prayer over the body, burning precious offerings, R'hllor believes only death can pay for life, so you must burn another being, as innocent or high-status as you can find. This is crucial for the ritual to succeed.\n\nAt the ritual's conclusion, make an Attunement check:\n• DC 15 if they died within 6 hours\n• DC 18 if they died within 12 hours\n• DC 22 if they died within 24 hours\n\nUsable once per long rest.`,
       level_required: 15
     }
   ]
@@ -3081,7 +3081,7 @@ const SPEC_LEVEL_FEATURES = {
       desc_fn: (lvl) => {
         const asp = SEPTON_ASPECTS.find(a => a.key === _septonAspect);
         if(asp) return `Today's aspect: ${asp.name}.\n\n${asp.desc}\n\nThe chosen aspect grants proficiency (advantage) on the associated skill for the day. Resets on long rest.`;
-        return `Each day, choose one of the Seven Aspects to guide you:\n\n⚖ The Father — advantage on Persuasion\n🕊 The Mother — advantage on Negotiation\n⚔ The Warrior — advantage on Prowess\n🌸 The Maiden — advantage on Medicine\n🔨 The Smith — advantage on Management\n🦉 The Crone — advantage on Sense\n🌑 The Stranger — advantage on Deception`;
+        return `Each day, choose one of the Seven Aspects to guide you:\n\n⚖ The Father: advantage on Persuasion\n🕊 The Mother: advantage on Negotiation\n⚔ The Warrior: advantage on Prowess\n🌸 The Maiden: advantage on Medicine\n🔨 The Smith: advantage on Management\n🦉 The Crone: advantage on Sense\n🌑 The Stranger: advantage on Deception`;
       },
       level_required: 1
     },
@@ -3111,7 +3111,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'A Chronicle for the Crone',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `You gain proficiency in calligrapher's tools and leatherworker's tools.\n\nSpend 10 hours writing a novella about a person, house, or story of your choice. Decide the subject, tone (heroic epic, scandalous exposé, tragic tale, etc.), and whether it's based on truth or fiction.\n\nSpreading the story can cause the following effects:\n• Scandalous Tale = −5 Reputation\n• Heroic Tale = +5 Reputation\n\nRoll a d6 to determine distribution pace (months). Then make a Performance check:\n• 10 or below: Mediocre — rep change reduced to ±2, takes double months\n• 11–15: Competent — full ±5 effect in normal time\n• 16–20: Exceptional — full ±5 in half the rolled months\n• 21+: Masterpiece — ±6 rep change, spreads in half the rolled months, remembered for years`,
+      desc_fn: () => `You gain proficiency in calligrapher's tools and leatherworker's tools.\n\nSpend 10 hours writing a novella about a person, house, or story of your choice. Decide the subject, tone (heroic epic, scandalous exposé, tragic tale, etc.), and whether it's based on truth or fiction.\n\nSpreading the story can cause the following effects:\n• Scandalous Tale = −5 Reputation\n• Heroic Tale = +5 Reputation\n\nRoll a d6 to determine distribution pace (months). Then make a Performance check:\n• 10 or below: Mediocre, rep change reduced to ±2, takes double months\n• 11–15: Competent, full ±5 effect in normal time\n• 16–20: Exceptional, full ±5 in half the rolled months\n• 21+: Masterpiece, ±6 rep change, spreads in half the rolled months, remembered for years`,
       level_required: 10
     },
     {
@@ -3182,7 +3182,7 @@ const SPEC_LEVEL_FEATURES = {
       desc_fn: (lvl) => {
         const animal = _wargBondAnimals[0] ? (WARG_BOND_ANIMALS.find(a=>a.key===_wargBondAnimals[0])||{name:_wargBondAnimals[0]}).name : 'no animal bonded yet';
         const hp = lvl * 3;
-        return `The Old Gods grant you the ability to bond with a small animal companion. Bonded animal: ${animal}.\n\nYour bonded animal obeys your commands and acts on your initiative — taking the Dodge action unless commanded otherwise.\n\nAs an Action, enter a trance and warg into your bonded animal, seeing and hearing through its senses (range: half a mile). While warging you are blind and deaf to your surroundings and your body is vulnerable. End the warg as a Bonus Action.\n\nIf your familiar takes damage while warging: Attunement save (DC = 10 or half the damage, whichever is higher) or be ejected — take 1d6 psychic damage, stunned until end of next turn. If your familiar dies while you are warging, you take 2d10 psychic damage and fall unconscious for 1d4 hours.\n\nFamiliar HP: ${hp} (level × 3).`;
+        return `The Old Gods grant you the ability to bond with a small animal companion. Bonded animal: ${animal}.\n\nYour bonded animal obeys your commands and acts on your initiative, taking the Dodge action unless commanded otherwise.\n\nAs an Action, enter a trance and warg into your bonded animal, seeing and hearing through its senses (range: half a mile). While warging you are blind and deaf to your surroundings and your body is vulnerable. End the warg as a Bonus Action.\n\nIf your familiar takes damage while warging: Attunement save (DC = 10 or half the damage, whichever is higher) or be ejected, take 1d6 psychic damage, stunned until end of next turn. If your familiar dies while you are warging, you take 2d10 psychic damage and fall unconscious for 1d4 hours.\n\nFamiliar HP: ${hp} (level × 3).`;
       },
       level_required: 3
     },
@@ -3190,7 +3190,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'The Weirwood Network',
       action_type: null, recovery: 'LR',
       uses_fn: () => 1,
-      desc_fn: () => `The Weirwoods serve as a network of vision, used by the Children of the Forest since ancient times.\n\nOnce per long rest, spend 1 hour looking and listening through your established network of Weirwoods. You can only see and hear through Weirwoods you have personally seen and touched. You must be touching a Weirwood at the moment of use.\n\nWhile connected, your body is blind and vulnerable — though you can still hear from your body's location. You may freely shift your focus between any of your known Weirwoods during the hour.`,
+      desc_fn: () => `The Weirwoods serve as a network of vision, used by the Children of the Forest since ancient times.\n\nOnce per long rest, spend 1 hour looking and listening through your established network of Weirwoods. You can only see and hear through Weirwoods you have personally seen and touched. You must be touching a Weirwood at the moment of use.\n\nWhile connected, your body is blind and vulnerable, though you can still hear from your body's location. You may freely shift your focus between any of your known Weirwoods during the hour.`,
       level_required: 7
     },
     {
@@ -3464,7 +3464,7 @@ function renderFeatBlocks(containerId, namePfx, dotBasePfx, btnPfx, count){
   // Only preserve values from blocks NOT auto-managed by spec (no data-spec-slot)
   const saved={};
   container.querySelectorAll('.feat-block').forEach(block=>{
-    if(block.dataset.specSlot) return; // skip — will be refilled by applySpecFeatures
+    if(block.dataset.specSlot) return; // skip, will be refilled by applySpecFeatures
     block.querySelectorAll('input[id],textarea[id]').forEach(el=>{
       saved[el.id] = el.type==='checkbox' ? el.checked : el.value;
     });
