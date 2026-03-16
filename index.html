@@ -247,6 +247,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .feat-top{display:flex;align-items:center;gap:3px;padding:2px 5px;border-bottom:1px solid rgba(139,106,0,.3)}
 .feat-short{flex:1;height:21px}
 .feat-short input{height:100%;font-size:12px}
+.feat-short input[readonly]{cursor:pointer;transition:color .15s;}
+.feat-short input[readonly]:hover{color:var(--text-gold);text-decoration:underline;text-decoration-color:rgba(232,200,74,.4);text-underline-offset:2px;}
 .ab-btn{min-width:27px;height:21px;border:1.5px solid var(--gold);background:var(--input-bg);color:#333;font-family:var(--got);font-size:9px;cursor:default;pointer-events:none;display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none;flex-shrink:0}
 .ab-btn.active{background:#8B1A1A;color:white;border-color:#cc2222}
 .ab-btn.active.sr-btn,.ab-btn.active.lr-btn{background:#1a5c1a;border-color:#3a3;color:#fff}
@@ -3650,6 +3652,45 @@ function openAdditionalBonusActionsModal(){
   document.body.appendChild(o);
   o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
 }
+
+// ── FEATURE DESCRIPTION POPUP ──
+function openFeatureDescPopup(name, desc){
+  if(!name || !name.trim() || name.startsWith('🔒')) return;
+  const existing = document.getElementById('featDescModal');
+  if(existing) existing.remove();
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'featDescModal';
+  // Escape HTML then format bullets and newlines
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const htmlDesc = esc(desc)
+    .replace(/\n•/g,'<br><span style="color:var(--text-gold);margin-right:4px;">•</span>')
+    .replace(/\n/g,'<br>');
+  const safeTitle = esc(name);
+  o.innerHTML = `<div class="modal" style="max-width:560px;padding:30px 36px;">
+    <div style="font-family:var(--got);font-size:16px;color:var(--text-gold);margin-bottom:14px;letter-spacing:1px;text-shadow:0 0 10px rgba(232,200,74,.4);">${safeTitle}</div>
+    <div style="font-family:'IM Fell English',serif;font-size:13px;color:var(--white);line-height:1.7;">${htmlDesc}</div>
+    <button class="rest-btn" style="width:100%;margin-top:22px;" onclick="document.getElementById('featDescModal').remove()">Close</button>
+  </div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if(e.target === o) o.remove(); });
+}
+
+// Delegated listener — any readonly input inside .feat-short opens description popup
+document.addEventListener('click', function(e){
+  const input = e.target;
+  if(input.tagName !== 'INPUT' || !input.readOnly) return;
+  if(!input.closest('.feat-short')) return;
+  const name = input.value.trim();
+  if(!name) return;
+  // Derive paired textarea id: fs_N→ft_N, ax_name_N→ax_ta_N, bx_name_N→bx_ta_N
+  const tid = input.id
+    .replace(/^fs_/, 'ft_')
+    .replace(/^ax_name_/, 'ax_ta_')
+    .replace(/^bx_name_/, 'bx_ta_');
+  const taEl = document.getElementById(tid);
+  const desc = taEl ? taEl.value.trim() : '';
+  openFeatureDescPopup(name, desc);
+});
 </script>
 </body>
 </html>
