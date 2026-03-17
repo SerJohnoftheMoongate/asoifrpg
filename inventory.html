@@ -1758,7 +1758,7 @@ function openItemModal(tableId, rowIdx) {
     </div>` : ''}
 
     <div style="display:flex;gap:8px;margin-top:10px;">
-      <button class="rest-btn" onclick="itemModalSave()" style="flex:1;">Save Changes</button>
+      <button class="rest-btn" onclick="itemModalSave()" style="flex:1;">Save & Close</button>
       <button class="rest-btn" onclick="itemModalDelete()"
         style="background:#3a0000;border-color:#882222;color:#ff6666;flex:1;">Delete Item</button>
       <button class="rest-btn" onclick="document.getElementById('itemMgmtModal').remove()"
@@ -2076,10 +2076,10 @@ function ingOpenDetail(idx) {
     </div>
 
     <div style="display:flex;gap:8px;margin-top:8px;">
-      <button class="rest-btn" onclick="ingDelete(${idx})"
-        style="flex:1;background:#3a0000;border-color:#882222;color:#ff6666;">Delete</button>
       <button class="rest-btn" onclick="document.getElementById('ingDetailModal').remove()"
-        style="background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
+        style="flex:1;background:#003a00;border-color:#228822;color:#66ff66;">Save & Close</button>
+      <button class="rest-btn" onclick="ingDelete(${idx})"
+        style="background:#3a0000;border-color:#882222;color:#ff6666;">Delete</button>
     </div>
   </div>`;
   o._ingIdx = idx;
