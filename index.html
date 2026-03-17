@@ -246,7 +246,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .feat-block{border-bottom:1px solid var(--gold);background:var(--panel)}
 .feat-top{display:flex;align-items:center;gap:3px;padding:2px 5px;border-bottom:1px solid rgba(139,106,0,.3)}
 .feat-short{flex:1;height:21px}
-.feat-short input{height:100%;font-size:12px}
+.feat-short input{height:100%;font-size:12px;cursor:pointer;transition:color .18s}
+.feat-short input:not(:placeholder-shown):hover{color:var(--text-gold)}
 .ab-btn{min-width:27px;height:21px;border:1.5px solid var(--gold);background:var(--input-bg);color:#333;font-family:var(--got);font-size:9px;cursor:default;pointer-events:none;display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none;flex-shrink:0}
 .ab-btn.active{background:#8B1A1A;color:white;border-color:#cc2222}
 .ab-btn.active.sr-btn,.ab-btn.active.lr-btn{background:#1a5c1a;border-color:#3a3;color:#fff}
@@ -686,7 +687,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 <div class="col-icon-top"><img class="col-icon" src="Images/Additional Features Icon.webp" alt="Features"></div>
   <div class="feat-block">
     <div class="feat-top">
-      <div class="feat-short"><input type="text" id="fs_1"></div>
+      <div class="feat-short"><input type="text" id="fs_1" onclick="openFeaturePopup(this)"></div>
       <div class="ab-btn" id="A_1" onclick="toggleAB(this)">P</div>
       <div class="ab-btn" id="BA_1" onclick="toggleAB(this)">R</div><div class="ab-btn sr-btn" id="SR_1" onclick="toggleAB(this)">SR</div><div class="ab-btn lr-btn" id="LR_1" onclick="toggleAB(this)">LR</div>
     </div>
@@ -696,7 +697,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="feat-block">
     <div class="feat-top">
-      <div class="feat-short"><input type="text" id="fs_2"></div>
+      <div class="feat-short"><input type="text" id="fs_2" onclick="openFeaturePopup(this)"></div>
       <div class="ab-btn" id="A_2" onclick="toggleAB(this)">P</div>
       <div class="ab-btn" id="BA_2" onclick="toggleAB(this)">R</div><div class="ab-btn sr-btn" id="SR_2" onclick="toggleAB(this)">SR</div><div class="ab-btn lr-btn" id="LR_2" onclick="toggleAB(this)">LR</div>
     </div>
@@ -706,7 +707,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="feat-block">
     <div class="feat-top">
-      <div class="feat-short"><input type="text" id="fs_3"></div>
+      <div class="feat-short"><input type="text" id="fs_3" onclick="openFeaturePopup(this)"></div>
       <div class="ab-btn" id="A_3" onclick="toggleAB(this)">P</div>
       <div class="ab-btn" id="BA_3" onclick="toggleAB(this)">R</div><div class="ab-btn sr-btn" id="SR_3" onclick="toggleAB(this)">SR</div><div class="ab-btn lr-btn" id="LR_3" onclick="toggleAB(this)">LR</div>
     </div>
@@ -716,7 +717,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="feat-block">
     <div class="feat-top">
-      <div class="feat-short"><input type="text" id="fs_4"></div>
+      <div class="feat-short"><input type="text" id="fs_4" onclick="openFeaturePopup(this)"></div>
       <div class="ab-btn" id="A_4" onclick="toggleAB(this)">P</div>
       <div class="ab-btn" id="BA_4" onclick="toggleAB(this)">R</div><div class="ab-btn sr-btn" id="SR_4" onclick="toggleAB(this)">SR</div><div class="ab-btn lr-btn" id="LR_4" onclick="toggleAB(this)">LR</div>
     </div>
@@ -726,7 +727,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="feat-block">
     <div class="feat-top">
-      <div class="feat-short"><input type="text" id="fs_5"></div>
+      <div class="feat-short"><input type="text" id="fs_5" onclick="openFeaturePopup(this)"></div>
       <div class="ab-btn" id="A_5" onclick="toggleAB(this)">P</div>
       <div class="ab-btn" id="BA_5" onclick="toggleAB(this)">R</div><div class="ab-btn sr-btn" id="SR_5" onclick="toggleAB(this)">SR</div><div class="ab-btn lr-btn" id="LR_5" onclick="toggleAB(this)">LR</div>
     </div>
@@ -736,7 +737,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="feat-block">
     <div class="feat-top">
-      <div class="feat-short"><input type="text" id="fs_6"></div>
+      <div class="feat-short"><input type="text" id="fs_6" onclick="openFeaturePopup(this)"></div>
       <div class="ab-btn" id="A_6" onclick="toggleAB(this)">P</div>
       <div class="ab-btn" id="BA_6" onclick="toggleAB(this)">R</div><div class="ab-btn sr-btn" id="SR_6" onclick="toggleAB(this)">SR</div><div class="ab-btn lr-btn" id="LR_6" onclick="toggleAB(this)">LR</div>
     </div>
@@ -746,7 +747,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="feat-block">
     <div class="feat-top">
-      <div class="feat-short"><input type="text" id="fs_7"></div>
+      <div class="feat-short"><input type="text" id="fs_7" onclick="openFeaturePopup(this)"></div>
       <div class="ab-btn" id="A_7" onclick="toggleAB(this)">P</div>
       <div class="ab-btn" id="BA_7" onclick="toggleAB(this)">R</div><div class="ab-btn sr-btn" id="SR_7" onclick="toggleAB(this)">SR</div><div class="ab-btn lr-btn" id="LR_7" onclick="toggleAB(this)">LR</div>
     </div>
@@ -756,7 +757,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="feat-block">
     <div class="feat-top">
-      <div class="feat-short"><input type="text" id="fs_8"></div>
+      <div class="feat-short"><input type="text" id="fs_8" onclick="openFeaturePopup(this)"></div>
       <div class="ab-btn" id="A_8" onclick="toggleAB(this)">P</div>
       <div class="ab-btn" id="BA_8" onclick="toggleAB(this)">R</div><div class="ab-btn sr-btn" id="SR_8" onclick="toggleAB(this)">SR</div><div class="ab-btn lr-btn" id="LR_8" onclick="toggleAB(this)">LR</div>
     </div>
@@ -766,7 +767,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="feat-block">
     <div class="feat-top">
-      <div class="feat-short"><input type="text" id="fs_9"></div>
+      <div class="feat-short"><input type="text" id="fs_9" onclick="openFeaturePopup(this)"></div>
       <div class="ab-btn" id="A_9" onclick="toggleAB(this)">P</div>
       <div class="ab-btn" id="BA_9" onclick="toggleAB(this)">R</div><div class="ab-btn sr-btn" id="SR_9" onclick="toggleAB(this)">SR</div><div class="ab-btn lr-btn" id="LR_9" onclick="toggleAB(this)">LR</div>
     </div>
@@ -3422,7 +3423,7 @@ function _makeFeatBlockHTML(n, namePfx, taPfx, dotPfx, btnPfx, isBonusCol){
   for(let d=0;d<6;d++) dots+=`<input type="checkbox" class="dot" id="${dotPfx}_${d}">`;
   const lbl1 = isBonusCol ? 'BA' : 'A';
   const lbl2 = isBonusCol ? 'R'  : 'BA';
-  return `<div class="feat-block"><div class="feat-top"><div class="feat-short"><input type="text" id="${namePfx}_${n}"></div><div class="ab-btn" id="A_${btnPfx}${n}" onclick="toggleAB(this)">${lbl1}</div><div class="ab-btn" id="BA_${btnPfx}${n}" onclick="toggleAB(this)">${lbl2}</div><div class="ab-btn sr-btn" id="SR_${btnPfx}${n}" onclick="toggleAB(this)">SR</div><div class="ab-btn lr-btn" id="LR_${btnPfx}${n}" onclick="toggleAB(this)">LR</div></div><div class="feat-dots-row">${dots}</div><div class="feat-textarea"><textarea id="${taPfx}_${n}" rows="3"></textarea></div></div>`;
+  return `<div class="feat-block"><div class="feat-top"><div class="feat-short"><input type="text" id="${namePfx}_${n}" onclick="openFeaturePopup(this)"></div><div class="ab-btn" id="A_${btnPfx}${n}" onclick="toggleAB(this)">${lbl1}</div><div class="ab-btn" id="BA_${btnPfx}${n}" onclick="toggleAB(this)">${lbl2}</div><div class="ab-btn sr-btn" id="SR_${btnPfx}${n}" onclick="toggleAB(this)">SR</div><div class="ab-btn lr-btn" id="LR_${btnPfx}${n}" onclick="toggleAB(this)">LR</div></div><div class="feat-dots-row">${dots}</div><div class="feat-textarea"><textarea id="${taPfx}_${n}" rows="3"></textarea></div></div>`;
 }
 
 function renderFeatBlocks(containerId, namePfx, dotBasePfx, btnPfx, count){
@@ -3620,6 +3621,65 @@ function openAdditionalBonusActionsModal(){
   </div>`;
   document.body.appendChild(o);
   o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
+}
+// ── FEATURE TITLE POPUP ──
+// Called when a player clicks a feature title in any column.
+// Resolves the matching description textarea and opens a styled modal.
+function openFeaturePopup(inputEl) {
+  const title = (inputEl.value || '').trim();
+  // Nothing to show if empty or still showing a locked placeholder
+  if (!title || title.startsWith('\uD83D\uDD12')) return;
+
+  // Find the corresponding description textarea.
+  // Naming convention:
+  //   Additional Features col : fs_N  →  ft_N
+  //   Action col              : ax_name_N  →  ax_ta_N
+  //   Bonus-Action col        : bx_name_N  →  bx_ta_N
+  const id = inputEl.id;
+  let taId;
+  if (id.startsWith('fs_'))           taId = 'ft_'    + id.slice(3);
+  else if (id.startsWith('ax_name_')) taId = 'ax_ta_' + id.slice(8);
+  else if (id.startsWith('bx_name_')) taId = 'bx_ta_' + id.slice(8);
+  else return;
+
+  const taEl = document.getElementById(taId);
+  const desc = taEl ? taEl.value.trim() : '';
+  if (!desc) return;
+
+  // Remove any existing popup
+  const old = document.getElementById('featPopupOverlay');
+  if (old) old.remove();
+
+  // Escape HTML entities so raw text is safe to inject via innerHTML
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'featPopupOverlay';
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:660px;padding:34px 52px;text-align:left;">
+      <h2 style="font-size:22px;letter-spacing:1.5px;margin-bottom:18px;color:var(--text-gold);">${esc(title)}</h2>
+      <div style="
+        font-family:'IM Fell English',serif;
+        font-size:13.5px;
+        color:#ddd;
+        line-height:1.85;
+        white-space:pre-wrap;
+        border-left:3px solid var(--gold);
+        padding-left:16px;
+        max-height:55vh;
+        overflow-y:auto;
+      ">${esc(desc)}</div>
+      <button
+        onclick="document.getElementById('featPopupOverlay').remove()"
+        style="margin-top:24px;width:100%;">
+        Close
+      </button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  // Click backdrop to close
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 }
 </script>
 </body>
