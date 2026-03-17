@@ -3618,7 +3618,20 @@ function confirmRenown(){
 setInterval(save,3000);
 document.addEventListener('change',save);
 loadAccentColour();
-updateLevel();
+
+// ── STARTUP RESTORE ──
+// Load all in-memory state from localStorage so navigating back from
+// inventory.html restores everything correctly.
+loadSpecFeatures();
+loadKnightManeuvers();
+loadHedgeKnightOath();
+loadSeptonAspect();
+loadChosenStyles();
+loadChosenTerrains();
+loadWargBondAnimals();
+loadGreaterWargBondAnimals();
+load();     // restores all DOM fields from cs_v6
+updateLevel(); // recalculates level/prof AFTER fields are restored
 
 function openAdditionalActionsModal(){
   const ex=document.getElementById('addActModal'); if(ex) ex.remove();
