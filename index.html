@@ -263,10 +263,6 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .modal p{font-size:14px;color:#ddd;font-family:'IM Fell English',serif;margin-bottom:14px;line-height:1.6}
 .modal button{background:var(--gold);border:none;color:var(--near-black);font-family:var(--got);padding:10px 32px;cursor:pointer;font-size:13px;margin-top:8px;letter-spacing:1px}
 .modal button:hover{background:var(--gold-lt)}
-/* ── PAGE-TAB NAV ── */
-.nav-tab-active{background:rgba(139,106,0,.45)!important;border-color:var(--gold)!important;color:var(--text-gold)!important;font-weight:700;letter-spacing:.5px;box-shadow:inset 0 -2px 0 var(--gold);}
-.nav-tab-other{background:rgba(30,22,0,.4)!important;border-color:rgba(139,106,0,.45)!important;color:rgba(200,180,100,.75)!important;}
-.nav-tab-other:hover{background:rgba(139,106,0,.25)!important;color:var(--text-gold)!important;}
 </style>
 </head>
 <body>
@@ -298,12 +294,11 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div style="display:flex;gap:8px;">
     <button id="shortRestBtn" class="rest-btn" onclick="doRest('short')"><img class="ri" src="Images/Short Rest Icon.webp" alt="">SHORT REST</button>
     <button class="rest-btn" onclick="doRest('long')"><img class="ri" src="Images/Long Rest Icon.webp" alt="">LONG REST</button>
-    <button class="rest-btn" onclick="save();showSaveFlash();saveToJSON()"><img src="Images/Save Icon.webp" class="ri"> SAVE</button>
+    <button class="rest-btn" onclick="save();showSaveFlash()"><img src="Images/Save Icon.webp" class="ri"> SAVE</button>
   </div>
   <div style="display:flex;gap:8px;">
       <button class="rest-btn" onclick="alert('Menu coming soon')"><img src="Images/Menu Icon.webp" class="ri"> MENU</button>
-      <button class="rest-btn nav-tab-active" style="cursor:default;pointer-events:none;">📜 CHARACTER SHEET</button>
-      <button class="rest-btn nav-tab-other" onclick="saveBeforeNav('inventory.html')">🎒 INVENTORY</button>
+      <button class="rest-btn" onclick="window.location.href='inventory.html'"><img src="Images/Backpack Icon.webp" class="ri"> TO INVENTORY</button>
       <button class="rest-btn" id="editBtn" onclick="openEditModal()"><img src="Images/Edit Icon.webp" class="ri"> EDIT</button>
     </div>
   </div>
@@ -1539,71 +1534,6 @@ function load(){
   // Restore septon aspect proficiency
   if(_septonAspect) _applyAspectProficiency(_septonAspect);
 }
-// ══════════════════════════════════════════════════════
-// UNIFIED JSON SAVE / LOAD
-// All localStorage keys are bundled into one .json file.
-// The future load page can call loadFromJSON(data) to restore.
-// ══════════════════════════════════════════════════════
-const ALL_STORAGE_KEYS = [
-  'cs_v6','cs_insp','cs_accent','cs_spec_features',
-  'cs_knight_mnvr','cs_hk_oath',
-  'cs_septon_aspect','cs_septon_aspect_prof',
-  'cs_fighting_styles','cs_home_turf',
-  'cs_warg_bond','cs_greater_warg_bond',
-  'inv_page','inv_pouch'
-];
-
-function saveToJSON() {
-  // Ensure latest state is in localStorage before we bundle
-  save();
-  const charName = (document.getElementById('charName')||{}).value || 'Character';
-  const bundle = {
-    version: '2',
-    savedAt: new Date().toISOString(),
-    characterName: charName,
-  };
-  ALL_STORAGE_KEYS.forEach(key => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw !== null) {
-        try { bundle[key] = JSON.parse(raw); }
-        catch { bundle[key] = raw; }
-      }
-    } catch(e) {}
-  });
-  const blob = new Blob([JSON.stringify(bundle, null, 2)], {type:'application/json'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const safeName = charName.replace(/[^a-z0-9_\- ]/gi,'_');
-  a.href     = url;
-  a.download = safeName + '_character.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-// Called by a future load page: pass the parsed JSON object
-function loadFromJSON(bundle) {
-  if (!bundle || bundle.version !== '2') { alert('Unrecognised save file.'); return; }
-  ALL_STORAGE_KEYS.forEach(key => {
-    if (bundle[key] !== undefined) {
-      try { localStorage.setItem(key, typeof bundle[key] === 'string' ? bundle[key] : JSON.stringify(bundle[key])); }
-      catch(e) {}
-    }
-  });
-  // Reload all the in-memory state from localStorage
-  loadSpecFeatures();
-  loadKnightManeuvers();
-  loadHedgeKnightOath();
-  loadSeptonAspect();
-  loadChosenStyles();
-  loadChosenTerrains();
-  loadWargBondAnimals();
-  loadGreaterWargBondAnimals();
-  load();
-}
-
 // ── WEAPON CONFIGURATION MODAL ──
 const DAMAGE_DICE=['1d4','2d4','1d6','2d6','1d8','1d10','1d12'];
  
@@ -3618,20 +3548,7 @@ function confirmRenown(){
 setInterval(save,3000);
 document.addEventListener('change',save);
 loadAccentColour();
-
-// ── STARTUP RESTORE ──
-// Load all in-memory state from localStorage so navigating back from
-// inventory.html restores everything correctly.
-loadSpecFeatures();
-loadKnightManeuvers();
-loadHedgeKnightOath();
-loadSeptonAspect();
-loadChosenStyles();
-loadChosenTerrains();
-loadWargBondAnimals();
-loadGreaterWargBondAnimals();
-load();     // restores all DOM fields from cs_v6
-updateLevel(); // recalculates level/prof AFTER fields are restored
+updateLevel();
 
 function openAdditionalActionsModal(){
   const ex=document.getElementById('addActModal'); if(ex) ex.remove();
@@ -3763,11 +3680,6 @@ function openFeaturePopup(inputEl) {
   document.body.appendChild(overlay);
   // Click backdrop to close
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-}
-// ── NAV: save current state before switching pages ──
-function saveBeforeNav(url) {
-  save();
-  window.location.href = url;
 }
 </script>
 </body>
