@@ -585,6 +585,29 @@ textarea{resize:none;font-weight:400;font-size:12px}
 
 /* Add-Item Modal label style */
 .aim-lbl{font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;}
+
+/* ── Static Equipped Slot Cards ── */
+.eq-static-slot{
+  display:flex;align-items:center;gap:7px;padding:5px 7px;
+  border-bottom:1px solid rgba(139,106,0,.18);
+  cursor:pointer;transition:background .12s;
+}
+.eq-static-slot:hover{background:rgba(139,106,0,.12);}
+.eq-static-slot.occupied{border-color:rgba(139,106,0,.45);background:rgba(15,10,0,.35);}
+.eq-slot-thumb{
+  width:30px;height:30px;border-radius:50%;
+  border:1.5px solid var(--gold);object-fit:contain;
+  background:url('Images/Equipment_Background.webp') center/cover no-repeat;
+  flex-shrink:0;padding:3px;
+}
+.eq-slot-thumb.occupied{border-color:var(--gold-lt);box-shadow:0 0 6px rgba(212,160,23,.35);}
+.eq-slot-body{flex:1;overflow:hidden;min-width:0;}
+.eq-slot-label{font-family:var(--got);font-size:8px;color:rgba(232,200,74,.45);letter-spacing:.5px;line-height:1;}
+.eq-slot-item{font-size:12px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;}
+.eq-slot-item.empty{color:rgba(255,255,255,.2);font-style:italic;font-size:11px;}
+.eq-slot-stats{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;margin-left:6px;gap:1px;}
+.eq-slot-ac{font-family:var(--got);font-size:12px;color:var(--text-gold);line-height:1.2;white-space:nowrap;letter-spacing:.5px;}
+.eq-slot-wp{font-family:var(--got);font-size:9px;color:rgba(232,200,74,.5);line-height:1.2;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -637,8 +660,16 @@ textarea{resize:none;font-weight:400;font-size:12px}
 
     <!-- Armor Class -->
     <div class="inv-ac-block">
-      <div class="inv-ac-lbl">Armor Class</div>
-      <div class="inv-ac-num"><input type="text" id="inv_ac" value="8" oninput="calcDC()"></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="inv-ac-lbl" style="flex:1;font-size:9px;">Base AC</div>
+          <div class="inv-ac-num"><input type="text" id="inv_ac" value="8" oninput="calcDC();updateTotalAC()"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="inv-ac-lbl" style="flex:1;font-size:9px;background:#1A3A1A;border-color:#3a3;">Total AC</div>
+          <div class="inv-ac-num"><input type="text" id="inv_ac_total" readonly style="background:#0a1a0a;color:#6ddd6d;border-color:#3a3;font-weight:700;font-size:17px;text-align:center;cursor:default;"></div>
+        </div>
+      </div>
     </div>
 
     <!-- DC Inflicted Wounds -->
@@ -749,68 +780,32 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div>
     </div>
 
+    <!-- Section: Shield -->
+    <div class="sec">Shields</div>
+    <div id="eq_shield_section"></div>
+
     <!-- Section: Archery -->
     <div class="sec">Archery</div>
-    <div class="inv-table" style="flex:none;padding-bottom:0;">
-      <div class="inv-tbl-hdr">
-        <div class="inv-tbl-hdr-cell itc-name">Archery</div>
-        <div class="inv-tbl-hdr-cell itc-w">W</div>
-        <div class="inv-tbl-hdr-cell itc-p">P</div>
-      </div>
-      <div id="eq_archery"></div>
-    </div>
+    <div id="eq_archery_section"></div>
 
     <!-- Section: Weapons -->
-    <div class="sec" style="margin-top:2px;">Weapons</div>
-    <div class="inv-table" style="flex:none;padding-bottom:0;">
-      <div class="inv-tbl-hdr">
-        <div class="inv-tbl-hdr-cell itc-name">Weapons</div>
-        <div class="inv-tbl-hdr-cell itc-w">W</div>
-        <div class="inv-tbl-hdr-cell itc-p">P</div>
-      </div>
-      <div id="eq_weapons"></div>
-    </div>
+    <div class="sec">Weapons</div>
+    <div id="eq_weapons_section"></div>
 
-    <!-- Section: Shield -->
-    <div class="sec" style="margin-top:2px;">Shield</div>
-    <div class="inv-table" style="flex:none;padding-bottom:0;">
-      <div class="inv-tbl-hdr">
-        <div class="inv-tbl-hdr-cell itc-name">Shield</div>
-        <div class="inv-tbl-hdr-cell itc-a">A</div>
-        <div class="inv-tbl-hdr-cell itc-w">W</div>
-        <div class="inv-tbl-hdr-cell itc-p">P</div>
-      </div>
-      <div id="eq_shield"></div>
-    </div>
+    <!-- Section: Armor (Helmet, Gauntlets, Sabatons, Body Armor) -->
+    <div class="sec">Armor</div>
+    <div id="eq_armor_section"></div>
 
-    <!-- Section: Armor -->
-    <div class="sec" style="margin-top:2px;">Armor</div>
-    <div class="inv-table" style="flex:none;padding-bottom:0;">
-      <div class="inv-tbl-hdr">
-        <div class="inv-tbl-hdr-cell itc-name">Armor</div>
-        <div class="inv-tbl-hdr-cell itc-a">A</div>
-        <div class="inv-tbl-hdr-cell itc-w">W</div>
-        <div class="inv-tbl-hdr-cell itc-p">P</div>
-      </div>
-      <div id="eq_armor"></div>
-    </div>
+    <!-- Section: Accessories (Cloak, Rings) -->
+    <div class="sec">Accessories</div>
+    <div id="eq_acc_section" style="flex:1;"></div>
 
-    <!-- Section: Accessories -->
-    <div class="sec" style="margin-top:2px;">Accessories</div>
-    <div class="inv-table" style="flex:1;">
-      <div class="inv-tbl-hdr">
-        <div class="inv-tbl-hdr-cell itc-name">Accessories</div>
-        <div class="inv-tbl-hdr-cell itc-w">W</div>
-        <div class="inv-tbl-hdr-cell itc-p">P</div>
-      </div>
-      <div id="eq_acc"></div>
-      <div style="flex:1;"></div>
-      <!-- Total -->
-      <div class="inv-total-row">
-        <div class="inv-total-lbl">Total</div>
-        <div class="inv-total-val tv-w" id="eq_total_w">0</div>
-        <div class="inv-total-val tv-p" id="eq_total_p">0</div>
-      </div>
+    <div style="flex:1;"></div>
+    <!-- Total -->
+    <div class="inv-total-row">
+      <div class="inv-total-lbl">Total</div>
+      <div class="inv-total-val tv-w" id="eq_total_w">0</div>
+      <div class="inv-total-val tv-p" id="eq_total_p">0</div>
     </div>
     <div class="sec" style="font-size:8.5px;text-transform:uppercase;letter-spacing:2px;">Equipped</div>
   </div><!-- /Equipped column -->
@@ -1526,6 +1521,8 @@ function saveSlot() {
   };
   updateSlotUI(currentSlot);
   document.getElementById('slotModal').style.display = 'none';
+  buildEquippedColumn();
+  calcDC();
   calcWeights();
 }
 function clearSlot() {
@@ -1533,6 +1530,8 @@ function clearSlot() {
   delete slotData[currentSlot];
   updateSlotUI(currentSlot);
   document.getElementById('slotModal').style.display = 'none';
+  buildEquippedColumn();
+  calcDC();
   calcWeights();
 }
 function updateSlotUI(slotId) {
@@ -1552,11 +1551,6 @@ function updateSlotUI(slotId) {
 
 /* ── Inventory tables ── */
 const tableData = {
-  eq_archery: Array(3).fill(null).map(()=>({name:'',w:'',p:''})),
-  eq_weapons: Array(4).fill(null).map(()=>({name:'',w:'',p:''})),
-  eq_shield:  Array(2).fill(null).map(()=>({name:'',a:'',w:'',p:''})),
-  eq_armor:   Array(5).fill(null).map(()=>({name:'',a:'',w:'',p:''})),
-  eq_acc:     Array(3).fill(null).map(()=>({name:'',w:'',p:''})),
   bp_items:   Array(12).fill(null).map(()=>({name:'',tag:'',q:'',w:'',p:'',a:''})),
   st_items:   Array(12).fill(null).map(()=>({name:'',tag:'',q:'',w:'',p:'',a:''}))
 };
@@ -1606,12 +1600,89 @@ function buildTable(containerId, cols) {
     container.innerHTML = `<div style="padding:8px 6px;font-family:'IM Fell English',serif;font-size:11px;color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No items — use Add Item</div>`;
   }
 }
+/* ── Static Equipped Column: slot definitions grouped by subheader ── */
+const EQUIPPED_GROUPS = [
+  { sectionId: 'eq_shield_section',  slots: [
+    { id: 'shield',  label: 'Shield',       icon: 'Images/Shield Icon.webp' },
+  ]},
+  { sectionId: 'eq_archery_section', slots: [
+    { id: 'shirt',   label: 'Archery',      icon: 'Images/Archery Icon.webp' },
+  ]},
+  { sectionId: 'eq_weapons_section', slots: [
+    { id: 'weapon1', label: 'Main Weapon',  icon: 'Images/Weapon Icon.webp' },
+    { id: 'weapon2', label: 'Off-hand',     icon: 'Images/Sword Icon.webp' },
+  ]},
+  { sectionId: 'eq_armor_section',   slots: [
+    { id: 'head',   label: 'Helmet',     icon: 'Images/Helmet Icon.webp' },
+    { id: 'gloves', label: 'Gauntlets',  icon: 'Images/Gauntlet Icon.webp' },
+    { id: 'boots',  label: 'Sabatons',   icon: 'Images/Boots Icon.webp' },
+    { id: 'armor',  label: 'Body Armor', icon: 'Images/Armor Icon.webp' },
+  ]},
+  { sectionId: 'eq_acc_section',     slots: [
+    { id: 'cloak', label: 'Cloak',  icon: 'Images/Cloak Icon.webp' },
+    { id: 'ring1', label: 'Ring I', icon: 'Images/Ring Icon.webp' },
+    { id: 'ring2', label: 'Ring II',icon: 'Images/Ring Icon.webp' },
+  ]},
+];
+
+/* Render the static equipped column from slotData */
+function buildEquippedColumn() {
+  EQUIPPED_GROUPS.forEach(group => {
+    const container = document.getElementById(group.sectionId);
+    if (!container) return;
+    container.innerHTML = group.slots.map(si => {
+      const d = slotData[si.id];
+      const occupied = d && d.name;
+      const acStr = occupied && d.ac ? 'AC +' + d.ac : (occupied ? '' : '');
+      const wpParts = [];
+      if (occupied && d.w) wpParts.push(d.w + ' kg');
+      if (occupied && d.p) wpParts.push(d.p);
+      return `<div class="eq-static-slot${occupied ? ' occupied' : ''}" onclick="clickEquippedSlot('${si.id}')" title="${occupied ? d.name : 'Click to equip — ' + si.label}">
+        <img src="${si.icon}" class="eq-slot-thumb${occupied ? ' occupied' : ''}" alt="${si.label}" onerror="this.style.opacity='.3'">
+        <div class="eq-slot-body">
+          <div class="eq-slot-label">${si.label}</div>
+          <div class="eq-slot-item${occupied ? '' : ' empty'}">${occupied ? d.name : '— Empty —'}</div>
+        </div>
+        ${occupied ? `<div class="eq-slot-stats">
+          ${acStr ? `<div class="eq-slot-ac">${acStr}</div>` : ''}
+          ${wpParts.length ? `<div class="eq-slot-wp">${wpParts.join(' · ')}</div>` : ''}
+        </div>` : ''}
+      </div>`;
+    }).join('');
+  });
+}
+
+/* Click handler: open picker (empty) or management modal (occupied) */
+function clickEquippedSlot(slotId) {
+  const d = slotData[slotId];
+  if (d && d.name) openEquippedItemDetail(slotId);
+  else openSlotModal(slotId);
+}
+
+/* Management modal for an already-equipped item */
+function openEquippedItemDetail(slotId) {
+  const d = slotData[slotId];
+  if (!d || !d.name) return;
+  document.getElementById('equippedDetailModal')?.remove();
+  const metaStr = [d.ac ? 'AC +' + d.ac : '', d.w ? d.w + ' kg' : '', d.p || ''].filter(Boolean).join(' · ');
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'equippedDetailModal';
+  o.innerHTML = `<div class="modal" style="max-width:400px;padding:28px 36px;">
+    <h2 style="font-size:19px;margin-bottom:4px;">${d.name}</h2>
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:${metaStr?'6px':'16px'}">${SLOT_NAMES[slotId]||slotId}</p>
+    ${metaStr ? `<p style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.65);text-align:center;margin-bottom:16px;">${metaStr}</p>` : ''}
+    ${d.notes ? `<p style="font-family:'IM Fell English',serif;font-size:12px;color:#aaa;margin-bottom:14px;line-height:1.5;">${d.notes}</p>` : ''}
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <button class="rest-btn" onclick="unequipItem('${slotId}')" style="flex:1;background:rgba(40,20,60,.45);border-color:rgba(100,80,180,.5);color:rgba(200,180,255,.85);">↩ Unequip → Steed</button>
+      <button class="rest-btn" onclick="document.getElementById('equippedDetailModal').remove()" style="background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
 function buildAllTables() {
-  buildTable('eq_archery',['name','w','p']);
-  buildTable('eq_weapons',['name','w','p']);
-  buildTable('eq_shield', ['name','a','w','p']);
-  buildTable('eq_armor',  ['name','a','w','p']);
-  buildTable('eq_acc',    ['name','w','p']);
+  buildEquippedColumn();
   buildTable('bp_items',  ['name','q','w','p']);
   buildTable('st_items',  ['name','q','w','p']);
   calcWeights();
@@ -1661,8 +1732,20 @@ function moveItemTo(fromTable, fromIdx, toTable) {
 }
 
 /* ── Unequip: move from equipped → steed ── */
-function unequipItem(tableId, rowIdx) {
-  moveItemTo(tableId, rowIdx, 'st_items');
+function unequipItem(slotId) {
+  const d = slotData[slotId];
+  if (!d || !d.name) return;
+  // Send back to steed
+  const rows = tableData['st_items'];
+  let ri = rows.findIndex(r => !r.name);
+  if (ri === -1) { rows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = rows.length - 1; }
+  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'' };
+  sortTableByTag('st_items');
+  delete slotData[slotId];
+  updateSlotUI(slotId);
+  document.getElementById('equippedDetailModal')?.remove();
+  buildAllTables();
+  calcDC();
 }
 
 function openItemModal(tableId, rowIdx) {
@@ -1672,13 +1755,11 @@ function openItemModal(tableId, rowIdx) {
   const existing = document.getElementById('itemMgmtModal');
   if (existing) existing.remove();
 
-  const isEquipped = tableId.startsWith('eq_');
   const isBackpack = tableId === 'bp_items';
   const isSteed    = tableId === 'st_items';
-  const hasQty     = !isEquipped;
-  const hasAC      = (item.a !== undefined && item.a !== '') || ['eq_armor','eq_shield','eq_archery'].includes(tableId);
+  const hasAC      = item.a !== undefined && item.a !== '';
 
-  const qtyHTML = hasQty ? `
+  const qtyHTML = `
     <div style="margin:16px 0 14px;border-top:1px solid rgba(139,106,0,.25);padding-top:14px;">
       <div style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.5px;margin-bottom:10px;text-align:center;">QUANTITY</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
@@ -1693,16 +1774,9 @@ function openItemModal(tableId, rowIdx) {
           style="width:36px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.45);border:none;color:var(--text-gold);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;"
           onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
       </div>
-    </div>` : '';
+    </div>`;
 
   const tagLabel = item.tag ? `<span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);margin-left:8px;">${item.tag}</span>` : '';
-
-  // Action buttons row — context-sensitive
-  const unequipBtn = isEquipped
-    ? `<button class="rest-btn" onclick="unequipItem('${tableId}',${rowIdx})"
-         style="flex:1;background:rgba(40,20,60,.45);border-color:rgba(100,80,180,.5);color:rgba(200,180,255,.85);">
-         ↩ Unequip
-       </button>` : '';
 
   const moveToBpBtn = isSteed
     ? `<button class="rest-btn" onclick="moveItemTo('st_items',${rowIdx},'bp_items')"
@@ -1730,7 +1804,7 @@ function openItemModal(tableId, rowIdx) {
 
     ${qtyHTML}
 
-    <div style="border-top:1px solid rgba(139,106,0,.25);padding-top:14px;margin-top:${hasQty?'0':'4px'};">
+    <div style="border-top:1px solid rgba(139,106,0,.25);padding-top:14px;margin-top:0;">
       <div style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.5px;margin-bottom:10px;">DETAILS</div>
       <div style="display:grid;grid-template-columns:1fr 1fr${hasAC?' 1fr':''};gap:6px;margin-bottom:8px;">
         <div>
@@ -1751,10 +1825,9 @@ function openItemModal(tableId, rowIdx) {
       </div>
     </div>
 
-    <!-- Context actions -->
-    ${(unequipBtn || moveToBpBtn || moveToStBtn) ? `
+    ${(moveToBpBtn || moveToStBtn) ? `
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-      ${unequipBtn}${moveToBpBtn}${moveToStBtn}
+      ${moveToBpBtn}${moveToStBtn}
     </div>` : ''}
 
     <div style="display:flex;gap:8px;margin-top:10px;">
@@ -1768,7 +1841,6 @@ function openItemModal(tableId, rowIdx) {
 
   o._tableId    = tableId;
   o._rowIdx     = rowIdx;
-  o._hasQty     = hasQty;
   o._hasAC      = hasAC;
   o._currentQty = parseInt(item.q) || 1;
 
@@ -1787,10 +1859,10 @@ function itemModalAdjQty(delta) {
 function itemModalSave() {
   const modal = document.getElementById('itemMgmtModal');
   if (!modal) return;
-  const {_tableId, _rowIdx, _hasQty, _hasAC, _currentQty} = modal;
+  const {_tableId, _rowIdx, _hasAC, _currentQty} = modal;
   const item = tableData[_tableId][_rowIdx];
   if (!item) return;
-  if (_hasQty) item.q = String(_currentQty);
+  item.q = String(_currentQty);
   item.w = document.getElementById('itemMgmt_w')?.value.trim() || item.w;
   item.p = document.getElementById('itemMgmt_p')?.value.trim() || item.p;
   if (_hasAC) item.a = document.getElementById('itemMgmt_ac')?.value.trim() || '';
@@ -2118,51 +2190,57 @@ function ingDelete(idx) {
    Medium   = damage ≥ AC           → display as "≥ {AC}"
    Critical = damage ≥ AC + ⌈maxHP × 0.1⌉  → display as "≥ {AC + ceil(maxHP*0.1)}"
 ─────────────────────────────────────────────────────── */
+/* ── Total AC = base AC + sum of all equipped slot AC bonuses ── */
+function updateTotalAC() {
+  const base = parseInt(document.getElementById('inv_ac')?.value, 10) || 0;
+  let bonus = 0;
+  Object.values(slotData).forEach(d => { bonus += parseFloat(d.ac) || 0; });
+  const total = base + bonus;
+  const el = document.getElementById('inv_ac_total');
+  if (el) el.value = total;
+  return total;
+}
+
 function calcDC() {
-  const acRaw  = document.getElementById('inv_ac')  ? document.getElementById('inv_ac').value  : '';
+  const total = updateTotalAC();
   const hpRaw  = document.getElementById('hp_max')  ? document.getElementById('hp_max').value  : '';
 
   const mildEl   = document.getElementById('dc_mild');
   const medEl    = document.getElementById('dc_medium');
   const critEl   = document.getElementById('dc_critical');
 
-  const ac = parseInt(acRaw, 10);
-  if (isNaN(ac) || acRaw.trim() === '') {
+  if (total === 0 && !(parseInt(document.getElementById('inv_ac')?.value,10))) {
     if(mildEl)  mildEl.value  = '—';
     if(medEl)   medEl.value   = '—';
     if(critEl)  critEl.value  = '—';
     return;
   }
 
-  // Mild: damage below AC
-  if(mildEl)  mildEl.value  = '< ' + ac;
+  // Mild: damage below total AC
+  if(mildEl)  mildEl.value  = '< ' + total;
 
-  // Medium: damage at or above AC
-  if(medEl)   medEl.value   = '≥ ' + ac;
+  // Medium: damage at or above total AC
+  if(medEl)   medEl.value   = '≥ ' + total;
 
-  // Critical: AC + ceil(maxHP × 0.1)
+  // Critical: total AC + ceil(maxHP × 0.1)
   const hp = parseInt(hpRaw, 10);
   if (!isNaN(hp) && hp > 0) {
-    const critThreshold = ac + Math.ceil(hp * 0.1);
+    const critThreshold = total + Math.ceil(hp * 0.1);
     if(critEl) critEl.value = '≥ ' + critThreshold;
   } else {
-    if(critEl) critEl.value = '≥ ' + ac + ' + 10% HP';
+    if(critEl) critEl.value = '≥ ' + total + ' + 10% HP';
   }
 }
 
 function calcWeights() {
   // ─────────────────────────────────────────
-  // EQUIPPED  — sum W and P across all 4 tables
+  // EQUIPPED  — sum W and P from slotData
   // ─────────────────────────────────────────
   let ew=0, ep=0;
-  ['eq_archery','eq_weapons','eq_shield','eq_armor','eq_acc'].forEach(t => {
-    tableData[t].forEach(r => {
-      ew += parseFloat(r.w) || 0;
-      ep += parseFloat(r.p) || 0;
-    });
+  Object.values(slotData).forEach(d => {
+    ew += parseFloat(d.w) || 0;
+    ep += parseFloat(d.p) || 0;
   });
-  // also add weight from slot modal items
-  Object.values(slotData).forEach(d => { ew += parseFloat(d.w) || 0; });
   setCarryDisplay('eq_cw_cur', 'eq_cw_max', ew, getEquippedMax());
   const eqWEl=document.getElementById('eq_total_w'); if(eqWEl) eqWEl.textContent=ew>0?ew.toFixed(1):'0';
   const eqPEl=document.getElementById('eq_total_p'); if(eqPEl) eqPEl.textContent=ep>0?ep.toFixed(1):'0';
@@ -2206,21 +2284,8 @@ function calcWeights() {
 }
 
 
-/* ── Tags that show the AC bonus field ── */
+/* ── Tags that show the AC bonus field in the Add Item modal ── */
 const AC_BONUS_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons','Shield']);
-
-/* ── Tag → which equipped table it belongs to ── */
-const TAG_EQUIP_TABLE = {
-  'Archery':   'eq_archery',
-  'Weapon':    'eq_weapons',
-  'Shield':    'eq_shield',
-  'Helmet':    'eq_armor',
-  'Gauntlets': 'eq_armor',
-  'Body Armor':'eq_armor',
-  'Sabatons':  'eq_armor',
-  'Cloak':     'eq_acc',
-  'Ring':      'eq_acc',
-};
 
 /* ── Which knight slots respond to which tags ── */
 const SLOT_TAGS = {
@@ -2362,50 +2427,31 @@ function openSlotModal(slotId) {
   o.addEventListener('click', e => { if (e.target === o) o.remove(); });
 }
 
-/* Tags where only one item may be equipped at a time.
-   If one already exists it gets bumped back to the steed. */
-const SINGLE_SLOT_TAGS = new Set(['Helmet','Archery','Cloak','Ring','Gauntlets','Body Armor','Sabatons','Shield']);
-
 function equipItemFromSlot(slotId, srcTable, rowIdx, modalId) {
   const item = tableData[srcTable][rowIdx];
   if (!item || !item.name) return;
 
-  const targetTable = TAG_EQUIP_TABLE[item.tag] || 'eq_acc';
-  const targetRows  = tableData[targetTable];
-
-  // ── Swap-out logic for single-slot tags ──
-  if (SINGLE_SLOT_TAGS.has(item.tag)) {
-    // Find any existing item with the same tag in the target table
-    const existingIdx = targetRows.findIndex(r => r.name && r.tag === item.tag);
-    if (existingIdx !== -1) {
-      const displaced = targetRows[existingIdx];
-      // Send displaced item back to steed (prefer steed; fall back to backpack)
-      const returnTable = 'st_items';
-      const returnRows  = tableData[returnTable];
-      let ri = returnRows.findIndex(r => !r.name);
-      if (ri === -1) { returnRows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = returnRows.length - 1; }
-      returnRows[ri] = {
-        name: displaced.name, tag: displaced.tag,
-        q: '1', w: displaced.w||'', p: displaced.p||'', a: displaced.a||''
-      };
-      // Clear the old slot
-      targetRows[existingIdx] = {name:'',tag:'',a:'',w:'',p:''};
-    }
+  // If something already occupies this slot, send it back to steed
+  const existing = slotData[slotId];
+  if (existing && existing.name) {
+    const returnRows = tableData['st_items'];
+    let ri = returnRows.findIndex(r => !r.name);
+    if (ri === -1) { returnRows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = returnRows.length - 1; }
+    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'' };
+    sortTableByTag('st_items');
   }
 
-  // Place new item in the first empty equipped row
-  let ti = targetRows.findIndex(r => !r.name);
-  if (ti === -1) { targetRows.push({name:'',tag:'',a:'',w:'',p:''}); ti = targetRows.length - 1; }
-  targetRows[ti] = {name:item.name, tag:item.tag, a:item.a||'', w:item.w||'', p:item.p||''};
+  // Equip item into slotData
+  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'' };
 
-  // Remove from source
+  // Remove from source table
   tableData[srcTable][rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
   if (srcTable === 'bp_items' || srcTable === 'st_items') sortTableByTag(srcTable);
 
+  updateSlotUI(slotId);
   buildAllTables();
-  calcDC();
-  const modal = document.getElementById(modalId);
-  if (modal) modal.remove();
+  calcDC();   // recalculates total AC via updateTotalAC()
+  document.getElementById(modalId)?.remove();
 }
 
 /* ── Original slot info modal (renamed so knight click can call it directly) ── */
