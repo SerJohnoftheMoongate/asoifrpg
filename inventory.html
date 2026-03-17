@@ -1327,7 +1327,13 @@ function confirmShortRest() {
 function save() {
   // 1. Save shared character data to cs_v6 (same key as main page)
   try{localStorage.setItem('cs_insp', _inspirationActive ? '1' : '0');}catch(e){}
-  const d={};
+
+  // Start from whatever the character sheet already stored so we never
+  // wipe fields that only exist on index.html (stats, skills, feats, etc.)
+  let d = {};
+  try { const existing = localStorage.getItem('cs_v6'); if(existing) d = JSON.parse(existing); } catch(e) {}
+
+  // Merge in every field present in the inventory page DOM
   document.querySelectorAll('input[id],select[id],textarea[id]').forEach(el=>{
     if(el.type==='file') return;
     d[el.id] = el.type==='checkbox' ? el.checked : el.value;
