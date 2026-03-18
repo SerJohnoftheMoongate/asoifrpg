@@ -1484,7 +1484,10 @@ function buildRepTicks(){
 function changeRep(delta){updateRepDial(repVal+delta);save();if((document.getElementById('spec')||{}).value==='Knight'){applySpecFeatures();recalc();}}
 document.addEventListener('DOMContentLoaded',()=>{
   buildRepTicks();
-  updateRepDial(0); // ensure quote shows at rep 0 on fresh load
+  // Load saved data FIRST so repVal is set before updateRepDial(0) would clobber it
+  load();
+  loadAccentColour(); // apply accent if not already set by load()
+  updateLevel();
   document.getElementById('repDialSvg').addEventListener('wheel',e=>{e.preventDefault();changeRep(e.deltaY<0?1:-1);},{passive:false});
 });
 
@@ -1548,7 +1551,7 @@ function load(){
   Object.entries(d).forEach(([k,v])=>{
     if(k.startsWith('ab_')){
       const el=document.getElementById(k.replace('ab_',''));
-      if(el&&v) el.classList.add('active');
+      if(el){ if(v) el.classList.add('active'); else el.classList.remove('active'); }
     }
     else if(k==='_rep'){updateRepDial(+v);}
     else if(k==='_currentHD'){_currentHD=+v;}
@@ -3615,10 +3618,6 @@ function confirmRenown(){
 
 setInterval(save,3000);
 document.addEventListener('change',save);
-// ── Startup: load saved data then apply computed values ──
-load();           // restores all fields, portraits, images from sessionStorage / localStorage
-loadAccentColour(); // apply accent if not already set by load()
-updateLevel();
 
 function openAdditionalActionsModal(){
   const ex=document.getElementById('addActModal'); if(ex) ex.remove();
