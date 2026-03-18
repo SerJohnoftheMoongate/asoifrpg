@@ -1404,8 +1404,8 @@ document.addEventListener('change', () => { if (document.getElementById('sheetSc
 // ══════════════════════════════════════════════════════
 
 // ── CHARACTER SHEET: load from JSON ──
-// Handles version:'3' bundle (cs_v6 contains all data including images & special sub-systems)
-// Also handles legacy version:'2' and flat-object formats for backward compatibility.
+// Handles version:'3' (cs_v6 blob with all data + images embedded).
+// Uses sessionStorage as the transfer mechanism to avoid localStorage quota issues.
 function loadFromJSONFile(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1415,49 +1415,55 @@ function loadFromJSONFile(input) {
       const raw = JSON.parse(e.target.result);
       if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
         alert('Invalid file. Please upload a JSON file saved from the Character Sheet.');
-        input.value = '';
-        return;
+        input.value = ''; return;
       }
 
       let sheetData = raw;
-
       if (raw.version === '3' && raw.cs_v6) {
-        // New format: everything is in cs_v6 (fields, images, _cs_* special data)
         sheetData = raw.cs_v6;
       } else if (raw.version === '2' && raw.cs_v6) {
-        // Legacy v2: cs_v6 + extra top-level keys
         sheetData = raw.cs_v6;
-        const EXTRA_KEYS = [
-          'cs_insp','cs_accent','cs_spec_features',
-          'cs_knight_mnvr','cs_hk_oath',
-          'cs_septon_aspect','cs_septon_aspect_prof',
-          'cs_fighting_styles','cs_home_turf',
-          'cs_warg_bond','cs_greater_warg_bond'
-        ];
-        EXTRA_KEYS.forEach(key => {
+        const EXTRA = ['cs_insp','cs_accent','cs_spec_features','cs_knight_mnvr','cs_hk_oath',
+                       'cs_septon_aspect','cs_septon_aspect_prof','cs_fighting_styles',
+                       'cs_home_turf','cs_warg_bond','cs_greater_warg_bond'];
+        EXTRA.forEach(key => {
           if (raw[key] !== undefined) {
-            try { localStorage.setItem(key, typeof raw[key] === 'string' ? raw[key] : JSON.stringify(raw[key])); } catch(ex) {}
+            try { localStorage.setItem(key, typeof raw[key]==='string' ? raw[key] : JSON.stringify(raw[key])); } catch(ex){}
           }
         });
       }
-      // else: flat format — use as-is
 
-      const charName = sheetData.charName || file.name.replace(/\.json$/i, '') || 'Loaded Character';
-
-      // Register in the sheet index and store per-sheet copy
+      const charName = sheetData.charName || file.name.replace(/\.json$/i,'') || 'Loaded Character';
       const id = 'sheet_' + Date.now();
       const idx = getSheetIndex();
       idx.push({ id, name: charName, fromJSON: true });
       saveSheetIndex(idx);
-      try { localStorage.setItem(id, JSON.stringify(sheetData)); } catch(ex) {}
 
-      // Set as active — index.html reads cs_v6 on load
-      try { localStorage.setItem('cs_v6', JSON.stringify(sheetData)); } catch(ex) {}
+      const jsonStr = JSON.stringify(sheetData);
+
+      // PRIMARY transfer: sessionStorage (per-tab, fresh — reliably handles large image data)
+      try { sessionStorage.setItem('cs_load_bundle', jsonStr); } catch(ex) {
+        // If sessionStorage also full (rare), strip images and use text-only
+        try {
+          const slim = {};
+          Object.entries(sheetData).forEach(([k,v]) => { if(!k.startsWith('_img_')) slim[k]=v; });
+          sessionStorage.setItem('cs_load_bundle', JSON.stringify(slim));
+        } catch(ex2) {}
+      }
+
+      // FALLBACK: localStorage (for autosave resumption; may silently fail for large data)
+      try { localStorage.setItem('cs_v6', jsonStr); } catch(ex) {
+        try {
+          const slim = {};
+          Object.entries(sheetData).forEach(([k,v]) => { if(!k.startsWith('_img_')) slim[k]=v; });
+          localStorage.setItem('cs_v6', JSON.stringify(slim));
+        } catch(ex2) {}
+      }
+      try { localStorage.setItem(id, jsonStr); } catch(ex) {}
       try { localStorage.setItem('got_active_sheet_id', id); } catch(ex) {}
 
       input.value = '';
       window.location.href = 'index.html';
-
     } catch(err) {
       alert('Could not read character sheet file: ' + err.message);
       input.value = '';
@@ -1501,6 +1507,102 @@ function saveSheetToJSON() {
     btn.style.borderColor = '#3f3';
     setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.style.borderColor = ''; }, 1500);
   }
+}
+
+// ── INVENTORY PICKER ──────────────────────────────────────────────────────
+function openInventoryPicker() {
+  buildInventoryPickerList();
+  document.getElementById('inventoryPicker').classList.add('open');
+}
+function closeInventoryPicker() {
+  document.getElementById('inventoryPicker').classList.remove('open');
+}
+
+function createNewInventory() {
+  // Clear any previously stored inventory data so inventory.html opens blank
+  try { localStorage.removeItem('inv_page'); localStorage.removeItem('inv_pouch'); } catch(e) {}
+  closeInventoryPicker();
+  window.location.href = 'inventory.html';
+}
+
+function deleteInventoryEntry(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this inventory entry?')) return;
+  const idx = getSheetIndex().filter(s => s.id !== id);
+  saveSheetIndex(idx);
+  try { localStorage.removeItem(id); } catch(e2) {}
+  buildInventoryPickerList();
+}
+
+function buildInventoryPickerList() {
+  const list = document.getElementById('inventoryPickerList');
+  const idx = getSheetIndex();
+  list.innerHTML = '';
+  if (idx.length === 0) {
+    list.innerHTML = '<div class="picker-empty">No characters found.<br>Create one above or upload an Inventory JSON.</div>';
+    return;
+  }
+  idx.forEach(sheet => {
+    const row = document.createElement('div');
+    row.className = 'picker-item';
+    const badge = sheet.fromJSON ? '<span class="json-badge">JSON</span>' : '';
+    row.innerHTML = `<span>${sheet.name}</span>${badge}<button class="del-btn" onclick="deleteInventoryEntry('${sheet.id}',event)">DELETE</button>`;
+    row.onclick = (e) => { if (!e.target.classList.contains('del-btn')) openInventoryFor(sheet.id, sheet.name); };
+    list.appendChild(row);
+  });
+}
+
+function openInventoryFor(id, name) {
+  // inventory.html is now fully independent — it reads inv_v1, not cs_v6
+  closeInventoryPicker();
+  window.location.href = 'inventory.html';
+}
+
+// ── INVENTORY: load from JSON ──
+// Handles version:'3' (inv_v1 blob with all data + images embedded).
+function loadFromInventoryJSONFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        alert('Invalid inventory file. Please upload a JSON file saved from the Inventory page.');
+        input.value = ''; return;
+      }
+
+      let invData = data.version === '3' && data.inv_v1 ? data.inv_v1 : data;
+      const jsonStr = JSON.stringify(invData);
+
+      // PRIMARY transfer: sessionStorage (handles large image data reliably)
+      try { sessionStorage.setItem('inv_load_bundle', jsonStr); } catch(ex) {
+        try {
+          const slim = {};
+          Object.entries(invData).forEach(([k,v]) => { if(!k.startsWith('_img_')) slim[k]=v; });
+          sessionStorage.setItem('inv_load_bundle', JSON.stringify(slim));
+        } catch(ex2) {}
+      }
+
+      // FALLBACK: localStorage
+      try { localStorage.setItem('inv_v1', jsonStr); } catch(ex) {
+        try {
+          const slim = {};
+          Object.entries(invData).forEach(([k,v]) => { if(!k.startsWith('_img_')) slim[k]=v; });
+          localStorage.setItem('inv_v1', JSON.stringify(slim));
+        } catch(ex2) {}
+      }
+
+      input.value = '';
+      if (confirm('Inventory loaded! Open the inventory page now?')) {
+        window.location.href = 'inventory.html';
+      }
+    } catch(err) {
+      alert('Could not read inventory file: ' + err.message);
+      input.value = '';
+    }
+  };
+  reader.readAsText(file);
 }
 
 // ── INVENTORY PICKER ──────────────────────────────────────────────────────

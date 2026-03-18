@@ -1322,83 +1322,92 @@ function confirmShortRest() {
 }
 
 /* ── Save / Load — all inventory data goes to inv_v1 only ── */
-function save() {
-  // ── Save ALL inventory page data into inv_v1 — completely independent of cs_v6 ──
-  const d = {};
 
-  // 1. Every form field on this page
+// ── HELPER: collect ALL inventory page data directly from the live DOM ────────
+function _collectInvData() {
+  const d = {};
   document.querySelectorAll('input[id],select[id],textarea[id]').forEach(el => {
     if (el.type === 'file') return;
     d[el.id] = el.type === 'checkbox' ? el.checked : el.value;
   });
-
-  // 2. AB-button active states
-  document.querySelectorAll('.ab-btn[id]').forEach(el => { d['ab_' + el.id] = el.classList.contains('active'); });
-
-  // 3. Runtime state
-  d._rep           = repVal;
-  d._currentHD     = _currentHD;
+  document.querySelectorAll('.ab-btn[id]').forEach(el => {
+    d['ab_' + el.id] = el.classList.contains('active');
+  });
+  d._rep            = repVal;
+  d._currentHD      = _currentHD;
   d._shortRestCount = _shortRestCount;
-  d._insp          = _inspirationActive ? '1' : '0';
-
-  // 4. Portrait & background images as data-URLs
-  const _pL = document.getElementById('pL'); if (_pL) d._img_pL = _pL.style.backgroundImage || '';
-  const _pR = document.getElementById('pR'); if (_pR) d._img_pR = _pR.style.backgroundImage || '';
-  const _hBg = document.getElementById('headerBg'); if (_hBg) d._img_bg = _hBg.style.backgroundImage || '';
-
-  // 5. Accent colour
-  try { d._accent = localStorage.getItem('cs_accent') || ''; } catch(e) {}
-
-  // 6. Inventory-specific structured data
+  d._insp           = _inspirationActive ? '1' : '0';
+  try { d._accent = document.documentElement.style.getPropertyValue('--text-gold') || localStorage.getItem('cs_accent') || ''; } catch(e) { d._accent = ''; }
+  const elPL = document.getElementById('pL');       if (elPL)  d._img_pL = elPL.style.backgroundImage  || '';
+  const elPR = document.getElementById('pR');       if (elPR)  d._img_pR = elPR.style.backgroundImage  || '';
+  const elBg = document.getElementById('headerBg'); if (elBg)  d._img_bg = elBg.style.backgroundImage  || '';
   const stYourselfEl = document.getElementById('st_yourself');
   d._invMeta = {
     bp_size:     document.getElementById('bp_size')   ? document.getElementById('bp_size').value   : '25',
     st_animal:   document.getElementById('st_animal') ? document.getElementById('st_animal').value : '0',
     st_yourself: stYourselfEl ? stYourselfEl.checked : false,
   };
-  d._slotData  = slotData;
-  d._tableData = tableData;
-  d._ingredientPouch = ingredientPouch;
+  d._slotData         = slotData;
+  d._tableData        = tableData;
+  d._ingredientPouch  = ingredientPouch;
+  return d;
+}
 
-  try { localStorage.setItem('inv_v1', JSON.stringify(d)); } catch(e) {}
-
+function save() {
+  const d = _collectInvData();
+  const json = JSON.stringify(d);
+  // Try full save; on QuotaExceededError drop images and retry
+  try {
+    localStorage.setItem('inv_v1', json);
+  } catch(e) {
+    try {
+      const slim = {};
+      Object.entries(d).forEach(([k,v]) => { if (!k.startsWith('_img_')) slim[k] = v; });
+      localStorage.setItem('inv_v1', JSON.stringify(slim));
+    } catch(e2) {}
+  }
+  // Also best-effort write to sessionStorage (larger window, good for transfers)
+  try { sessionStorage.setItem('inv_v1', json); } catch(e) {}
   showSaveFlash();
 }
 
 function load() {
-  // ── Load ALL inventory data from inv_v1 — no cs_v6 dependency ──
-  let raw; try { raw = localStorage.getItem('inv_v1'); } catch(e) {}
+  // Check sessionStorage first — set by character_manager when loading a JSON file
+  let raw = null;
+  try {
+    raw = sessionStorage.getItem('inv_load_bundle');
+    if (raw) sessionStorage.removeItem('inv_load_bundle');
+  } catch(e) {}
+  if (!raw) try { raw = localStorage.getItem('inv_v1'); } catch(e) {}
   if (!raw) return;
 
   const d = JSON.parse(raw);
 
-  // 1. Restore every form field
+  // Restore all form fields
   Object.entries(d).forEach(([k, v]) => {
     if (k.startsWith('ab_')) {
       const el = document.getElementById(k.replace('ab_', ''));
       if (el && v) el.classList.add('active');
-    } else if (k === '_rep')            { updateRepDial(+v); }
-    else if (k === '_currentHD')        { _currentHD = +v; }
-    else if (k === '_shortRestCount')   { _shortRestCount = +v; }
-    else if (k === '_insp')             { /* handled below */ }
-    else if (k === '_accent')           { /* handled below */ }
-    else if (k === '_img_pL')           {
+    }
+    else if (k === '_rep')           { updateRepDial(+v); }
+    else if (k === '_currentHD')     { _currentHD = +v; }
+    else if (k === '_shortRestCount'){ _shortRestCount = +v; }
+    else if (k === '_insp')          { /* handled below */ }
+    else if (k === '_accent')        { /* handled below */ }
+    else if (k === '_img_pL') {
       const el = document.getElementById('pL');
       if (el && v) { el.style.backgroundImage = v; el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; const h = el.querySelector('.hint'); if(h) h.style.display='none'; }
     }
-    else if (k === '_img_pR')           {
+    else if (k === '_img_pR') {
       const el = document.getElementById('pR');
       if (el && v) { el.style.backgroundImage = v; el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; const h = el.querySelector('.hint'); if(h) h.style.display='none'; }
     }
-    else if (k === '_img_bg')           {
+    else if (k === '_img_bg') {
       const el = document.getElementById('headerBg');
       if (el && v) el.style.backgroundImage = v;
     }
-    else if (k === '_invMeta')          { /* handled below */ }
-    else if (k === '_slotData')         { /* handled below */ }
-    else if (k === '_tableData')        { /* handled below */ }
-    else if (k === '_ingredientPouch')  { /* handled below */ }
-    else if (k.startsWith('_'))         { /* skip other internal keys */ }
+    else if (k === '_invMeta' || k === '_slotData' || k === '_tableData' || k === '_ingredientPouch') { /* handled below */ }
+    else if (k.startsWith('_')) { /* skip other internal keys */ }
     else {
       const el = document.getElementById(k);
       if (!el || el.type === 'file') return;
@@ -1406,7 +1415,7 @@ function load() {
     }
   });
 
-  // 2. Restore class/spec/culture dropdowns (need proper order)
+  // Dropdowns need rehydration
   updateSpecOptions(false);
   const _loadedOrigin = document.getElementById('origin') ? document.getElementById('origin').value : '';
   updateCultureDropdown(_loadedOrigin);
@@ -1415,16 +1424,14 @@ function load() {
     if (cultureEl && cultureEl.querySelector(`option[value="${d.culture}"]`)) cultureEl.value = d.culture;
   }
 
-  // 3. Inspiration
+  // Inspiration & accent
   if (d._insp === '1') toggleInspiration();
-
-  // 4. Accent colour
   if (d._accent) { applyAccentColour(d._accent); try { localStorage.setItem('cs_accent', d._accent); } catch(e) {} }
 
-  // 5. Inventory structured data
-  if (d._slotData)  Object.assign(slotData, d._slotData);
-  if (d._tableData) Object.keys(d._tableData).forEach(k => { if (tableData[k]) tableData[k] = d._tableData[k]; });
-  if (d._ingredientPouch) { ingredientPouch = d._ingredientPouch; try { localStorage.setItem('inv_pouch', JSON.stringify(ingredientPouch)); } catch(e){} }
+  // Inventory structured data
+  if (d._slotData)         Object.assign(slotData, d._slotData);
+  if (d._tableData)        Object.keys(d._tableData).forEach(k => { if (tableData[k]) tableData[k] = d._tableData[k]; });
+  if (d._ingredientPouch)  { ingredientPouch = d._ingredientPouch; try { localStorage.setItem('inv_pouch', JSON.stringify(ingredientPouch)); } catch(e){} }
 
   Object.keys(slotData).forEach(k => updateSlotUI(k));
   sortTableByTag('bp_items');
@@ -1471,19 +1478,24 @@ function showSaveFlash() {
 // UNIFIED JSON SAVE — Inventory Page
 // ══════════════════════════════════════════════════════
 function saveToJSON() {
-  // Flush latest state first
-  save();
+  // Capture ALL data directly from the live DOM — never depends on localStorage.
+  const d = _collectInvData();
+
+  // Best-effort autosave to localStorage
+  try { localStorage.setItem('inv_v1', JSON.stringify(d)); } catch(e) {
+    try {
+      const slim = {};
+      Object.entries(d).forEach(([k,v]) => { if (!k.startsWith('_img_')) slim[k] = v; });
+      localStorage.setItem('inv_v1', JSON.stringify(slim));
+    } catch(e2) {}
+  }
+
   const charName = (document.getElementById('charName')||{}).value || 'Character';
-
-  // inv_v1 is fully self-contained — portraits, bg, all fields, all structured data
-  let invData = {};
-  try { const raw = localStorage.getItem('inv_v1'); if(raw) invData = JSON.parse(raw); } catch(e) {}
-
   const bundle = {
     version: '3',
     savedAt: new Date().toISOString(),
     characterName: charName,
-    inv_v1: invData
+    inv_v1: d
   };
   const blob = new Blob([JSON.stringify(bundle, null, 2)], {type:'application/json'});
   const url  = URL.createObjectURL(blob);
@@ -1496,7 +1508,6 @@ function saveToJSON() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
-
 function saveBeforeNav(url) {
   save();
   window.location.href = url;
