@@ -1232,18 +1232,19 @@ document.addEventListener('change',save);
 <!-- ════════ AUDIO ENGINE ════════ -->
 <audio id="bgAudio" loop></audio>
 
+<!-- Make sure your slider looks like this (value, and oninput): -->
+<input type="range" class="music-vol" min="0" max="1" step="0.01" value="0.5" oninput="setVol(this.value)">
+
 <script>
-// ── TRACKS (base64 embedded) ──
+// ── TRACKS ──
 const TRACK_0 = '/audio/Main-Titles.mp3';
 const TRACK_1 = '/audio/My-Watch-Has-Ended.mp3';
 const TRACK_2 = '/audio/Light-of-the-Seven.mp3';
-
 const TRACKS = [
   {name:'Main Titles', src:TRACK_0},
   {name:'My Watch Has Ended', src:TRACK_1},
   {name:'Light of the Seven', src:TRACK_2},
 ];
-
 let currentTrack = -1;
 const audio = document.getElementById('bgAudio');
 
@@ -1260,7 +1261,7 @@ function buildDots() {
 function playTrack(i) {
   currentTrack = i;
   audio.src = TRACKS[i].src;
-  audio.volume = parseFloat(document.querySelector('.music-vol').value);
+  audio.volume = parseFloat(document.querySelector('.music-vol').value) || 0.5; // ✅ Fix 2: fallback to 0.5
   audio.play();
   document.getElementById('trackName').textContent = TRACKS[i].name;
   document.getElementById('playPauseBtn').textContent = '⏸';
@@ -1286,6 +1287,7 @@ audio.addEventListener('ended', ()=>{
   do { next = Math.floor(Math.random()*TRACKS.length); } while(next===currentTrack && TRACKS.length>1);
   playTrack(next);
 });
+</script>
 
 // ── MULTI-SHEET STORAGE ──
 const SHEET_INDEX_KEY = 'got_sheets_index'; // array of {id, name}
