@@ -1217,12 +1217,12 @@ document.addEventListener('change',save);
 <!-- ════════ AUDIO ENGINE ════════ -->
 <audio id="bgAudio" loop></audio>
 <script>
-// ── TRACKS (base64 embedded) ──
-const TRACK_0 = '/audio/Main-Titles.mp3';
-const TRACK_1 = '/audio/Light-of-the-Seven.mp3';
+// ── TRACKS (GitHub Pages URLs) ──
+const BASE_URL = 'https://serjohnofthemoongate.github.io/asoifrpg/audio/';
+
 const TRACKS = [
-  {name:'Main Titles', src:TRACK_0},
-  {name:'Light of the Seven', src:TRACK_1},
+  {name: 'Main Titles',        src: BASE_URL + 'Main-Titles.mp3'},
+  {name: 'Light of the Seven', src: BASE_URL + 'Light-of-the-Seven.mp3'},
 ];
 let currentTrack = -1;
 const audio = document.getElementById('bgAudio');
