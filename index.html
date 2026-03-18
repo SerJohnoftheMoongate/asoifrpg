@@ -294,11 +294,10 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div style="display:flex;gap:8px;">
     <button id="shortRestBtn" class="rest-btn" onclick="doRest('short')"><img class="ri" src="Images/Short Rest Icon.webp" alt="">SHORT REST</button>
     <button class="rest-btn" onclick="doRest('long')"><img class="ri" src="Images/Long Rest Icon.webp" alt="">LONG REST</button>
-    <button class="rest-btn" onclick="save();showSaveFlash()"><img src="Images/Save Icon.webp" class="ri"> SAVE</button>
+    <button class="rest-btn" onclick="saveAndDownload();showSaveFlash()"><img src="Images/Save Icon.webp" class="ri"> SAVE</button>
   </div>
   <div style="display:flex;gap:8px;">
-      <button class="rest-btn" onclick="alert('Menu coming soon')"><img src="Images/Menu Icon.webp" class="ri"> MENU</button>
-      <button class="rest-btn" onclick="window.location.href='inventory.html'"><img src="Images/Backpack Icon.webp" class="ri"> TO INVENTORY</button>
+      <button class="rest-btn" onclick="showMenuWarning()"><img src="Images/Menu Icon.webp" class="ri"> MENU</button>
       <button class="rest-btn" id="editBtn" onclick="openEditModal()"><img src="Images/Edit Icon.webp" class="ri"> EDIT</button>
     </div>
   </div>
@@ -3679,6 +3678,64 @@ function openFeaturePopup(inputEl) {
 
   document.body.appendChild(overlay);
   // Click backdrop to close
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+// ── JSON SAVE (Character Sheet) ──────────────────────────────────────────────
+const ALL_STORAGE_KEYS_CS = [
+  'cs_v6','cs_insp','cs_accent','cs_spec_features',
+  'cs_knight_mnvr','cs_hk_oath',
+  'cs_septon_aspect','cs_septon_aspect_prof',
+  'cs_fighting_styles','cs_home_turf',
+  'cs_warg_bond','cs_greater_warg_bond',
+  'inv_page','inv_pouch'
+];
+
+function saveAndDownload() {
+  save();
+  const charName = (document.getElementById('charName')||{}).value || 'Character';
+  const bundle = {
+    version: '2',
+    savedAt: new Date().toISOString(),
+    characterName: charName,
+  };
+  ALL_STORAGE_KEYS_CS.forEach(key => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw !== null) {
+        try { bundle[key] = JSON.parse(raw); }
+        catch { bundle[key] = raw; }
+      }
+    } catch(e) {}
+  });
+  const blob = new Blob([JSON.stringify(bundle, null, 2)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const safeName = charName.replace(/[^a-z0-9_\- ]/gi,'_');
+  a.href     = url;
+  a.download = safeName + ' CS.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── MENU WARNING POPUP ───────────────────────────────────────────────────────
+function showMenuWarning() {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:480px;padding:30px 40px;text-align:center;">
+      <div style="font-family:var(--got);font-size:18px;color:var(--gold);letter-spacing:1px;margin-bottom:16px;">⚠ Unsaved Changes</div>
+      <p style="font-family:'IM Fell English',serif;font-size:14px;color:var(--white);margin-bottom:24px;line-height:1.6;">
+        Make sure to <strong>save your file</strong> before leaving this page.<br>Any unsaved changes will be lost.
+      </p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button class="rest-btn" onclick="this.closest('.modal-overlay').remove()" style="min-width:130px;">← Go Back</button>
+        <button class="rest-btn" onclick="window.location.href='https://serjohnofthemoongate.github.io/asoifrpg/character_manager.html'" style="min-width:130px;background:rgba(139,30,0,.35);border-color:#881111;">Continue to Menu</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 }
 </script>
