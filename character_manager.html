@@ -45,7 +45,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 /* ── HEADER ── */
 .header{
   position:relative;height:190px;
-  background-image:url("/images/background.jpg");
+  background-image:url("/Images/Background_CM.webp");
   background-size:cover;background-position:center 30%;
   border-bottom:3px solid var(--gold);cursor:pointer;
 }
@@ -420,8 +420,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div class="menu-logo">Game of Thrones</div>
   <div class="menu-sub">Character Manager</div>
   <div class="menu-panel">
-    <button class="menu-btn" onclick="openPicker()">⚔ Select Character Sheet</button>
-    <button class="menu-btn" onclick="openInventoryPicker()">🎒 Select Character Inventory</button>
+    <button class="menu-btn" onclick="openPicker()"> Select Character Sheet</button>
+    <button class="menu-btn" onclick="openInventoryPicker()"> Select Character Inventory</button>
     <button class="menu-btn secondary" onclick="openStory()">📜 Story Outline</button>
     <button class="menu-btn secondary" onclick="openMap()">🗺 Map of Westeros</button>
   </div>
@@ -1239,9 +1239,9 @@ const TRACKS = [
   {name:'My Watch Has Ended', src:TRACK_1},
   {name:'Light of the Seven', src:TRACK_2},
 ];
-const TRACK_0 = '/audio/track_0.mp3';
-const TRACK_1 = '/audio/track_1.mp3';
-const TRACK_2 = '/audio/track_2.mp3';
+const TRACK_0 = '/audio/Game of Thrones - Main Titles.mp3';
+const TRACK_1 = '/audio/Game of Thrones - My Watch Has Ended.mp3';
+const TRACK_2 = '/audio/Game of Thrones Season - Light of the Seven.mp3';
 
 let currentTrack = -1;
 const audio = document.getElementById('bgAudio');
