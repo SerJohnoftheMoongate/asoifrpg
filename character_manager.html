@@ -1404,8 +1404,8 @@ document.addEventListener('change', () => { if (document.getElementById('sheetSc
 // ══════════════════════════════════════════════════════
 
 // ── CHARACTER SHEET: load from JSON ──
-// Handles both the bundle format saved by index.html (version:'2', cs_v6:{...})
-// and a plain flat object. Writes data to cs_v6 and redirects to index.html.
+// Handles version:'3' bundle (cs_v6 contains all data including images & special sub-systems)
+// Also handles legacy version:'2' and flat-object formats for backward compatibility.
 function loadFromJSONFile(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1419,11 +1419,14 @@ function loadFromJSONFile(input) {
         return;
       }
 
-      // Detect bundle format saved by index.html (has version:'2' and cs_v6 nested inside)
       let sheetData = raw;
-      if (raw.version === '2' && raw.cs_v6) {
+
+      if (raw.version === '3' && raw.cs_v6) {
+        // New format: everything is in cs_v6 (fields, images, _cs_* special data)
         sheetData = raw.cs_v6;
-        // Restore all the extra keys index.html also saves
+      } else if (raw.version === '2' && raw.cs_v6) {
+        // Legacy v2: cs_v6 + extra top-level keys
+        sheetData = raw.cs_v6;
         const EXTRA_KEYS = [
           'cs_insp','cs_accent','cs_spec_features',
           'cs_knight_mnvr','cs_hk_oath',
@@ -1433,12 +1436,11 @@ function loadFromJSONFile(input) {
         ];
         EXTRA_KEYS.forEach(key => {
           if (raw[key] !== undefined) {
-            try {
-              localStorage.setItem(key, typeof raw[key] === 'string' ? raw[key] : JSON.stringify(raw[key]));
-            } catch(ex) {}
+            try { localStorage.setItem(key, typeof raw[key] === 'string' ? raw[key] : JSON.stringify(raw[key])); } catch(ex) {}
           }
         });
       }
+      // else: flat format — use as-is
 
       const charName = sheetData.charName || file.name.replace(/\.json$/i, '') || 'Loaded Character';
 
@@ -1454,7 +1456,6 @@ function loadFromJSONFile(input) {
       try { localStorage.setItem('got_active_sheet_id', id); } catch(ex) {}
 
       input.value = '';
-      // Go straight to index.html — no confirm needed
       window.location.href = 'index.html';
 
     } catch(err) {
@@ -1546,18 +1547,14 @@ function buildInventoryPickerList() {
 }
 
 function openInventoryFor(id, name) {
-  // Write this character's sheet data into cs_v6 so inventory.html can read it
-  try {
-    const raw = localStorage.getItem(id);
-    if (raw) localStorage.setItem('cs_v6', raw);
-  } catch(e) {}
+  // inventory.html is now fully independent — it reads inv_v1, not cs_v6
   closeInventoryPicker();
   window.location.href = 'inventory.html';
 }
 
 // ── INVENTORY: load from JSON ──
-// Expected format: the flat key-value object saved by inventory.html
-// All keys are written straight into localStorage for inventory.html to read
+// Handles version:'3' bundle (inv_v1 contains all data including images & structured data).
+// Also handles legacy formats for backward compatibility.
 function loadFromInventoryJSONFile(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1571,15 +1568,17 @@ function loadFromInventoryJSONFile(input) {
         return;
       }
 
-      // Write every key straight into localStorage — inventory.html will pick them up
-      Object.entries(data).forEach(([key, val]) => {
-        try {
-          localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val));
-        } catch(ex) {}
-      });
+      if (data.version === '3' && data.inv_v1) {
+        // New format: everything in inv_v1 — write directly to inv_v1
+        try { localStorage.setItem('inv_v1', JSON.stringify(data.inv_v1)); } catch(ex) {}
+      } else {
+        // Legacy format: write every key to localStorage for inventory.html to pick up
+        Object.entries(data).forEach(([key, val]) => {
+          try { localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val)); } catch(ex) {}
+        });
+      }
 
       input.value = '';
-
       if (confirm('Inventory loaded! Open the inventory page now?')) {
         window.location.href = 'inventory.html';
       }
