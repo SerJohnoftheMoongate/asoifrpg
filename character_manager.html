@@ -1260,7 +1260,8 @@ function buildDots() {
 function playTrack(i) {
   currentTrack = i;
   audio.src = TRACKS[i].src;
-  audio.volume = parseFloat(document.querySelector('.music-vol').value);
+  const volEl = document.querySelector('.music-vol');
+  audio.volume = volEl ? parseFloat(volEl.value) : 0.5;
   audio.play();
   document.getElementById('trackName').textContent = TRACKS[i].name;
   document.getElementById('playPauseBtn').textContent = '⏸';
