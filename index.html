@@ -1525,17 +1525,17 @@ function _collectSheetData() {
 function save(){
   try { localStorage.setItem('cs_insp', _inspirationActive ? '1' : '0'); } catch(e) {}
   const d = _collectSheetData();
-  const json = JSON.stringify(d);
-  try {
-    localStorage.setItem('cs_v6', json);
-  } catch(e) {
-    // Quota exceeded — save without images so text data is never lost
-    try {
-      const slim = {};
-      Object.entries(d).forEach(([k,v]) => { if (!k.startsWith('_img_')) slim[k] = v; });
-      localStorage.setItem('cs_v6', JSON.stringify(slim));
-    } catch(e2) {}
-  }
+
+  // Store images in their own dedicated keys — each gets its own ~5 MB localStorage budget
+  // This guarantees images are never lost to quota issues on the main cs_v6 key
+  try { localStorage.setItem('cs_img_pL', d._img_pL || ''); } catch(e) {}
+  try { localStorage.setItem('cs_img_pR', d._img_pR || ''); } catch(e) {}
+  try { localStorage.setItem('cs_img_bg', d._img_bg || ''); } catch(e) {}
+
+  // Save text data to cs_v6 (no images — keeps it well within quota)
+  const slim = {};
+  Object.entries(d).forEach(([k,v]) => { if (!k.startsWith('_img_')) slim[k] = v; });
+  try { localStorage.setItem('cs_v6', JSON.stringify(slim)); } catch(e) {}
 }
 function load(){
   // Check sessionStorage first — set by character_manager when loading a JSON file.
@@ -1548,6 +1548,17 @@ function load(){
   if (!raw) try { raw = localStorage.getItem('cs_v6'); } catch(e) {}
   if (!raw) return;
   const d = JSON.parse(raw);
+
+  // Pull images from their dedicated sessionStorage keys (set by character_manager on JSON load)
+  try { const v = sessionStorage.getItem('cs_load_img_pL'); if(v !== null){ sessionStorage.removeItem('cs_load_img_pL'); if(v) d._img_pL = v; } } catch(e){}
+  try { const v = sessionStorage.getItem('cs_load_img_pR'); if(v !== null){ sessionStorage.removeItem('cs_load_img_pR'); if(v) d._img_pR = v; } } catch(e){}
+  try { const v = sessionStorage.getItem('cs_load_img_bg'); if(v !== null){ sessionStorage.removeItem('cs_load_img_bg'); if(v) d._img_bg = v; } } catch(e){}
+
+  // Also pull images from their own localStorage keys (written by autosave for normal refreshes)
+  if (!d._img_pL) try { const v = localStorage.getItem('cs_img_pL'); if(v) d._img_pL = v; } catch(e){}
+  if (!d._img_pR) try { const v = localStorage.getItem('cs_img_pR'); if(v) d._img_pR = v; } catch(e){}
+  if (!d._img_bg) try { const v = localStorage.getItem('cs_img_bg'); if(v) d._img_bg = v; } catch(e){}
+
   Object.entries(d).forEach(([k,v])=>{
     if(k.startsWith('ab_')){
       const el=document.getElementById(k.replace('ab_',''));

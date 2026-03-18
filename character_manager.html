@@ -1446,27 +1446,26 @@ function loadFromJSONFile(input) {
       idx.push({ id, name: charName, fromJSON: true });
       saveSheetIndex(idx);
 
-      const jsonStr = JSON.stringify(sheetData);
+      // Store images in their OWN dedicated sessionStorage keys (each has its own 5MB budget)
+      // This guarantees images survive the redirect even when the full bundle would be too large
+      try { sessionStorage.setItem('cs_load_img_pL', sheetData._img_pL || ''); } catch(ex) {}
+      try { sessionStorage.setItem('cs_load_img_pR', sheetData._img_pR || ''); } catch(ex) {}
+      try { sessionStorage.setItem('cs_load_img_bg', sheetData._img_bg || ''); } catch(ex) {}
 
-      // PRIMARY transfer: sessionStorage (per-tab, fresh — reliably handles large image data)
-      try { sessionStorage.setItem('cs_load_bundle', jsonStr); } catch(ex) {
-        // If sessionStorage also full (rare), strip images and use text-only
-        try {
-          const slim = {};
-          Object.entries(sheetData).forEach(([k,v]) => { if(!k.startsWith('_img_')) slim[k]=v; });
-          sessionStorage.setItem('cs_load_bundle', JSON.stringify(slim));
-        } catch(ex2) {}
-      }
+      // Also persist images to their own localStorage keys so they survive tab close/reopen
+      try { localStorage.setItem('cs_img_pL', sheetData._img_pL || ''); } catch(ex) {}
+      try { localStorage.setItem('cs_img_pR', sheetData._img_pR || ''); } catch(ex) {}
+      try { localStorage.setItem('cs_img_bg', sheetData._img_bg || ''); } catch(ex) {}
 
-      // FALLBACK: localStorage (for autosave resumption; may silently fail for large data)
-      try { localStorage.setItem('cs_v6', jsonStr); } catch(ex) {
-        try {
-          const slim = {};
-          Object.entries(sheetData).forEach(([k,v]) => { if(!k.startsWith('_img_')) slim[k]=v; });
-          localStorage.setItem('cs_v6', JSON.stringify(slim));
-        } catch(ex2) {}
-      }
-      try { localStorage.setItem(id, jsonStr); } catch(ex) {}
+      // Store all non-image data in the main bundle (much smaller — always fits)
+      const slim = {};
+      Object.entries(sheetData).forEach(([k,v]) => { if (!k.startsWith('_img_')) slim[k] = v; });
+      const slimStr = JSON.stringify(slim);
+      try { sessionStorage.setItem('cs_load_bundle', slimStr); } catch(ex) {}
+
+      // FALLBACK: localStorage (text-only — images already stored in their own keys above)
+      try { localStorage.setItem('cs_v6', slimStr); } catch(ex) {}
+      try { localStorage.setItem(id, slimStr); } catch(ex) {}
       try { localStorage.setItem('got_active_sheet_id', id); } catch(ex) {}
 
       input.value = '';
