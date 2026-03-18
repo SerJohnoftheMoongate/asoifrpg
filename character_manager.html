@@ -1285,8 +1285,12 @@ function buildPickerList() {
 }
 
 function createNewSheet() {
-  // Clear any previously active sheet so index.html opens blank
+  const id = 'sheet_' + Date.now();
+  const idx = getSheetIndex();
+  idx.push({ id, name: 'New Character' });
+  saveSheetIndex(idx);
   try { localStorage.removeItem('cs_v6'); } catch(e) {}
+  try { localStorage.setItem('got_active_sheet_id', id); } catch(e) {}
   closePicker();
   window.location.href = 'index.html';
 }
@@ -1301,10 +1305,16 @@ function deleteSheet(id, e) {
 }
 
 function loadSheetById(id, name) {
-  currentSheetId = id;
-  currentSheetName = name;
+  // Copy this sheet's data into cs_v6 so index.html reads it correctly
+  try {
+    const raw = localStorage.getItem(id);
+    if (raw) localStorage.setItem('cs_v6', raw);
+    else localStorage.removeItem('cs_v6');
+  } catch(e) {}
+  // Remember which sheet is active so we can sync back on return
+  try { localStorage.setItem('got_active_sheet_id', id); } catch(e) {}
   closePicker();
-  openSheet();
+  window.location.href = 'index.html';
 }
 
 let currentSheetId = null;
@@ -1394,36 +1404,59 @@ document.addEventListener('change', () => { if (document.getElementById('sheetSc
 // ══════════════════════════════════════════════════════
 
 // ── CHARACTER SHEET: load from JSON ──
-// Expected format: the flat field-data object saved by saveSheetToJSON
-// (must contain at least a "charName" key to identify the character)
+// Handles both the bundle format saved by index.html (version:'2', cs_v6:{...})
+// and a plain flat object. Writes data to cs_v6 and redirects to index.html.
 function loadFromJSONFile(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const data = JSON.parse(e.target.result);
-      if (!data || typeof data !== 'object' || Array.isArray(data)) {
-        alert('Invalid character sheet file. Please upload a JSON file saved from the Character Sheet.');
+      const raw = JSON.parse(e.target.result);
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+        alert('Invalid file. Please upload a JSON file saved from the Character Sheet.');
         input.value = '';
         return;
       }
 
-      const charName = data.charName || file.name.replace(/\.json$/i, '') || 'Loaded Character';
+      // Detect bundle format saved by index.html (has version:'2' and cs_v6 nested inside)
+      let sheetData = raw;
+      if (raw.version === '2' && raw.cs_v6) {
+        sheetData = raw.cs_v6;
+        // Restore all the extra keys index.html also saves
+        const EXTRA_KEYS = [
+          'cs_insp','cs_accent','cs_spec_features',
+          'cs_knight_mnvr','cs_hk_oath',
+          'cs_septon_aspect','cs_septon_aspect_prof',
+          'cs_fighting_styles','cs_home_turf',
+          'cs_warg_bond','cs_greater_warg_bond'
+        ];
+        EXTRA_KEYS.forEach(key => {
+          if (raw[key] !== undefined) {
+            try {
+              localStorage.setItem(key, typeof raw[key] === 'string' ? raw[key] : JSON.stringify(raw[key]));
+            } catch(ex) {}
+          }
+        });
+      }
 
-      // Register in the sheet index and store the data
+      const charName = sheetData.charName || file.name.replace(/\.json$/i, '') || 'Loaded Character';
+
+      // Register in the sheet index and store per-sheet copy
       const id = 'sheet_' + Date.now();
       const idx = getSheetIndex();
       idx.push({ id, name: charName, fromJSON: true });
       saveSheetIndex(idx);
-      try { localStorage.setItem(id, JSON.stringify(data)); } catch(ex) {}
+      try { localStorage.setItem(id, JSON.stringify(sheetData)); } catch(ex) {}
+
+      // Set as active — index.html reads cs_v6 on load
+      try { localStorage.setItem('cs_v6', JSON.stringify(sheetData)); } catch(ex) {}
+      try { localStorage.setItem('got_active_sheet_id', id); } catch(ex) {}
 
       input.value = '';
-      buildPickerList();
+      // Go straight to index.html — no confirm needed
+      window.location.href = 'index.html';
 
-      if (confirm('"' + charName + '" loaded! Open their character sheet now?')) {
-        loadSheetById(id, charName);
-      }
     } catch(err) {
       alert('Could not read character sheet file: ' + err.message);
       input.value = '';
@@ -1557,6 +1590,25 @@ function loadFromInventoryJSONFile(input) {
   };
   reader.readAsText(file);
 }
+
+// ── SYNC BACK FROM INDEX.HTML ──
+// When the user returns from index.html, cs_v6 holds their latest edits.
+// Copy it back into the per-sheet storage slot and update the name in the picker.
+(function syncBackOnReturn() {
+  try {
+    const id  = localStorage.getItem('got_active_sheet_id');
+    const raw = localStorage.getItem('cs_v6');
+    if (!id || !raw) return;
+    localStorage.setItem(id, raw);
+    // Update the displayed name in the picker index to match what was entered
+    const data = JSON.parse(raw);
+    if (data.charName) {
+      const idx = getSheetIndex();
+      const entry = idx.find(s => s.id === id);
+      if (entry) { entry.name = data.charName; saveSheetIndex(idx); }
+    }
+  } catch(e) {}
+})();
 
 // ── INIT ──
 buildDots();

@@ -1498,6 +1498,8 @@ function save(){
   d._currentHD=_currentHD;
   d._shortRestCount=_shortRestCount;
   try{localStorage.setItem('cs_v6',JSON.stringify(d));}catch(e){}
+  // Keep the per-sheet slot in character_manager.html in sync
+  try{const aid=localStorage.getItem('got_active_sheet_id');if(aid)localStorage.setItem(aid,JSON.stringify(d));}catch(e){}
 }
 function load(){
   let raw;try{raw=localStorage.getItem('cs_v6');}catch(e){}
