@@ -424,16 +424,9 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <button class="menu-btn" onclick="openInventoryPicker()"> Select Character Inventory</button>
     <button class="menu-btn secondary" onclick="openStory()">📜 Story Outline</button>
     <button class="menu-btn secondary" onclick="openMap()">🗺 Map of Westeros</button>
+    <button class="menu-btn" id="playPauseBtn" onclick="togglePlay()" style="font-size:20px;letter-spacing:3px;padding:16px 28px;">▶ Play Music</button>
   </div>
-  <div class="music-strip">
-    <span class="music-icon" id="playPauseBtn" onclick="togglePlay()">▶</span>
-    <div id="trackDots" style="display:flex;gap:6px;"></div>
-    <span id="trackName" style="flex:1;text-align:center;min-width:180px;">—</span>
-    <span style="opacity:.4">♪</span>
-  </div>
-  <div id="clickHint" style="position:relative;z-index:2;margin-top:10px;font-family:'Cinzel',serif;font-size:9px;color:rgba(232,200,74,.4);letter-spacing:2px;text-transform:uppercase;transition:opacity 1s;">
-    ♪ Click anywhere to begin music
-  </div>
+
 </div>
 
 <!-- ════════ SHEET PICKER ════════ -->
@@ -1242,32 +1235,24 @@ const TRACKS = [
 ];
 let currentTrack = -1;
 const audio = document.getElementById('bgAudio');
-function buildDots() {
-  const c = document.getElementById('trackDots');
-  TRACKS.forEach((t,i) => {
-    const d = document.createElement('div');
-    d.className='music-dot'; d.title=t.name;
-    d.onclick=()=>playTrack(i);
-    c.appendChild(d);
-  });
-}
+function buildDots() { /* track dots removed */ }
 function playTrack(i) {
   currentTrack = i;
   audio.src = TRACKS[i].src;
   audio.volume = 0.8;
   audio.play();
-  document.getElementById('trackName').textContent = TRACKS[i].name;
-  document.getElementById('playPauseBtn').textContent = '⏸';
-  document.querySelectorAll('.music-dot').forEach((d,j)=>d.classList.toggle('playing',j===i));
+  const btn = document.getElementById('playPauseBtn');
+  if (btn) btn.textContent = '⏸ Pause Music';
 }
 function togglePlay() {
+  const btn = document.getElementById('playPauseBtn');
   if (audio.paused) {
     if (currentTrack < 0) { playTrack(Math.floor(Math.random()*TRACKS.length)); return; }
     audio.play();
-    document.getElementById('playPauseBtn').textContent='⏸';
+    if (btn) btn.textContent = '⏸ Pause Music';
   } else {
     audio.pause();
-    document.getElementById('playPauseBtn').textContent='▶';
+    if (btn) btn.textContent = '▶ Play Music';
   }
 }
 function setVol(v) { audio.volume = 0.8; }
@@ -1379,7 +1364,7 @@ function goMenu() {
   menu.style.display = '';
   menu.classList.remove('fade-out');
   // Resume music
-  if (currentTrack >= 0) { audio.play(); document.getElementById('playPauseBtn').textContent='⏸'; }
+  if (currentTrack >= 0) { audio.play(); const btn=document.getElementById('playPauseBtn'); if(btn) btn.textContent='⏸ Pause Music'; }
 }
 
 // ── SHEET SAVE/LOAD (patched to use currentSheetId) ──
@@ -1642,8 +1627,6 @@ function _startMusic() {
   }
   document.removeEventListener('click', _startMusic);
   document.removeEventListener('keydown', _startMusic);
-  const hint = document.getElementById('clickHint');
-  if (hint) hint.style.opacity = '0';
 }
 document.addEventListener('click', _startMusic);
 document.addEventListener('keydown', _startMusic);
