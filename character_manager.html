@@ -1232,15 +1232,17 @@ document.addEventListener('change',save);
 <!-- ════════ AUDIO ENGINE ════════ -->
 <audio id="bgAudio" loop></audio>
 <script>
+// ── TRACKS ──
+const TRACK_0 = '/audio/Main-Titles.mp3';
+const TRACK_1 = '/audio/My-Watch-Has-Ended.mp3';
+const TRACK_2 = '/audio/Light-of-the-Seven.mp3';
 const TRACKS = [
-  { name: 'Main Titles',        src: '/audio/Main-Titles.mp3' },
-  { name: 'My Watch Has Ended', src: '/audio/My-Watch-Has-Ended.mp3' },
-  { name: 'Light of the Seven', src: '/audio/Light-of-the-Seven.mp3' },
+  {name:'Main Titles',        src:TRACK_0},
+  {name:'My Watch Has Ended', src:TRACK_1},
+  {name:'Light of the Seven', src:TRACK_2},
 ];
 let currentTrack = -1;
-let audioUnlocked = false;
 const audio = document.getElementById('bgAudio');
-
 // ── BUILD DOTS ──
 document.addEventListener('DOMContentLoaded', buildDots);
 function buildDots() {
@@ -1254,7 +1256,6 @@ function buildDots() {
     c.appendChild(d);
   });
 }
-
 // ── PLAY TRACK ──
 function playTrack(i) {
   currentTrack = i;
@@ -1263,7 +1264,6 @@ function playTrack(i) {
   audio.volume = volEl ? parseFloat(volEl.value) : 0.5;
   audio.play()
     .then(() => {
-      audioUnlocked = true;
       document.getElementById('trackName').textContent = TRACKS[i].name;
       document.getElementById('playPauseBtn').textContent = '⏸';
       document.querySelectorAll('.music-dot')
@@ -1271,47 +1271,50 @@ function playTrack(i) {
     })
     .catch(err => {
       console.warn('Playback failed:', err);
-      currentTrack = -1;
       document.getElementById('playPauseBtn').textContent = '▶';
       document.querySelectorAll('.music-dot')
         .forEach(d => d.classList.remove('playing'));
+      currentTrack = -1;
     });
 }
-
 // ── TOGGLE PLAY/PAUSE ──
 function togglePlay() {
   if (audio.paused) {
     if (currentTrack < 0) {
       playTrack(Math.floor(Math.random() * TRACKS.length));
-    } else {
-      audio.play()
-        .then(() => { document.getElementById('playPauseBtn').textContent = '⏸'; })
-        .catch(err => console.warn('Resume failed:', err));
+      return;
     }
+    audio.play()
+      .then(() => {
+        document.getElementById('playPauseBtn').textContent = '⏸';
+      })
+      .catch(err => {
+        console.warn('Resume failed:', err);
+        document.getElementById('playPauseBtn').textContent = '▶';
+      });
   } else {
     audio.pause();
     document.getElementById('playPauseBtn').textContent = '▶';
   }
 }
-
 // ── VOLUME ──
 function setVol(v) { audio.volume = parseFloat(v); }
-
 // ── AUTO-ADVANCE ──
 audio.addEventListener('ended', () => {
   let next;
-  do { next = Math.floor(Math.random() * TRACKS.length); }
-  while (next === currentTrack && TRACKS.length > 1);
+  do {
+    next = Math.floor(Math.random() * TRACKS.length);
+  } while (next === currentTrack && TRACKS.length > 1);
   playTrack(next);
 });
-
 // ── START ON FIRST CLICK ANYWHERE ──
-// Only acts if audio hasn't been unlocked yet — no selector filtering needed.
-document.addEventListener('click', function () {
-  if (!audioUnlocked) {
+document.addEventListener('click', function startOnClick() {
+  if (currentTrack < 0) {
     playTrack(Math.floor(Math.random() * TRACKS.length));
+  } else if (audio.paused) {
+    audio.play().catch(err => console.warn('Play failed:', err));
   }
-});
+}, { once: true });
 </script>
 
 // ── MULTI-SHEET STORAGE ──
