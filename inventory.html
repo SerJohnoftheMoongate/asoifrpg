@@ -1305,7 +1305,7 @@ function confirmRenown() {
   const delta=parseInt(document.getElementById('renown_delta').value)||0;
   const current=parseInt(document.getElementById('renown').value)||0;
   document.getElementById('renown').value=Math.max(0,current+delta);
-  updateLevel(); save();
+  updateLevel(); _saveData();
   document.getElementById('renownModal').remove();
 }
 
@@ -1317,7 +1317,7 @@ function adjustHDSpend(delta) {
 function confirmShortRest() {
   const spend=window._hdSpend||0;
   setHD(_currentHD-spend);
-  save();
+  _saveData();
   document.getElementById('restModal').remove();
 }
 
@@ -1353,10 +1353,10 @@ function _collectInvData() {
   return d;
 }
 
-function save() {
+// Internal silent save — used by autosave interval, rests, etc.
+function _saveData() {
   const d = _collectInvData();
   const json = JSON.stringify(d);
-  // Try full save; on QuotaExceededError drop images and retry
   try {
     localStorage.setItem('inv_v1', json);
   } catch(e) {
@@ -1366,8 +1366,12 @@ function save() {
       localStorage.setItem('inv_v1', JSON.stringify(slim));
     } catch(e2) {}
   }
-  // Also best-effort write to sessionStorage (larger window, good for transfers)
   try { sessionStorage.setItem('inv_v1', json); } catch(e) {}
+}
+
+// Public save — called by the SAVE button; also shows flash confirmation
+function save() {
+  _saveData();
   showSaveFlash();
 }
 
@@ -1389,7 +1393,7 @@ function load() {
       const el = document.getElementById(k.replace('ab_', ''));
       if (el && v) el.classList.add('active');
     }
-    else if (k === '_rep')           { updateRepDial(+v); }
+    else if (k === '_rep')           { repVal = +v; if (typeof updateRepDial === 'function') updateRepDial(+v); }
     else if (k === '_currentHD')     { _currentHD = +v; }
     else if (k === '_shortRestCount'){ _shortRestCount = +v; }
     else if (k === '_insp')          { /* handled below */ }
@@ -1509,7 +1513,7 @@ function saveToJSON() {
   URL.revokeObjectURL(url);
 }
 function saveBeforeNav(url) {
-  save();
+  _saveData();
   window.location.href = url;
 }
 
@@ -1561,7 +1565,7 @@ function doRest(type) {
     setHD(Math.min(_cachedLevel, _currentHD+regain));
     _shortRestCount=0;
     updateShortRestBtn();
-    save();
+    _saveData();
   } else {
     _shortRestCount++;
     updateShortRestBtn();
@@ -2666,7 +2670,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   buildAllTables(); // re-render tables with loaded data
   calcDC();         // ensure DC fields are correct after load
   // Autosave every 5 seconds
-  setInterval(()=>{ save(); }, 5000);
+  setInterval(()=>{ _saveData(); }, 5000);
 });
 </script>
 </body>

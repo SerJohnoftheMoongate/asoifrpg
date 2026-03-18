@@ -1257,13 +1257,20 @@ audio.addEventListener('ended', ()=>{
 });
 
 // ── MULTI-SHEET STORAGE ──
-const SHEET_INDEX_KEY = 'got_sheets_index'; // array of {id, name}
+const SHEET_INDEX_KEY = 'got_sheets_index';   // array of {id, name} — character sheets
+const INV_INDEX_KEY   = 'got_inv_index';      // array of {id, name} — inventories
 
 function getSheetIndex() {
   try { return JSON.parse(localStorage.getItem(SHEET_INDEX_KEY)) || []; } catch(e) { return []; }
 }
 function saveSheetIndex(idx) {
   try { localStorage.setItem(SHEET_INDEX_KEY, JSON.stringify(idx)); } catch(e) {}
+}
+function getInvIndex() {
+  try { return JSON.parse(localStorage.getItem(INV_INDEX_KEY)) || []; } catch(e) { return []; }
+}
+function saveInvIndex(idx) {
+  try { localStorage.setItem(INV_INDEX_KEY, JSON.stringify(idx)); } catch(e) {}
 }
 
 function buildPickerList() {
@@ -1519,41 +1526,46 @@ function closeInventoryPicker() {
 }
 
 function createNewInventory() {
-  // Clear any previously stored inventory data so inventory.html opens blank
-  try { localStorage.removeItem('inv_page'); localStorage.removeItem('inv_pouch'); } catch(e) {}
+  // Clear inv_v1 so inventory.html opens blank, then register a new entry
+  try { localStorage.removeItem('inv_v1'); sessionStorage.removeItem('inv_load_bundle'); } catch(e) {}
+  const id = 'inv_' + Date.now();
+  const idx = getInvIndex();
+  idx.push({ id, name: 'New Inventory' });
+  saveInvIndex(idx);
+  try { localStorage.setItem('got_active_inv_id', id); } catch(e) {}
   closeInventoryPicker();
   window.location.href = 'inventory.html';
 }
 
+
 function deleteInventoryEntry(id, e) {
   e.stopPropagation();
   if (!confirm('Delete this inventory entry?')) return;
-  const idx = getSheetIndex().filter(s => s.id !== id);
-  saveSheetIndex(idx);
+  const idx = getInvIndex().filter(s => s.id !== id);
+  saveInvIndex(idx);
   try { localStorage.removeItem(id); } catch(e2) {}
   buildInventoryPickerList();
 }
 
 function buildInventoryPickerList() {
   const list = document.getElementById('inventoryPickerList');
-  const idx = getSheetIndex();
+  const idx = getInvIndex();
   list.innerHTML = '';
   if (idx.length === 0) {
-    list.innerHTML = '<div class="picker-empty">No characters found.<br>Create one above or upload an Inventory JSON.</div>';
+    list.innerHTML = '<div class="picker-empty">No inventories found.<br>Create one above or upload an Inventory JSON.</div>';
     return;
   }
-  idx.forEach(sheet => {
+  idx.forEach(inv => {
     const row = document.createElement('div');
     row.className = 'picker-item';
-    const badge = sheet.fromJSON ? '<span class="json-badge">JSON</span>' : '';
-    row.innerHTML = `<span>${sheet.name}</span>${badge}<button class="del-btn" onclick="deleteInventoryEntry('${sheet.id}',event)">DELETE</button>`;
-    row.onclick = (e) => { if (!e.target.classList.contains('del-btn')) openInventoryFor(sheet.id, sheet.name); };
+    const badge = inv.fromJSON ? '<span class="json-badge">JSON</span>' : '';
+    row.innerHTML = `<span>${inv.name}</span>${badge}<button class="del-btn" onclick="deleteInventoryEntry('${inv.id}',event)">DELETE</button>`;
+    row.onclick = (e) => { if (!e.target.classList.contains('del-btn')) openInventoryFor(inv.id, inv.name); };
     list.appendChild(row);
   });
 }
 
 function openInventoryFor(id, name) {
-  // inventory.html is now fully independent — it reads inv_v1, not cs_v6
   closeInventoryPicker();
   window.location.href = 'inventory.html';
 }
@@ -1573,7 +1585,15 @@ function loadFromInventoryJSONFile(input) {
       }
 
       let invData = data.version === '3' && data.inv_v1 ? data.inv_v1 : data;
+      const charName = invData.charName || file.name.replace(/\.json$/i,'') || 'Loaded Inventory';
       const jsonStr = JSON.stringify(invData);
+
+      // Register in the inventory index
+      const id = 'inv_' + Date.now();
+      const idx = getInvIndex();
+      idx.push({ id, name: charName, fromJSON: true });
+      saveInvIndex(idx);
+      try { localStorage.setItem('got_active_inv_id', id); } catch(ex) {}
 
       // PRIMARY transfer: sessionStorage (handles large image data reliably)
       try { sessionStorage.setItem('inv_load_bundle', jsonStr); } catch(ex) {
@@ -1594,9 +1614,7 @@ function loadFromInventoryJSONFile(input) {
       }
 
       input.value = '';
-      if (confirm('Inventory loaded! Open the inventory page now?')) {
-        window.location.href = 'inventory.html';
-      }
+      window.location.href = 'inventory.html';
     } catch(err) {
       alert('Could not read inventory file: ' + err.message);
       input.value = '';
@@ -1605,92 +1623,6 @@ function loadFromInventoryJSONFile(input) {
   reader.readAsText(file);
 }
 
-// ── INVENTORY PICKER ──────────────────────────────────────────────────────
-function openInventoryPicker() {
-  buildInventoryPickerList();
-  document.getElementById('inventoryPicker').classList.add('open');
-}
-function closeInventoryPicker() {
-  document.getElementById('inventoryPicker').classList.remove('open');
-}
-
-function createNewInventory() {
-  // Clear any previously stored inventory data so inventory.html opens blank
-  try { localStorage.removeItem('inv_page'); localStorage.removeItem('inv_pouch'); } catch(e) {}
-  closeInventoryPicker();
-  window.location.href = 'inventory.html';
-}
-
-function deleteInventoryEntry(id, e) {
-  e.stopPropagation();
-  if (!confirm('Delete this inventory entry?')) return;
-  const idx = getSheetIndex().filter(s => s.id !== id);
-  saveSheetIndex(idx);
-  try { localStorage.removeItem(id); } catch(e2) {}
-  buildInventoryPickerList();
-}
-
-function buildInventoryPickerList() {
-  const list = document.getElementById('inventoryPickerList');
-  const idx = getSheetIndex();
-  list.innerHTML = '';
-  if (idx.length === 0) {
-    list.innerHTML = '<div class="picker-empty">No characters found.<br>Create one above or upload an Inventory JSON.</div>';
-    return;
-  }
-  idx.forEach(sheet => {
-    const row = document.createElement('div');
-    row.className = 'picker-item';
-    const badge = sheet.fromJSON ? '<span class="json-badge">JSON</span>' : '';
-    row.innerHTML = `<span>${sheet.name}</span>${badge}<button class="del-btn" onclick="deleteInventoryEntry('${sheet.id}',event)">DELETE</button>`;
-    row.onclick = (e) => { if (!e.target.classList.contains('del-btn')) openInventoryFor(sheet.id, sheet.name); };
-    list.appendChild(row);
-  });
-}
-
-function openInventoryFor(id, name) {
-  // inventory.html is now fully independent — it reads inv_v1, not cs_v6
-  closeInventoryPicker();
-  window.location.href = 'inventory.html';
-}
-
-// ── INVENTORY: load from JSON ──
-// Handles version:'3' bundle (inv_v1 contains all data including images & structured data).
-// Also handles legacy formats for backward compatibility.
-function loadFromInventoryJSONFile(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!data || typeof data !== 'object' || Array.isArray(data)) {
-        alert('Invalid inventory file. Please upload a JSON file saved from the Inventory page.');
-        input.value = '';
-        return;
-      }
-
-      if (data.version === '3' && data.inv_v1) {
-        // New format: everything in inv_v1 — write directly to inv_v1
-        try { localStorage.setItem('inv_v1', JSON.stringify(data.inv_v1)); } catch(ex) {}
-      } else {
-        // Legacy format: write every key to localStorage for inventory.html to pick up
-        Object.entries(data).forEach(([key, val]) => {
-          try { localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val)); } catch(ex) {}
-        });
-      }
-
-      input.value = '';
-      if (confirm('Inventory loaded! Open the inventory page now?')) {
-        window.location.href = 'inventory.html';
-      }
-    } catch(err) {
-      alert('Could not read inventory file: ' + err.message);
-      input.value = '';
-    }
-  };
-  reader.readAsText(file);
-}
 
 // ── SYNC BACK FROM INDEX.HTML ──
 // When the user returns from index.html, cs_v6 holds their latest edits.
