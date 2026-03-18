@@ -438,7 +438,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
       <button onclick="createSheet()">+ Create</button>
     </div>
     <div class="picker-load-row">
-      <label class="picker-load-lbl" for="jsonLoadInput">📂 Load Character from JSON Save File</label>
+      <label class="picker-load-lbl" for="jsonLoadInput">📂 Upload Character Sheet JSON</label>
       <input type="file" id="jsonLoadInput" accept=".json" style="display:none" onchange="loadFromJSONFile(this)">
     </div>
     <div class="picker-list" id="pickerList"></div>
@@ -453,7 +453,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div class="picker-box">
     <h2>Character Inventories</h2>
     <div class="picker-load-row">
-      <label class="picker-load-lbl" for="jsonInventoryLoadInput">📂 Load Inventory from JSON Save File</label>
+      <label class="picker-load-lbl" for="jsonInventoryLoadInput">📂 Upload Inventory JSON</label>
       <input type="file" id="jsonInventoryLoadInput" accept=".json" style="display:none" onchange="loadFromInventoryJSONFile(this)">
     </div>
     <div style="margin-bottom:10px;font-family:'IM Fell English',serif;font-size:11px;color:rgba(232,200,74,.5);text-align:center;font-style:italic;">— or choose an existing character below —</div>
@@ -1415,73 +1415,50 @@ document.addEventListener('change', () => { if (document.getElementById('sheetSc
 
 
 // ══════════════════════════════════════════════════════
-// JSON LOAD / SAVE — full character bundle
+// JSON LOAD / SAVE — separate sheet and inventory files
 // ══════════════════════════════════════════════════════
-const BUNDLE_EXTRA_KEYS = [
-  'cs_insp','cs_accent','cs_spec_features',
-  'cs_knight_mnvr','cs_hk_oath',
-  'cs_septon_aspect','cs_septon_aspect_prof',
-  'cs_fighting_styles','cs_home_turf',
-  'cs_warg_bond','cs_greater_warg_bond',
-  'inv_page','inv_pouch'
-];
 
+// ── CHARACTER SHEET: load from JSON ──
+// Expected format: the flat field-data object saved by saveSheetToJSON
+// (must contain at least a "charName" key to identify the character)
 function loadFromJSONFile(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const bundle = JSON.parse(e.target.result);
-      if (!bundle || bundle.version !== '2') {
-        alert('Unrecognised save file. Please use a file saved from the Character Sheet.');
+      const data = JSON.parse(e.target.result);
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        alert('Invalid character sheet file. Please upload a JSON file saved from the Character Sheet.');
         input.value = '';
         return;
       }
 
-      // Extract the character name from the bundle
-      const charName = bundle.characterName
-        || (bundle.cs_v6 && bundle.cs_v6.charName)
-        || 'Loaded Character';
+      const charName = data.charName || file.name.replace(/\.json$/i, '') || 'Loaded Character';
 
-      // Create a new sheet entry in the index
+      // Register in the sheet index and store the data
       const id = 'sheet_' + Date.now();
       const idx = getSheetIndex();
       idx.push({ id, name: charName, fromJSON: true });
       saveSheetIndex(idx);
-
-      // Store under the new sheet ID for the index, and also write
-      // directly into cs_v6 so index.html can read it immediately
-      if (bundle.cs_v6) {
-        try { localStorage.setItem(id, JSON.stringify(bundle.cs_v6)); } catch(ex) {}
-        try { localStorage.setItem('cs_v6', JSON.stringify(bundle.cs_v6)); } catch(ex) {}
-      }
-
-      // Restore all supplementary keys so they are available on index.html
-      BUNDLE_EXTRA_KEYS.forEach(key => {
-        if (bundle[key] !== undefined) {
-          try {
-            const val = typeof bundle[key] === 'string' ? bundle[key] : JSON.stringify(bundle[key]);
-            localStorage.setItem(key, val);
-          } catch(ex) {}
-        }
-      });
+      try { localStorage.setItem(id, JSON.stringify(data)); } catch(ex) {}
 
       input.value = '';
       buildPickerList();
 
-      // Confirm then redirect straight to index.html
-      const confirmed = confirm('"'+ charName +'" loaded! Open their character sheet now?');
-      if (confirmed) window.location.href = 'index.html';
-
+      if (confirm('"' + charName + '" loaded! Open their character sheet now?')) {
+        loadSheetById(id, charName);
+      }
     } catch(err) {
-      alert('Could not read save file: ' + err.message);
+      alert('Could not read character sheet file: ' + err.message);
       input.value = '';
     }
   };
   reader.readAsText(file);
 }
 
+// ── CHARACTER SHEET: save to JSON ──
+// Saves the flat field-data object for this character as <name>_sheet.json
 function saveSheetToJSON() {
   if (!currentSheetId) { alert('No character sheet is open.'); return; }
   saveSheetData(); // flush latest state first
@@ -1489,34 +1466,18 @@ function saveSheetToJSON() {
   const charName = (document.getElementById('charName') && document.getElementById('charName').value)
                    || currentSheetName || 'Character';
 
-  const bundle = {
-    version: '2',
-    savedAt: new Date().toISOString(),
-    characterName: charName,
-  };
-
-  // Main character data — stored under the sheet's own ID
+  let data = {};
   try {
     const raw = localStorage.getItem(currentSheetId);
-    if (raw) bundle.cs_v6 = JSON.parse(raw);
+    if (raw) data = JSON.parse(raw);
   } catch(e) {}
 
-  // Supplementary keys
-  BUNDLE_EXTRA_KEYS.forEach(key => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw !== null) {
-        try { bundle[key] = JSON.parse(raw); } catch { bundle[key] = raw; }
-      }
-    } catch(e) {}
-  });
-
-  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   const safe = charName.replace(/[^a-z0-9_\- ]/gi, '_');
   a.href     = url;
-  a.download = safe + '_character.json';
+  a.download = safe + '_sheet.json';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -1570,46 +1531,36 @@ function openInventoryFor(id, name) {
   window.location.href = 'inventory.html';
 }
 
+// ── INVENTORY: load from JSON ──
+// Expected format: the flat key-value object saved by inventory.html
+// All keys are written straight into localStorage for inventory.html to read
 function loadFromInventoryJSONFile(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const bundle = JSON.parse(e.target.result);
-      if (!bundle || bundle.version !== '2') {
-        alert('Unrecognised save file. Please use a file saved from the Inventory page.');
+      const data = JSON.parse(e.target.result);
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        alert('Invalid inventory file. Please upload a JSON file saved from the Inventory page.');
         input.value = '';
         return;
       }
 
-      const charName = bundle.characterName
-        || (bundle.cs_v6 && bundle.cs_v6.charName)
-        || 'Loaded Character';
-
-      // Restore main character data into cs_v6 so inventory.html can read it
-      if (bundle.cs_v6) {
-        try { localStorage.setItem('cs_v6', JSON.stringify(bundle.cs_v6)); } catch(ex) {}
-      }
-
-      // Restore all supplementary keys (includes inv_page, inv_pouch, etc.)
-      BUNDLE_EXTRA_KEYS.forEach(key => {
-        if (bundle[key] !== undefined) {
-          try {
-            const val = typeof bundle[key] === 'string' ? bundle[key] : JSON.stringify(bundle[key]);
-            localStorage.setItem(key, val);
-          } catch(ex) {}
-        }
+      // Write every key straight into localStorage — inventory.html will pick them up
+      Object.entries(data).forEach(([key, val]) => {
+        try {
+          localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val));
+        } catch(ex) {}
       });
 
       input.value = '';
-      buildInventoryPickerList();
 
-      const confirmed = confirm('"' + charName + '" inventory loaded! Open inventory now?');
-      if (confirmed) window.location.href = 'inventory.html';
-
+      if (confirm('Inventory loaded! Open the inventory page now?')) {
+        window.location.href = 'inventory.html';
+      }
     } catch(err) {
-      alert('Could not read save file: ' + err.message);
+      alert('Could not read inventory file: ' + err.message);
       input.value = '';
     }
   };
