@@ -353,15 +353,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   font-size:12px;font-style:italic;padding:20px;
 }
 .picker-actions{display:flex;gap:10px;justify-content:center;}
-.picker-new-row{display:flex;gap:8px;margin-bottom:12px;}
-.picker-new-row input{
-  flex:1;background:#0a0901;border:1px solid #b8860b;color:#e8c84a;
-  font-family:'IM Fell English',serif;font-size:12px;padding:6px 10px;
-}
-.picker-new-row button{
-  background:#b8860b;border:none;color:#1a1000;
-  font-family:'Cinzel',serif;font-size:10px;padding:6px 14px;cursor:pointer;
-}
+.picker-new-row{margin-bottom:12px;}
 
 /* Placeholder screens */
 #storyScreen, #mapScreen {
@@ -434,8 +426,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div class="picker-box">
     <h2>Character Sheets</h2>
     <div class="picker-new-row">
-      <input type="text" id="newSheetName" placeholder="New character name...">
-      <button onclick="createSheet()">+ Create</button>
+      <button onclick="createNewSheet()" style="width:100%;background:#b8860b;border:none;color:#1a1000;font-family:'GameOfThrones','Cinzel',serif;font-size:13px;padding:11px 28px;cursor:pointer;letter-spacing:1px;">+ Create New Character Sheet</button>
     </div>
     <div class="picker-load-row">
       <label class="picker-load-lbl" for="jsonLoadInput">📂 Upload Character Sheet JSON</label>
@@ -452,11 +443,13 @@ textarea{resize:none;font-weight:400;font-size:12px}
 <div id="inventoryPicker">
   <div class="picker-box">
     <h2>Character Inventories</h2>
+    <div class="picker-new-row">
+      <button onclick="createNewInventory()" style="width:100%;background:#b8860b;border:none;color:#1a1000;font-family:'GameOfThrones','Cinzel',serif;font-size:13px;padding:11px 28px;cursor:pointer;letter-spacing:1px;">+ Create New Inventory</button>
+    </div>
     <div class="picker-load-row">
       <label class="picker-load-lbl" for="jsonInventoryLoadInput">📂 Upload Inventory JSON</label>
       <input type="file" id="jsonInventoryLoadInput" accept=".json" style="display:none" onchange="loadFromInventoryJSONFile(this)">
     </div>
-    <div style="margin-bottom:10px;font-family:'IM Fell English',serif;font-size:11px;color:rgba(232,200,74,.5);text-align:center;font-style:italic;">— or choose an existing character below —</div>
     <div class="picker-list" id="inventoryPickerList"></div>
     <div class="picker-actions">
       <button class="back-btn" onclick="closeInventoryPicker()">✕ Close</button>
@@ -1291,29 +1284,11 @@ function buildPickerList() {
   });
 }
 
-function createSheet() {
-  const nameEl = document.getElementById('newSheetName');
-  const name = nameEl.value.trim() || 'Unnamed Character';
-  const id = 'sheet_' + Date.now();
-  const idx = getSheetIndex();
-  idx.push({id, name});
-  saveSheetIndex(idx);
-  nameEl.value = '';
-  currentSheetId = id;
-  currentSheetName = name;
-  try { localStorage.removeItem(id); } catch(e) {}
-  // Clear all sheet fields to blank
-  document.querySelectorAll('#sheetScreen input[id],#sheetScreen select[id],#sheetScreen textarea[id]').forEach(el => {
-    if (el.type === 'file') return;
-    if (el.type === 'checkbox') el.checked = false;
-    else el.value = '';
-  });
-  document.querySelectorAll('#sheetScreen .ab-btn[id]').forEach(el => el.classList.remove('active'));
-  _appliedCultureBonus = {}; _pendingCultureBonus = {};
-  updateRepDial(0);
-  recalc();
+function createNewSheet() {
+  // Clear any previously active sheet so index.html opens blank
+  try { localStorage.removeItem('cs_v6'); } catch(e) {}
   closePicker();
-  openSheet();
+  window.location.href = 'index.html';
 }
 
 function deleteSheet(id, e) {
@@ -1503,20 +1478,36 @@ function closeInventoryPicker() {
   document.getElementById('inventoryPicker').classList.remove('open');
 }
 
+function createNewInventory() {
+  // Clear any previously stored inventory data so inventory.html opens blank
+  try { localStorage.removeItem('inv_page'); localStorage.removeItem('inv_pouch'); } catch(e) {}
+  closeInventoryPicker();
+  window.location.href = 'inventory.html';
+}
+
+function deleteInventoryEntry(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this inventory entry?')) return;
+  const idx = getSheetIndex().filter(s => s.id !== id);
+  saveSheetIndex(idx);
+  try { localStorage.removeItem(id); } catch(e2) {}
+  buildInventoryPickerList();
+}
+
 function buildInventoryPickerList() {
   const list = document.getElementById('inventoryPickerList');
   const idx = getSheetIndex();
   list.innerHTML = '';
   if (idx.length === 0) {
-    list.innerHTML = '<div class="picker-empty">No characters found.<br>Load an Inventory JSON file above,<br>or create a character via Character Sheet first.</div>';
+    list.innerHTML = '<div class="picker-empty">No characters found.<br>Create one above or upload an Inventory JSON.</div>';
     return;
   }
   idx.forEach(sheet => {
     const row = document.createElement('div');
     row.className = 'picker-item';
     const badge = sheet.fromJSON ? '<span class="json-badge">JSON</span>' : '';
-    row.innerHTML = `<span>${sheet.name}</span>${badge}`;
-    row.onclick = () => openInventoryFor(sheet.id, sheet.name);
+    row.innerHTML = `<span>${sheet.name}</span>${badge}<button class="del-btn" onclick="deleteInventoryEntry('${sheet.id}',event)">DELETE</button>`;
+    row.onclick = (e) => { if (!e.target.classList.contains('del-btn')) openInventoryFor(sheet.id, sheet.name); };
     list.appendChild(row);
   });
 }
