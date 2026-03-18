@@ -1231,91 +1231,61 @@ document.addEventListener('change',save);
 
 <!-- ════════ AUDIO ENGINE ════════ -->
 <audio id="bgAudio" loop></audio>
+
 <script>
-// ── TRACKS ──
-const TRACK_0 = '/audio/Main-Titles.mp3';
-const TRACK_1 = '/audio/My-Watch-Has-Ended.mp3';
-const TRACK_2 = '/audio/Light-of-the-Seven.mp3';
+// ── TRACKS (base64 embedded) ──
+const TRACK_0 = '/audio/Game of Thrones - Main Titles.mp3';
+const TRACK_1 = '/audio/Game of Thrones - My Watch Has Ended.mp3';
+const TRACK_2 = '/audio/Game of Thrones Season - Light of the Seven.mp3';
+
 const TRACKS = [
-  {name:'Main Titles',        src:TRACK_0},
+  {name:'Main Titles', src:TRACK_0},
   {name:'My Watch Has Ended', src:TRACK_1},
   {name:'Light of the Seven', src:TRACK_2},
 ];
+
 let currentTrack = -1;
 const audio = document.getElementById('bgAudio');
-// ── BUILD DOTS ──
-document.addEventListener('DOMContentLoaded', buildDots);
+
 function buildDots() {
   const c = document.getElementById('trackDots');
-  if (!c) return;
-  TRACKS.forEach((t, i) => {
+  TRACKS.forEach((t,i) => {
     const d = document.createElement('div');
-    d.className = 'music-dot';
-    d.title = t.name;
-    d.onclick = () => playTrack(i);
+    d.className='music-dot'; d.title=t.name;
+    d.onclick=()=>playTrack(i);
     c.appendChild(d);
   });
 }
-// ── PLAY TRACK ──
+
 function playTrack(i) {
   currentTrack = i;
   audio.src = TRACKS[i].src;
-  const volEl = document.querySelector('.music-vol');
-  audio.volume = volEl ? parseFloat(volEl.value) : 0.5;
-  audio.play()
-    .then(() => {
-      document.getElementById('trackName').textContent = TRACKS[i].name;
-      document.getElementById('playPauseBtn').textContent = '⏸';
-      document.querySelectorAll('.music-dot')
-        .forEach((d, j) => d.classList.toggle('playing', j === i));
-    })
-    .catch(err => {
-      console.warn('Playback failed:', err);
-      document.getElementById('playPauseBtn').textContent = '▶';
-      document.querySelectorAll('.music-dot')
-        .forEach(d => d.classList.remove('playing'));
-      currentTrack = -1;
-    });
+  audio.volume = parseFloat(document.querySelector('.music-vol').value);
+  audio.play();
+  document.getElementById('trackName').textContent = TRACKS[i].name;
+  document.getElementById('playPauseBtn').textContent = '⏸';
+  document.querySelectorAll('.music-dot').forEach((d,j)=>d.classList.toggle('playing',j===i));
 }
-// ── TOGGLE PLAY/PAUSE ──
+
 function togglePlay() {
   if (audio.paused) {
-    if (currentTrack < 0) {
-      playTrack(Math.floor(Math.random() * TRACKS.length));
-      return;
-    }
-    audio.play()
-      .then(() => {
-        document.getElementById('playPauseBtn').textContent = '⏸';
-      })
-      .catch(err => {
-        console.warn('Resume failed:', err);
-        document.getElementById('playPauseBtn').textContent = '▶';
-      });
+    if (currentTrack < 0) { playTrack(Math.floor(Math.random()*TRACKS.length)); return; }
+    audio.play();
+    document.getElementById('playPauseBtn').textContent='⏸';
   } else {
     audio.pause();
-    document.getElementById('playPauseBtn').textContent = '▶';
+    document.getElementById('playPauseBtn').textContent='▶';
   }
 }
-// ── VOLUME ──
+
 function setVol(v) { audio.volume = parseFloat(v); }
-// ── AUTO-ADVANCE ──
-audio.addEventListener('ended', () => {
+
+// Auto-advance to next random track
+audio.addEventListener('ended', ()=>{
   let next;
-  do {
-    next = Math.floor(Math.random() * TRACKS.length);
-  } while (next === currentTrack && TRACKS.length > 1);
+  do { next = Math.floor(Math.random()*TRACKS.length); } while(next===currentTrack && TRACKS.length>1);
   playTrack(next);
 });
-// ── START ON FIRST CLICK ANYWHERE ──
-document.addEventListener('click', function startOnClick() {
-  if (currentTrack < 0) {
-    playTrack(Math.floor(Math.random() * TRACKS.length));
-  } else if (audio.paused) {
-    audio.play().catch(err => console.warn('Play failed:', err));
-  }
-}, { once: true });
-</script>
 
 // ── MULTI-SHEET STORAGE ──
 const SHEET_INDEX_KEY = 'got_sheets_index'; // array of {id, name}
