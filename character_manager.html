@@ -1637,7 +1637,9 @@ buildDots();
 // Browsers block autoplay until user interaction.
 // We show a "click anywhere" overlay that starts music on first interaction.
 function _startMusic() {
-  playTrack(Math.floor(Math.random() * TRACKS.length));
+  if (currentTrack < 0) {
+    playTrack(Math.floor(Math.random() * TRACKS.length));
+  }
   document.removeEventListener('click', _startMusic);
   document.removeEventListener('keydown', _startMusic);
   const hint = document.getElementById('clickHint');
