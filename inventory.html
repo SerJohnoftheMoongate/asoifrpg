@@ -553,7 +553,6 @@ textarea{resize:none;font-weight:400;font-size:12px}
   font-family:var(--got);font-size:8.5px;
   background:var(--input-bg);border:1px solid var(--gold);
   display:flex;align-items:center;justify-content:center;
-  color:var(--near-black);
 }
 .inv-total-val.tv-q{width:28px;}
 .inv-total-val.tv-w{width:38px;}
@@ -997,6 +996,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
           <optgroup label="🎒 Carried">
             <option value="Ingredient">Ingredient</option>
             <option value="Tools">Tools</option>
+            <option value="Book">Book</option>
             <option value="Food">Food</option>
             <option value="Camping">Camping</option>
             <option value="Misc">Misc</option>
@@ -1848,7 +1848,7 @@ function buildAllTables() {
    Allows: adjust quantity (±), edit name/weight/price, delete.
 ─────────────────────────────────────────────────────────────── */
 /* ── Tag sort order for backpack and steed ── */
-const TAG_SORT_ORDER = ['Helmet','Body Armor','Gauntlets','Sabatons','Shield','Archery','Weapon','Cloak','Ring','Tools','Food','Camping','Misc','Ingredient',''];
+const TAG_SORT_ORDER = ['Helmet','Body Armor','Gauntlets','Sabatons','Shield','Archery','Weapon','Cloak','Ring','Tools','Book','Food','Camping','Misc','Ingredient',''];
 
 function sortTableByTag(tableId) {
   const rows = tableData[tableId];
@@ -1905,6 +1905,10 @@ function unequipItem(slotId) {
 function openItemModal(tableId, rowIdx) {
   const item = tableData[tableId][rowIdx];
   if (!item || !item.name) return;
+
+  // Special modals for Book and Tools tags
+  if (item.tag === 'Book')  { openBookModal(tableId, rowIdx);    return; }
+  if (item.tag === 'Tools') { openToolkitModal(tableId, rowIdx); return; }
 
   const existing = document.getElementById('itemMgmtModal');
   if (existing) existing.remove();
@@ -2702,6 +2706,332 @@ function applyCultureBonus() {}
 
 /* Called when spec dropdown changes — nothing to recompute on this page. */
 function applySpecFeatures() {}
+
+/* ══════════════════════════════════════════════════════════
+   BOOK MODAL  — large paged text editor per book item
+══════════════════════════════════════════════════════════ */
+function openBookModal(tableId, rowIdx) {
+  document.getElementById('bookModal')?.remove();
+  const item = tableData[tableId][rowIdx];
+  if (!item) return;
+
+  if (!Array.isArray(item.pages) || item.pages.length === 0) item.pages = [''];
+  let currentPage = 0;
+
+  const render = () => {
+    const total  = item.pages.length;
+    const pgNum  = currentPage + 1;
+    const hasPrev = currentPage > 0;
+    const hasNext = currentPage < total - 1;
+    const metaStr = [item.w ? item.w + ' kg' : '', item.p || ''].filter(Boolean).join(' · ');
+
+    const modal = document.getElementById('bookModal');
+    if (!modal) return;
+    modal.querySelector('.book-inner').innerHTML = `
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+        <h2 style="font-size:19px;margin:0;font-family:'IM Fell English',serif;font-style:italic;">${item.name}</h2>
+        <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);">Book</span>
+      </div>
+      ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:14px;">${metaStr}</div>` : '<div style="margin-bottom:14px;"></div>'}
+
+      <!-- Chapter header + page nav -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <button onclick="bookPageNav(-1)"
+          style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--gold);
+                 background:rgba(60,40,0,.5);color:var(--text-gold);font-size:18px;cursor:pointer;
+                 display:flex;align-items:center;justify-content:center;
+                 opacity:${hasPrev?'1':'0.25'};pointer-events:${hasPrev?'auto':'none'};
+                 transition:filter .15s;"
+          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">‹</button>
+        <div style="text-align:center;">
+          <div style="font-family:var(--got);font-size:13px;color:var(--text-gold);letter-spacing:1px;">Chapter ${pgNum}</div>
+          <div style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.35);letter-spacing:.5px;">${pgNum} / ${total}</div>
+        </div>
+        <button onclick="bookPageNav(+1)"
+          style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--gold);
+                 background:rgba(60,40,0,.5);color:var(--text-gold);font-size:18px;cursor:pointer;
+                 display:flex;align-items:center;justify-content:center;
+                 opacity:${hasNext?'1':'0.25'};pointer-events:${hasNext?'auto':'none'};
+                 transition:filter .15s;"
+          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">›</button>
+      </div>
+
+      <!-- Text area -->
+      <textarea id="book_page_text"
+        style="width:100%;height:260px;resize:vertical;font-family:'IM Fell English',serif;
+               font-size:14px;line-height:1.7;color:#e8dfc0;background:rgba(10,6,0,.6);
+               border:1px solid rgba(139,106,0,.5);padding:12px 14px;box-sizing:border-box;
+               outline:none;letter-spacing:.2px;"
+        placeholder="Write your chapter here...">${item.pages[currentPage] || ''}</textarea>
+
+      <!-- Add / remove page -->
+      <div style="display:flex;gap:6px;margin-top:8px;margin-bottom:12px;">
+        <button onclick="bookAddPage()"
+          style="flex:1;padding:5px;font-family:var(--got);font-size:9px;letter-spacing:.5px;
+                 background:rgba(30,30,10,.5);border:1px solid rgba(139,106,0,.4);color:rgba(232,200,74,.6);
+                 cursor:pointer;transition:filter .15s;"
+          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+ Add Chapter</button>
+        <button onclick="bookDeletePage()"
+          style="flex:1;padding:5px;font-family:var(--got);font-size:9px;letter-spacing:.5px;
+                 background:rgba(40,10,10,.5);border:1px solid rgba(100,30,30,.5);color:rgba(255,100,100,.6);
+                 cursor:pointer;transition:filter .15s;${total<=1?'opacity:.35;pointer-events:none;':''}"
+          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">− Remove Chapter</button>
+      </div>
+
+      <!-- Weight / Price edit + action buttons -->
+      <div style="border-top:1px solid rgba(139,106,0,.25);padding-top:12px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+          <div>
+            <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Weight (kg)</label>
+            <input type="text" id="bookMgmt_w" value="${item.w||''}" placeholder="—"
+              style="width:100%;height:28px;font-size:13px;text-align:center;">
+          </div>
+          <div>
+            <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Price</label>
+            <input type="text" id="bookMgmt_p" value="${item.p||''}" placeholder="—"
+              style="width:100%;height:28px;font-size:13px;text-align:center;">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="rest-btn" onclick="bookSave()" style="flex:2;">Save & Close</button>
+          <button class="rest-btn" onclick="bookDelete()"
+            style="flex:1;background:#3a0000;border-color:#882222;color:#ff6666;">Delete</button>
+          <button class="rest-btn" onclick="document.getElementById('bookModal').remove()"
+            style="flex:1;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
+        </div>
+      </div>`;
+  };
+
+  const o = document.createElement('div');
+  o.id = 'bookModal';
+  o.className = 'modal-overlay';
+  o.innerHTML = `<div class="modal book-inner" style="max-width:580px;width:95%;padding:28px 36px;"></div>`;
+  o._tableId = tableId;
+  o._rowIdx  = rowIdx;
+  o._getPage = () => currentPage;
+  o._setPage = (p) => { currentPage = p; };
+  document.body.appendChild(o);
+  render();
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+
+  // expose helpers on window so inline onclick can reach them
+  window._bookRender      = render;
+  window._bookGetPage     = () => currentPage;
+  window._bookSetPage     = (p) => { currentPage = p; };
+}
+
+function bookPageNav(delta) {
+  const modal = document.getElementById('bookModal');
+  if (!modal) return;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  // Save current text first
+  const ta = document.getElementById('book_page_text');
+  if (ta) item.pages[window._bookGetPage()] = ta.value;
+  const newPage = Math.max(0, Math.min(item.pages.length - 1, window._bookGetPage() + delta));
+  window._bookSetPage(newPage);
+  window._bookRender();
+}
+
+function bookAddPage() {
+  const modal = document.getElementById('bookModal');
+  if (!modal) return;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  const ta = document.getElementById('book_page_text');
+  if (ta) item.pages[window._bookGetPage()] = ta.value;
+  item.pages.push('');
+  window._bookSetPage(item.pages.length - 1);
+  window._bookRender();
+}
+
+function bookDeletePage() {
+  const modal = document.getElementById('bookModal');
+  if (!modal) return;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  if (item.pages.length <= 1) return;
+  item.pages.splice(window._bookGetPage(), 1);
+  window._bookSetPage(Math.min(window._bookGetPage(), item.pages.length - 1));
+  window._bookRender();
+}
+
+function bookSave() {
+  const modal = document.getElementById('bookModal');
+  if (!modal) return;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  const ta = document.getElementById('book_page_text');
+  if (ta) item.pages[window._bookGetPage()] = ta.value;
+  item.w = document.getElementById('bookMgmt_w')?.value.trim() || item.w;
+  item.p = document.getElementById('bookMgmt_p')?.value.trim() || item.p;
+  modal.remove();
+  buildAllTables();
+  calcWeights();
+  _saveData();
+}
+
+function bookDelete() {
+  const modal = document.getElementById('bookModal');
+  if (!modal) return;
+  tableData[modal._tableId][modal._rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
+  modal.remove();
+  buildAllTables();
+  calcWeights();
+  calcDC();
+  _saveData();
+}
+
+/* ══════════════════════════════════════════════════════════
+   TOOLKIT MODAL  — manage contents of a Tools item
+══════════════════════════════════════════════════════════ */
+function openToolkitModal(tableId, rowIdx) {
+  document.getElementById('toolkitModal')?.remove();
+  const item = tableData[tableId][rowIdx];
+  if (!item) return;
+  if (!Array.isArray(item.toolkit)) item.toolkit = [];
+
+  const renderList = () => {
+    const listEl = document.getElementById('toolkit_list');
+    if (!listEl) return;
+    if (item.toolkit.length === 0) {
+      listEl.innerHTML = `<div style="padding:10px 6px;font-family:'IM Fell English',serif;font-size:11px;
+        color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No tools added yet</div>`;
+      return;
+    }
+    listEl.innerHTML = item.toolkit.map((t, i) => `
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 4px;margin-bottom:4px;
+                  border-bottom:1px solid rgba(139,106,0,.15);">
+        <span style="font-family:'IM Fell English',serif;font-size:13px;flex:1;color:#e8dfc0;">${t.name}</span>
+        <button onclick="toolkitAdjQty(${i},-1)"
+          style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(139,106,0,.5);
+                 background:rgba(60,30,0,.5);color:var(--text-gold);font-size:14px;font-weight:700;
+                 cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;
+                 transition:filter .15s;"
+          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
+        <span style="font-family:var(--got);font-size:15px;color:var(--text-gold);min-width:28px;
+               text-align:center;text-shadow:0 0 6px rgba(232,200,74,.4);">${t.qty}</span>
+        <button onclick="toolkitAdjQty(${i},+1)"
+          style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(139,106,0,.5);
+                 background:rgba(60,30,0,.5);color:var(--text-gold);font-size:14px;font-weight:700;
+                 cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;
+                 transition:filter .15s;"
+          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
+        <button onclick="toolkitDeleteTool(${i})"
+          style="width:22px;height:22px;border:1px solid rgba(120,30,30,.5);border-radius:2px;
+                 background:rgba(50,10,10,.5);color:#ff6666;font-size:11px;cursor:pointer;
+                 display:flex;align-items:center;justify-content:center;line-height:1;
+                 transition:filter .15s;"
+          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">✕</button>
+      </div>`).join('');
+  };
+
+  const metaStr = [item.w ? item.w + ' kg' : '', item.p || ''].filter(Boolean).join(' · ');
+
+  const o = document.createElement('div');
+  o.id = 'toolkitModal';
+  o.className = 'modal-overlay';
+  o.innerHTML = `
+    <div class="modal" style="max-width:420px;padding:28px 36px;">
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+        <h2 style="font-size:19px;margin:0;">${item.name}</h2>
+        <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);">Tools</span>
+      </div>
+      ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:16px;">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
+
+      <div style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:8px;">TOOLKIT CONTENTS</div>
+      <div id="toolkit_list" style="max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>
+
+      <!-- Add tool row -->
+      <div style="display:flex;gap:6px;margin-bottom:16px;padding-top:8px;border-top:1px solid rgba(139,106,0,.25);">
+        <input type="text" id="toolkit_new_name" placeholder="Add tool..."
+          style="flex:1;height:30px;font-size:12px;padding:0 8px;"
+          onkeydown="if(event.key==='Enter') toolkitAddTool()">
+        <button onclick="toolkitAddTool()" class="rest-btn"
+          style="padding:4px 12px;font-size:11px;">+ Add</button>
+      </div>
+
+      <!-- Weight / Price -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;
+                  border-top:1px solid rgba(139,106,0,.25);padding-top:12px;">
+        <div>
+          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Weight (kg)</label>
+          <input type="text" id="toolkitMgmt_w" value="${item.w||''}" placeholder="—"
+            style="width:100%;height:28px;font-size:13px;text-align:center;">
+        </div>
+        <div>
+          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Price</label>
+          <input type="text" id="toolkitMgmt_p" value="${item.p||''}" placeholder="—"
+            style="width:100%;height:28px;font-size:13px;text-align:center;">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button class="rest-btn" onclick="toolkitSave()" style="flex:2;">Save & Close</button>
+        <button class="rest-btn" onclick="toolkitDelete()"
+          style="flex:1;background:#3a0000;border-color:#882222;color:#ff6666;">Delete</button>
+        <button class="rest-btn" onclick="document.getElementById('toolkitModal').remove()"
+          style="flex:1;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
+      </div>
+    </div>`;
+
+  o._tableId = tableId;
+  o._rowIdx  = rowIdx;
+  document.body.appendChild(o);
+  renderList();
+  window._toolkitRenderList = renderList;
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function toolkitAdjQty(idx, delta) {
+  const modal = document.getElementById('toolkitModal');
+  if (!modal) return;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  if (!item.toolkit[idx]) return;
+  item.toolkit[idx].qty = Math.max(1, (item.toolkit[idx].qty || 1) + delta);
+  window._toolkitRenderList?.();
+}
+
+function toolkitDeleteTool(idx) {
+  const modal = document.getElementById('toolkitModal');
+  if (!modal) return;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  item.toolkit.splice(idx, 1);
+  window._toolkitRenderList?.();
+}
+
+function toolkitAddTool() {
+  const modal = document.getElementById('toolkitModal');
+  if (!modal) return;
+  const inp = document.getElementById('toolkit_new_name');
+  const name = inp?.value.trim();
+  if (!name) { if(inp) inp.style.borderColor='#ff4444'; return; }
+  inp.style.borderColor = '';
+  const item = tableData[modal._tableId][modal._rowIdx];
+  if (!Array.isArray(item.toolkit)) item.toolkit = [];
+  item.toolkit.push({name, qty: 1});
+  inp.value = '';
+  window._toolkitRenderList?.();
+}
+
+function toolkitSave() {
+  const modal = document.getElementById('toolkitModal');
+  if (!modal) return;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  item.w = document.getElementById('toolkitMgmt_w')?.value.trim() || item.w;
+  item.p = document.getElementById('toolkitMgmt_p')?.value.trim() || item.p;
+  modal.remove();
+  buildAllTables();
+  calcWeights();
+  _saveData();
+}
+
+function toolkitDelete() {
+  const modal = document.getElementById('toolkitModal');
+  if (!modal) return;
+  tableData[modal._tableId][modal._rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
+  modal.remove();
+  buildAllTables();
+  calcWeights();
+  calcDC();
+  _saveData();
+}
 
 /* ══════════════════════════════════════════════════════════
    MONEY POUCH MODAL
