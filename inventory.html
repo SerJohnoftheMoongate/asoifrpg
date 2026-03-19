@@ -669,8 +669,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
           <div class="inv-ac-num"><input type="text" id="inv_ac" value="8" oninput="calcDC();updateTotalAC()"></div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <div class="inv-ac-lbl" style="flex:1;font-size:9px;background:#1A3A1A;border-color:#3a3;">Total AC</div>
-          <div class="inv-ac-num"><input type="text" id="inv_ac_total" readonly style="background:#0a1a0a;color:#6ddd6d;border-color:#3a3;font-weight:700;font-size:17px;text-align:center;cursor:default;"></div>
+          <div class="inv-ac-lbl" style="flex:1;font-size:9px;background:linear-gradient(135deg,#1a1a1a,#6e6e6e,#1a1a1a);border-color:#aaa;color:#f0f0f0;text-shadow:0 0 4px rgba(255,255,255,.3);box-shadow:0 0 5px rgba(180,180,180,.2);">Total AC</div>
+          <div class="inv-ac-num"><input type="text" id="inv_ac_total" readonly style="background:linear-gradient(135deg,#1a1a1a,#6e6e6e,#1a1a1a);color:#f0f0f0;border-color:#aaa;font-weight:700;font-size:17px;text-align:center;cursor:default;text-shadow:0 0 6px rgba(255,255,255,.4);box-shadow:0 0 6px rgba(180,180,180,.25);"></div>
         </div>
       </div>
     </div>
@@ -734,7 +734,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
                transition:filter .15s,box-shadow .15s;"
         onmouseover="this.style.filter='brightness(1.2)';this.style.boxShadow='0 0 14px rgba(212,160,23,.7)'"
         onmouseout="this.style.filter='';this.style.boxShadow='0 0 8px rgba(212,160,23,.4)'">
-        💰 Money Pouch
+        Money Pouch
       </button>
     </div>
 
@@ -865,14 +865,16 @@ textarea{resize:none;font-weight:400;font-size:12px}
           <input type="text" id="bp_cw_max" readonly placeholder="—" style="flex:1;height:24px;font-size:12px;font-weight:700;text-align:center;background:#1a1400;color:var(--text-gold);border-color:rgba(139,106,0,.5);">
         </div>
       </div>
-      <div style="padding:0 2px 3px;">
-        <button id="bp_size_btn" onclick="openBagSizeModal()"
-          class="rest-btn"
-          style="width:100%;padding:5px 8px;font-size:11px;background:rgba(60,40,0,.45);border-color:rgba(180,130,0,.5);color:var(--text-gold);">
-          🎒 Bag: Medium (25 kg)
-        </button>
-        <input type="hidden" id="bp_size" value="25">
       </div>
+    </div>
+
+    <div style="padding:3px 4px 4px;">
+      <button id="bp_size_btn" onclick="openBagSizeModal()"
+        class="rest-btn"
+        style="width:100%;padding:5px 8px;font-size:11px;background:rgba(60,40,0,.45);border-color:rgba(180,130,0,.5);color:var(--text-gold);">
+        🎒 Bag: Medium (25 kg)
+      </button>
+      <input type="hidden" id="bp_size" value="25">
     </div>
 
     <div style="padding:3px 4px 4px;">
@@ -917,14 +919,16 @@ textarea{resize:none;font-weight:400;font-size:12px}
           <input type="text" id="st_cw_max" readonly placeholder="—" style="flex:1;height:24px;font-size:12px;font-weight:700;text-align:center;background:#1a1400;color:var(--text-gold);border-color:rgba(139,106,0,.5);">
         </div>
       </div>
-      <div style="padding:0 2px 3px;">
-        <button id="st_animal_btn" onclick="openSteedModal()"
-          class="rest-btn"
-          style="width:100%;padding:5px 8px;font-size:11px;background:rgba(30,20,60,.45);border-color:rgba(100,80,180,.4);color:rgba(200,180,255,.85);">
-          🐴 Steed: None
-        </button>
-        <input type="hidden" id="st_animal" value="0">
       </div>
+    </div>
+
+    <div style="padding:3px 4px 4px;">
+      <button id="st_animal_btn" onclick="openSteedModal()"
+        class="rest-btn"
+        style="width:100%;padding:5px 8px;font-size:11px;background:rgba(30,20,60,.45);border-color:rgba(100,80,180,.4);color:rgba(200,180,255,.85);">
+        🐴 Steed: None
+      </button>
+      <input type="hidden" id="st_animal" value="0">
     </div>
 
     <div class="sec">Items</div>
@@ -2706,12 +2710,19 @@ function applySpecFeatures() {}
 function openMoneyPouchModal() {
   document.getElementById('moneyPouchModal')?.remove();
 
-  // Read current values from hidden inputs
   const getV = id => parseInt(document.getElementById(id)?.value || '0', 10) || 0;
 
-  function calcTotal(d, s, p) {
-    return (d * 10000) + (s * 100) + p;
+  // 1 Dragon = 210 Stags = 1,470 Copper Stars
+  function calcTotalDragons(d, s, p) {
+    return Math.floor(d + s / 210 + p / 1470);
   }
+
+  // Per-coin palette: [gradient stops, border colour, text colour, glow colour]
+  const palette = {
+    dragons: { bg:'linear-gradient(135deg,#3a2000,#c8920a,#3a2000)', border:'#d4a017', color:'#ffe680', glow:'rgba(212,160,23,.8)', label:'Gold Dragons',   icon:'Images/Dragon Coin Icon.webp' },
+    stags:   { bg:'linear-gradient(135deg,#1a1a1a,#8a8a8a,#1a1a1a)', border:'#bbb',    color:'#f0f0f0', glow:'rgba(200,200,200,.7)', label:'Silver Stags',   icon:'Images/Stag Coin Icon.webp'   },
+    pennies: { bg:'linear-gradient(135deg,#2a1000,#a0540a,#2a1000)', border:'#b06020', color:'#f0b070', glow:'rgba(180,100,50,.8)',  label:'Copper Stars',   icon:'Images/Penny Coin Icon.webp'  },
+  };
 
   const o = document.createElement('div');
   o.id = 'moneyPouchModal';
@@ -2719,49 +2730,51 @@ function openMoneyPouchModal() {
 
   o.innerHTML = `
     <div class="modal" style="max-width:360px;padding:28px 36px;text-align:center;">
-      <h2 style="font-size:18px;margin-bottom:4px;letter-spacing:1px;">💰 Money Pouch</h2>
+      <h2 style="font-size:18px;margin-bottom:4px;letter-spacing:1px;">Money Pouch</h2>
       <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.5);margin-bottom:20px;">
         "A Lannister always pays his debts."
       </p>
 
       ${['dragons','stags','pennies'].map(coin => {
-        const icons = {dragons:'Images/Dragon Coin Icon.webp', stags:'Images/Stag Coin Icon.webp', pennies:'Images/Penny Coin Icon.webp'};
-        const labels = {dragons:'Dragons', stags:'Stags', pennies:'Pennies'};
-        const colors = {dragons:'rgba(212,160,23,.9)', stags:'rgba(180,180,180,.85)', pennies:'rgba(176,110,50,.9)'};
+        const p = palette[coin];
         return `
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 6px;margin-bottom:6px;
-                    border:1px solid rgba(139,106,0,.3);background:rgba(0,0,0,.25);border-radius:2px;">
-          <img src="${icons[coin]}" alt="${labels[coin]}"
-            style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--gold);
-                   object-fit:cover;flex-shrink:0;background:var(--gold-bg);"
-            onerror="this.style.display='none';this.nextElementSibling.style.marginLeft='0'">
-          <span style="font-family:var(--got);font-size:11px;color:${colors[coin]};flex:1;text-align:left;letter-spacing:.5px;">${labels[coin]}</span>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 6px;margin-bottom:8px;
+                    border:1px solid ${p.border}44;background:rgba(0,0,0,.25);border-radius:3px;">
+          <img src="${p.icon}" alt="${p.label}"
+            style="width:34px;height:34px;border-radius:50%;border:1.5px solid ${p.border};
+                   object-fit:cover;flex-shrink:0;background:rgba(0,0,0,.4);"
+            onerror="this.style.display='none'">
+          <span style="font-family:var(--got);font-size:10px;color:${p.color};flex:1;text-align:left;
+                       letter-spacing:.4px;text-shadow:0 0 6px ${p.glow};">${p.label}</span>
           <button onclick="moneyAdj('${coin}',-1)"
-            style="width:26px;height:26px;border:1px solid rgba(139,106,0,.5);background:rgba(80,40,0,.5);
-                   color:var(--text-gold);font-size:16px;font-weight:700;cursor:pointer;line-height:1;
-                   font-family:var(--got);flex-shrink:0;"
-            onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
-          <span id="mp_${coin}" style="font-family:var(--got);font-size:18px;color:${colors[coin]};
-                 min-width:44px;text-align:center;text-shadow:0 0 8px currentColor;line-height:1;">
+            style="width:28px;height:28px;border-radius:50%;border:1.5px solid ${p.border};
+                   background:${p.bg};color:${p.color};font-size:18px;font-weight:700;cursor:pointer;
+                   line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                   box-shadow:0 0 6px ${p.glow};transition:filter .15s;"
+            onmouseover="this.style.filter='brightness(1.35)'" onmouseout="this.style.filter=''">−</button>
+          <span id="mp_${coin}" style="font-family:var(--got);font-size:18px;color:${p.color};
+                 min-width:44px;text-align:center;text-shadow:0 0 8px ${p.glow};line-height:1;">
             ${getV('money_'+coin)}
           </span>
           <button onclick="moneyAdj('${coin}',+1)"
-            style="width:26px;height:26px;border:1px solid rgba(139,106,0,.5);background:rgba(80,40,0,.5);
-                   color:var(--text-gold);font-size:16px;font-weight:700;cursor:pointer;line-height:1;
-                   font-family:var(--got);flex-shrink:0;"
-            onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
+            style="width:28px;height:28px;border-radius:50%;border:1.5px solid ${p.border};
+                   background:${p.bg};color:${p.color};font-size:18px;font-weight:700;cursor:pointer;
+                   line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                   box-shadow:0 0 6px ${p.glow};transition:filter .15s;"
+            onmouseover="this.style.filter='brightness(1.35)'" onmouseout="this.style.filter=''">+</button>
         </div>`;
       }).join('')}
 
       <div style="border-top:1px solid rgba(139,106,0,.35);margin-top:10px;padding-top:10px;
                   display:flex;align-items:center;justify-content:space-between;">
         <span style="font-family:var(--got);font-size:9px;color:rgba(232,200,74,.5);letter-spacing:1px;">TOTAL VALUE</span>
-        <span id="mp_total" style="font-family:var(--got);font-size:14px;color:var(--text-gold);">
-          ${calcTotal(getV('money_dragons'), getV('money_stags'), getV('money_pennies'))} pennies
+        <span id="mp_total" style="font-family:var(--got);font-size:14px;color:rgba(212,160,23,.9);
+               text-shadow:0 0 8px rgba(212,160,23,.5);">
+          ${calcTotalDragons(getV('money_dragons'), getV('money_stags'), getV('money_pennies'))} Dragons
         </span>
       </div>
       <p style="font-family:'IM Fell English',serif;font-size:9px;color:rgba(232,200,74,.3);margin:6px 0 16px;font-style:italic;">
-        1 Dragon = 100 Stags = 10,000 Pennies
+        1 Gold Dragon = 210 Silver Stags = 1,470 Copper Stars
       </p>
       <button class="rest-btn" onclick="document.getElementById('moneyPouchModal').remove()"
         style="width:100%;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
@@ -2777,18 +2790,16 @@ function moneyAdj(coin, delta) {
   const newVal = Math.max(0, (parseInt(hidEl.value, 10) || 0) + delta);
   hidEl.value = newVal;
 
-  // Update display in modal
   const dispEl = document.getElementById('mp_' + coin);
   if (dispEl) dispEl.textContent = newVal;
 
-  // Recalc total
+  // Recalc total in Dragons (rounded down)
   const d = parseInt(document.getElementById('money_dragons')?.value || '0', 10) || 0;
   const s = parseInt(document.getElementById('money_stags')?.value   || '0', 10) || 0;
   const p = parseInt(document.getElementById('money_pennies')?.value  || '0', 10) || 0;
   const totEl = document.getElementById('mp_total');
-  if (totEl) totEl.textContent = (d * 10000 + s * 100 + p) + ' pennies';
+  if (totEl) totEl.textContent = Math.floor(d + s / 210 + p / 1470) + ' Dragons';
 
-  // Persist immediately
   _saveData();
 }
 
