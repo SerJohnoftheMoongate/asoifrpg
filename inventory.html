@@ -663,13 +663,10 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div class="inv-stats-panel">
     <div class="sec" style="font-size:10px;letter-spacing:.5px;">Equipment</div>
 
-    <!-- Armor Class -->
+    <!-- Armor Class — base AC hidden but still functional, only Total AC shown -->
+    <input type="hidden" id="inv_ac" value="8">
     <div class="inv-ac-block">
       <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <div class="inv-ac-lbl" style="flex:1;font-size:9px;">Base AC</div>
-          <div class="inv-ac-num"><input type="text" id="inv_ac" value="8" oninput="calcDC();updateTotalAC()"></div>
-        </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <div class="inv-ac-lbl" style="flex:1;font-size:9px;background:linear-gradient(135deg,#1a1a1a,#6e6e6e,#1a1a1a);border-color:#aaa;color:#f0f0f0;text-shadow:0 0 4px rgba(255,255,255,.3);box-shadow:0 0 5px rgba(180,180,180,.2);">Total AC</div>
           <div class="inv-ac-num"><input type="text" id="inv_ac_total" readonly style="background:linear-gradient(135deg,#1a1a1a,#6e6e6e,#1a1a1a);color:#f0f0f0;border-color:#aaa;font-weight:700;font-size:17px;text-align:center;cursor:default;text-shadow:0 0 6px rgba(255,255,255,.4);box-shadow:0 0 6px rgba(180,180,180,.25);"></div>
@@ -694,38 +691,59 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div>
     </div>
 
-    <!-- Hit Points tracker -->
+    <!-- Health: Max HP + Body Weight side by side -->
     <div class="inv-hp-block">
-      <div class="sec" style="font-size:11px;margin-bottom:4px;">Hit Points</div>
-      <div style="display:flex;gap:3px;margin-bottom:3px;">
-        <input type="text" id="hp_current" placeholder="Current" style="flex:1;height:24px;font-size:13px;text-align:center;font-weight:700;">
-        <span style="display:flex;align-items:center;color:var(--text-gold);font-family:var(--got);font-size:11px;">/ </span>
-        <input type="text" id="hp_max" placeholder="Max" oninput="calcDC()" style="width:48px;height:24px;font-size:13px;text-align:center;font-weight:700;">
-      </div>
-      <div style="display:flex;gap:3px;">
-        <input type="text" id="hp_temp" placeholder="Temp HP" style="flex:1;height:20px;font-size:11px;text-align:center;">
+      <div class="sec" style="font-size:11px;margin-bottom:6px;">Health</div>
+      <div style="display:flex;gap:6px;align-items:flex-end;">
+        <!-- Max HP -->
+        <div style="flex:1;">
+          <span class="meta-lbl">Max HP</span>
+          <input type="text" id="hp_max" placeholder="—" oninput="calcDC()"
+            style="width:100%;height:28px;font-size:15px;text-align:center;font-weight:700;box-sizing:border-box;">
+        </div>
+        <!-- Body Weight -->
+        <div style="flex:2;">
+          <span class="meta-lbl">Body Weight</span>
+          <div style="height:28px;">
+            <select id="weight" onchange="calcWeights()"
+              style="width:100%;height:100%;font-family:'Cinzel',serif;font-size:10px;font-weight:700;
+                     background:var(--input-bg);border:1px solid var(--gold);color:#1a1000;
+                     cursor:pointer;padding:0 4px;box-sizing:border-box;">
+              <option value="">— Weight —</option>
+              <option value="-1">40 – 50 kg</option>
+              <option value="0">50 – 60 kg</option>
+              <option value="1">60 – 70 kg</option>
+              <option value="2">70 – 80 kg</option>
+              <option value="3">80 – 90 kg</option>
+              <option value="4">90 – 100 kg</option>
+              <option value="5">100 – 110 kg</option>
+              <option value="6">110 – 120 kg</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
     
-    <!-- Body Weight -->
-    <div class="sec" style="font-size:11px;margin-bottom:4px;">Body Weight</div>
-    <div style="border:1px solid var(--gold);margin:0 0 4px;padding:6px 8px;background:var(--gold-bg);">
-      <span class="meta-lbl">Weight Class</span>
-      <div class="meta-inp" style="height:26px;">
-        <select id="weight" onchange="calcWeights()" style="width:100%;height:100%;font-family:'Cinzel',serif;font-size:10px;font-weight:700;background:var(--input-bg);border:none;color:#1a1000;cursor:pointer;padding:0 4px;">
-          <option value="">— Select weight —</option>
-          <option value="-1">40 – 50 kg</option>
-          <option value="0">50 – 60 kg</option>
-          <option value="1">60 – 70 kg</option>
-          <option value="2">70 – 80 kg</option>
-          <option value="3">80 – 90 kg</option>
-          <option value="4">90 – 100 kg</option>
-          <option value="5">100 – 110 kg</option>
-          <option value="6">110 – 120 kg</option>
-        </select>
+    <!-- Proficiencies -->
+    <div class="inv-hp-block" style="margin-top:4px;">
+      <div class="sec" style="font-size:11px;margin-bottom:6px;">Proficiencies</div>
+      <div onclick="openProficiencyModal()" title="Click to edit proficiencies"
+        style="border:1px solid var(--gold);padding:6px 8px;cursor:pointer;
+               background:var(--gold-bg);min-height:28px;display:flex;align-items:center;
+               flex-wrap:wrap;gap:4px;transition:background .15s;"
+        onmouseover="this.style.background='rgba(139,106,0,.25)'"
+        onmouseout="this.style.background='var(--gold-bg)'"
+        id="prof_display">
+        <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;
+                     color:rgba(232,200,74,.35);">None selected</span>
       </div>
+      <!-- Hidden checkboxes — auto-saved/loaded by _collectInvData -->
+      <input type="checkbox" id="prof_shield" style="display:none">
+      <input type="checkbox" id="prof_light"  style="display:none">
+      <input type="checkbox" id="prof_medium" style="display:none">
+      <input type="checkbox" id="prof_heavy"  style="display:none">
     </div>
-    
+
 <!-- Money Pouch -->
     <div style="padding:4px 0 6px;">
       <button onclick="openMoneyPouchModal()"
@@ -1009,6 +1027,49 @@ textarea{resize:none;font-weight:400;font-size:12px}
         <label class="aim-lbl" style="font-size:10px;">AC Bonus</label>
         <input type="text" id="aim_ac" placeholder="+2"
           style="width:100%;height:36px;font-size:15px;text-align:center;font-weight:700;">
+      </div>
+    </div>
+
+    <!-- ── Armor Type row (Helmet / Gauntlets / Body Armor / Sabatons only) ── -->
+    <div id="aim_armortype_row" style="display:none;margin-bottom:4px;margin-top:4px;">
+      <label class="aim-lbl" style="font-size:10px;">Armor Type</label>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <label id="aim_at_lbl_light"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+                 padding:8px 6px;border:1.5px solid rgba(139,106,0,.4);cursor:pointer;
+                 background:rgba(0,0,0,.25);font-family:var(--got);font-size:10px;
+                 color:rgba(232,200,74,.7);letter-spacing:.5px;border-radius:2px;
+                 transition:background .15s,border-color .15s;"
+          onmouseover="this.style.background='rgba(139,106,0,.2)'"
+          onmouseout="this.style.background=this.querySelector('input').checked?'rgba(139,106,0,.3)':'rgba(0,0,0,.25)'">
+          <input type="radio" name="aim_armortype" value="Light"
+            style="accent-color:var(--gold);" onchange="aimArmorTypeChanged()">
+          Light
+        </label>
+        <label id="aim_at_lbl_medium"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+                 padding:8px 6px;border:1.5px solid rgba(139,106,0,.4);cursor:pointer;
+                 background:rgba(0,0,0,.25);font-family:var(--got);font-size:10px;
+                 color:rgba(232,200,74,.7);letter-spacing:.5px;border-radius:2px;
+                 transition:background .15s,border-color .15s;"
+          onmouseover="this.style.background='rgba(139,106,0,.2)'"
+          onmouseout="this.style.background=this.querySelector('input').checked?'rgba(139,106,0,.3)':'rgba(0,0,0,.25)'">
+          <input type="radio" name="aim_armortype" value="Medium"
+            style="accent-color:var(--gold);" onchange="aimArmorTypeChanged()">
+          Medium
+        </label>
+        <label id="aim_at_lbl_heavy"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+                 padding:8px 6px;border:1.5px solid rgba(139,106,0,.4);cursor:pointer;
+                 background:rgba(0,0,0,.25);font-family:var(--got);font-size:10px;
+                 color:rgba(232,200,74,.7);letter-spacing:.5px;border-radius:2px;
+                 transition:background .15s,border-color .15s;"
+          onmouseover="this.style.background='rgba(139,106,0,.2)'"
+          onmouseout="this.style.background=this.querySelector('input').checked?'rgba(139,106,0,.3)':'rgba(0,0,0,.25)'">
+          <input type="radio" name="aim_armortype" value="Heavy"
+            style="accent-color:var(--gold);" onchange="aimArmorTypeChanged()">
+          Heavy
+        </label>
       </div>
     </div>
 
@@ -1505,6 +1566,7 @@ function load() {
   updateLevel();
   updateShortRestBtn();
   calcDC();
+  updateProfDisplay(); // refresh proficiency badges after load
 }
 
 function showSaveFlash() {
@@ -1789,15 +1851,25 @@ function buildEquippedColumn() {
     container.innerHTML = group.slots.map(si => {
       const d = slotData[si.id];
       const occupied = d && d.name;
+      const profOk   = !occupied || isItemProficient({tag: d.tag, armorType: d.armorType});
       const acStr = occupied && d.ac ? 'AC +' + d.ac : (occupied ? '' : '');
       const wpParts = [];
       if (occupied && d.w) wpParts.push(d.w + ' kg');
       if (occupied && d.p) wpParts.push(d.p);
-      return `<div class="eq-static-slot${occupied ? ' occupied' : ''}" onclick="clickEquippedSlot('${si.id}')" title="${occupied ? d.name : 'Click to equip — ' + si.label}">
-        <img src="${si.icon}" class="eq-slot-thumb${occupied ? ' occupied' : ''}" alt="${si.label}" onerror="this.style.opacity='.3'">
+      const slotBorder  = occupied && !profOk ? 'border-bottom:1px solid rgba(220,50,50,.5);' : '';
+      const nameStyle   = occupied && !profOk ? 'color:#ff6666;' : '';
+      const noProfNote  = occupied && !profOk
+        ? `<div style="font-family:var(--got);font-size:7.5px;color:#ff5555;letter-spacing:.3px;margin-top:1px;">⚠ Not Proficient</div>`
+        : '';
+      const atBadge = occupied && d.armorType
+        ? `<div style="font-family:var(--got);font-size:7px;color:rgba(232,200,74,.4);margin-top:1px;">${d.armorType}</div>`
+        : '';
+      return `<div class="eq-static-slot${occupied ? ' occupied' : ''}" onclick="clickEquippedSlot('${si.id}')" title="${occupied ? d.name : 'Click to equip — ' + si.label}" style="${slotBorder}">
+        <img src="${si.icon}" class="eq-slot-thumb${occupied ? ' occupied' : ''}" alt="${si.label}" onerror="this.style.opacity='.3'" style="${occupied && !profOk ? 'border-color:rgba(220,50,50,.7);' : ''}">
         <div class="eq-slot-body">
           <div class="eq-slot-label">${si.label}</div>
-          <div class="eq-slot-item${occupied ? '' : ' empty'}">${occupied ? d.name : '— Empty —'}</div>
+          <div class="eq-slot-item${occupied ? '' : ' empty'}" style="${nameStyle}">${occupied ? d.name : '— Empty —'}</div>
+          ${noProfNote}${atBadge}
         </div>
         ${occupied ? `<div class="eq-slot-stats">
           ${acStr ? `<div class="eq-slot-ac">${acStr}</div>` : ''}
@@ -2446,6 +2518,9 @@ function calcWeights() {
 }
 
 
+/* ── Tags that require an armor-type selection (Light/Medium/Heavy) ── */
+const ARMOR_PROF_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons']);
+
 /* ── Tags that show the AC bonus field in the Add Item modal ── */
 const AC_BONUS_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons','Shield']);
 
@@ -2479,6 +2554,10 @@ function openAddItemModal() {
   if(destRow) destRow.style.display = '';
   const ingNote = document.getElementById('aim_ingredient_note');
   if(ingNote) ingNote.style.display = 'none';
+  const atRow = document.getElementById('aim_armortype_row');
+  if(atRow) atRow.style.display = 'none';
+  document.querySelectorAll('input[name="aim_armortype"]').forEach(r => r.checked = false);
+  aimArmorTypeChanged();
   const bpRadio=document.getElementById('aim_dest_bp');
   if(bpRadio) bpRadio.checked=true;
   document.getElementById('addItemModal').style.display='flex';
@@ -2486,15 +2565,32 @@ function openAddItemModal() {
 
 function aimTagChanged() {
   const tag = document.getElementById('aim_tag').value;
-  const acRow   = document.getElementById('aim_ac_row');
-  const wRow    = document.getElementById('aim_weight_row');
-  const destRow = document.getElementById('aim_dest_row');
-  const ingNote = document.getElementById('aim_ingredient_note');
-  const isIng   = tag === 'Ingredient';
+  const acRow     = document.getElementById('aim_ac_row');
+  const wRow      = document.getElementById('aim_weight_row');
+  const destRow   = document.getElementById('aim_dest_row');
+  const ingNote   = document.getElementById('aim_ingredient_note');
+  const atRow     = document.getElementById('aim_armortype_row');
+  const isIng     = tag === 'Ingredient';
+  const isArmor   = ARMOR_PROF_TAGS.has(tag); // Helmet/Gauntlets/Body Armor/Sabatons
   acRow.style.display   = AC_BONUS_TAGS.has(tag) ? 'block' : 'none';
+  if(atRow)   atRow.style.display   = isArmor ? 'block' : 'none';
+  if(!isArmor) document.querySelectorAll('input[name="aim_armortype"]').forEach(r => r.checked = false);
   if(wRow)    wRow.style.display    = isIng ? 'none'  : '';
   if(destRow) destRow.style.display = isIng ? 'none'  : '';
   if(ingNote) ingNote.style.display = isIng ? 'block' : 'none';
+  aimArmorTypeChanged();
+}
+
+function aimArmorTypeChanged() {
+  // Highlight the selected armor type label
+  ['light','medium','heavy'].forEach(t => {
+    const lbl = document.getElementById('aim_at_lbl_' + t);
+    const inp = lbl?.querySelector('input');
+    if (!lbl || !inp) return;
+    lbl.style.background    = inp.checked ? 'rgba(139,106,0,.3)' : 'rgba(0,0,0,.25)';
+    lbl.style.borderColor   = inp.checked ? 'var(--gold)'        : 'rgba(139,106,0,.4)';
+    lbl.style.color         = inp.checked ? 'var(--text-gold)'   : 'rgba(232,200,74,.7)';
+  });
 }
 
 function confirmAddItem() {
@@ -2506,6 +2602,9 @@ function confirmAddItem() {
   const wt    = document.getElementById('aim_weight').value.trim();
   const prc   = document.getElementById('aim_price').value.trim();
   const ac    = AC_BONUS_TAGS.has(tag) ? (document.getElementById('aim_ac').value.trim()) : '';
+  const armorType = ARMOR_PROF_TAGS.has(tag)
+    ? (document.querySelector('input[name="aim_armortype"]:checked')?.value || '')
+    : '';
   const dest  = document.querySelector('input[name="aim_dest"]:checked')?.value || 'backpack';
   // Ingredients go directly to the pouch
   if(tag === 'Ingredient') {
@@ -2519,7 +2618,7 @@ function confirmAddItem() {
   const rows=tableData[tableId];
   let idx=rows.findIndex(r=>!r.name);
   if(idx===-1){ rows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); idx=rows.length-1; }
-  rows[idx]={name, tag, q:qty, w:wt, p:prc, a:ac};
+  rows[idx]={name, tag, q:qty, w:wt, p:prc, a:ac, armorType};
   sortTableByTag(tableId);
   buildAllTables();
   document.getElementById('addItemModal').style.display='none';
@@ -2562,15 +2661,30 @@ function openSlotModal(slotId) {
     </div>`;
   } else {
     // ── Items found: show picker ──
-    const listHTML = candidates.map(c => `
+    const listHTML = candidates.map(c => {
+      const profOk = isItemProficient(c.item);
+      const rowBorder = profOk ? 'rgba(139,106,0,.4)' : 'rgba(220,50,50,.55)';
+      const rowBg     = profOk ? 'rgba(0,0,0,.25)'    : 'rgba(60,0,0,.35)';
+      const nameColor = profOk ? ''                    : 'color:#ff6666;';
+      const hoverBg   = profOk ? 'rgba(139,106,0,.18)' : 'rgba(100,0,0,.4)';
+      const noProfBadge = !profOk
+        ? `<span style="font-family:var(--got);font-size:8px;color:#ff5555;padding:2px 5px;border:1px solid rgba(220,50,50,.5);background:rgba(60,0,0,.4);">Not Proficient</span>`
+        : '';
+      const atBadge = c.item.armorType
+        ? `<span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 6px;border:1px solid rgba(139,106,0,.35);">${c.item.armorType}</span>`
+        : '';
+      return `
       <div onclick="equipItemFromSlot('${slotId}','${c.tbl}',${c.rowIdx},'slotPickerModal')"
-        style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid rgba(139,106,0,.4);margin-bottom:5px;cursor:pointer;background:rgba(0,0,0,.25);border-radius:2px;transition:background .15s;"
-        onmouseover="this.style.background='rgba(139,106,0,.18)'" onmouseout="this.style.background='rgba(0,0,0,.25)'">
-        <span style="font-family:'IM Fell English',serif;font-size:14px;flex:1;">${c.item.name}</span>
+        style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid ${rowBorder};margin-bottom:5px;cursor:pointer;background:${rowBg};border-radius:2px;transition:background .15s;"
+        onmouseover="this.style.background='${hoverBg}'" onmouseout="this.style.background='${rowBg}'">
+        <span style="font-family:'IM Fell English',serif;font-size:14px;flex:1;${nameColor}">${c.item.name}</span>
+        ${noProfBadge}
+        ${atBadge}
         ${c.item.tag ? `<span style="font-family:var(--got);font-size:8px;color:var(--gold-lt);padding:2px 6px;border:1px solid rgba(139,106,0,.4);">${c.item.tag}</span>` : ''}
         ${c.item.a  ? `<span style="font-family:var(--got);font-size:8px;color:#88dd88;">AC +${c.item.a}</span>` : ''}
         ${c.item.w  ? `<span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.45);">${c.item.w} kg</span>` : ''}
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     o.innerHTML = `<div class="modal" style="max-width:460px;padding:26px 30px;max-height:80vh;overflow-y:auto;">
       <h2 style="font-size:17px;margin-bottom:6px;text-align:center;">Equip — ${slotLabel}</h2>
@@ -2604,7 +2718,7 @@ function equipItemFromSlot(slotId, srcTable, rowIdx, modalId) {
   }
 
   // Equip item into slotData
-  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'' };
+  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'', armorType: item.armorType||'' };
 
   // Remove from source table
   tableData[srcTable][rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
@@ -3131,6 +3245,101 @@ function moneyAdj(coin, delta) {
   const totEl = document.getElementById('mp_total');
   if (totEl) totEl.textContent = Math.floor(d + s / 210 + p / 1470) + ' Dragons';
 
+  _saveData();
+}
+
+/* ══════════════════════════════════════════════════════════
+   PROFICIENCIES
+══════════════════════════════════════════════════════════ */
+const PROF_DEFS = [
+  { id: 'prof_shield', label: 'Shield',  color: 'rgba(139,106,0,.9)'  },
+  { id: 'prof_light',  label: 'Light',   color: 'rgba(200,200,200,.9)' },
+  { id: 'prof_medium', label: 'Medium',  color: 'rgba(160,160,190,.9)' },
+  { id: 'prof_heavy',  label: 'Heavy',   color: 'rgba(120,140,180,.9)' },
+];
+
+function getProficiencies() {
+  const s = new Set();
+  PROF_DEFS.forEach(p => {
+    if (document.getElementById(p.id)?.checked) s.add(p.label);
+  });
+  return s;
+}
+
+function isItemProficient(item) {
+  if (!item || !item.tag) return true;
+  const profs = getProficiencies();
+  if (item.tag === 'Shield') return profs.has('Shield');
+  if (ARMOR_PROF_TAGS.has(item.tag) && item.armorType) return profs.has(item.armorType);
+  return true;
+}
+
+function updateProfDisplay() {
+  const disp = document.getElementById('prof_display');
+  if (!disp) return;
+  const active = PROF_DEFS.filter(p => document.getElementById(p.id)?.checked);
+  if (active.length === 0) {
+    disp.innerHTML = `<span style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.35);">None selected</span>`;
+  } else {
+    disp.innerHTML = active.map(p =>
+      `<span style="font-family:var(--got);font-size:9px;letter-spacing:.4px;padding:2px 7px;
+              border:1px solid ${p.color};color:${p.color};background:rgba(0,0,0,.3);
+              border-radius:2px;">${p.label}</span>`
+    ).join('');
+  }
+  // Re-render equipped column so red/normal updates live
+  buildEquippedColumn();
+}
+
+function openProficiencyModal() {
+  document.getElementById('profModal')?.remove();
+  const o = document.createElement('div');
+  o.id = 'profModal';
+  o.className = 'modal-overlay';
+
+  const btns = PROF_DEFS.map(p => {
+    const checked = document.getElementById(p.id)?.checked;
+    return `<button id="profbtn_${p.id}" onclick="toggleProf('${p.id}')"
+      style="flex:1;padding:12px 6px;font-family:var(--got);font-size:11px;letter-spacing:.5px;
+             border:1.5px solid ${checked ? p.color : 'rgba(139,106,0,.3)'};
+             background:${checked ? 'rgba(139,106,0,.3)' : 'rgba(0,0,0,.25)'};
+             color:${checked ? p.color : 'rgba(232,200,74,.45)'};
+             cursor:pointer;border-radius:2px;transition:all .15s;"
+      onmouseover="this.style.filter='brightness(1.25)'" onmouseout="this.style.filter=''">
+      ${checked ? '✓ ' : ''}${p.label}
+    </button>`;
+  }).join('');
+
+  o.innerHTML = `<div class="modal" style="max-width:380px;padding:28px 36px;text-align:center;">
+    <h2 style="font-size:17px;margin-bottom:6px;">Armor Proficiencies</h2>
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;
+              color:rgba(232,200,74,.45);margin-bottom:20px;">
+      Select all armor types you are proficient with
+    </p>
+    <div style="display:flex;gap:8px;margin-bottom:20px;">${btns}</div>
+    <button class="rest-btn" onclick="document.getElementById('profModal').remove()"
+      style="width:100%;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Done</button>
+  </div>`;
+
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function toggleProf(checkboxId) {
+  const cb = document.getElementById(checkboxId);
+  if (!cb) return;
+  cb.checked = !cb.checked;
+  // Update the button in the open modal
+  const def = PROF_DEFS.find(p => p.id === checkboxId);
+  const btn = document.getElementById('profbtn_' + checkboxId);
+  if (btn && def) {
+    const on = cb.checked;
+    btn.style.border      = `1.5px solid ${on ? def.color : 'rgba(139,106,0,.3)'}`;
+    btn.style.background  = on ? 'rgba(139,106,0,.3)' : 'rgba(0,0,0,.25)';
+    btn.style.color       = on ? def.color : 'rgba(232,200,74,.45)';
+    btn.textContent       = (on ? '✓ ' : '') + def.label;
+  }
+  updateProfDisplay();
   _saveData();
 }
 
