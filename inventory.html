@@ -705,6 +705,44 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div>
     </div>
     
+    <!-- Body Weight -->
+    <div class="sec" style="font-size:11px;margin-bottom:4px;">Body Weight</div>
+    <div style="border:1px solid var(--gold);margin:0 0 4px;padding:6px 8px;background:var(--gold-bg);">
+      <span class="meta-lbl">Weight Class</span>
+      <div class="meta-inp" style="height:26px;">
+        <select id="weight" onchange="calcWeights()" style="width:100%;height:100%;font-family:'Cinzel',serif;font-size:10px;font-weight:700;background:var(--input-bg);border:none;color:#1a1000;cursor:pointer;padding:0 4px;">
+          <option value="">— Select weight —</option>
+          <option value="-1">40 – 50 kg</option>
+          <option value="0">50 – 60 kg</option>
+          <option value="1">60 – 70 kg</option>
+          <option value="2">70 – 80 kg</option>
+          <option value="3">80 – 90 kg</option>
+          <option value="4">90 – 100 kg</option>
+          <option value="5">100 – 110 kg</option>
+          <option value="6">110 – 120 kg</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Money Pouch -->
+    <div style="padding:4px 0 6px;">
+      <button onclick="openMoneyPouchModal()"
+        style="width:100%;padding:7px 10px;font-family:var(--got);font-size:12px;letter-spacing:1px;
+               background:linear-gradient(135deg,#5a3a00,#b8820a,#5a3a00);
+               border:1.5px solid #d4a017;color:#fff8dc;cursor:pointer;
+               box-shadow:0 0 8px rgba(212,160,23,.4);
+               transition:filter .15s,box-shadow .15s;"
+        onmouseover="this.style.filter='brightness(1.2)';this.style.boxShadow='0 0 14px rgba(212,160,23,.7)'"
+        onmouseout="this.style.filter='';this.style.boxShadow='0 0 8px rgba(212,160,23,.4)'">
+        💰 Money Pouch
+      </button>
+    </div>
+
+    <!-- Hidden money store (auto-saved by _collectInvData) -->
+    <input type="hidden" id="money_dragons" value="0">
+    <input type="hidden" id="money_stags"   value="0">
+    <input type="hidden" id="money_pennies" value="0">
+
     <!-- Quote -->
     <div class="inv-quote-block">
       <div class="inv-quote-text">"Little one, a peasant may skin a common squirrel for his pot, but if he finds a gold squirrel in his tree he takes it to his lord, or he will wish he did."</div>
@@ -2661,6 +2699,98 @@ function applyCultureBonus() {}
 
 /* Called when spec dropdown changes — nothing to recompute on this page. */
 function applySpecFeatures() {}
+
+/* ══════════════════════════════════════════════════════════
+   MONEY POUCH MODAL
+══════════════════════════════════════════════════════════ */
+function openMoneyPouchModal() {
+  document.getElementById('moneyPouchModal')?.remove();
+
+  // Read current values from hidden inputs
+  const getV = id => parseInt(document.getElementById(id)?.value || '0', 10) || 0;
+
+  function calcTotal(d, s, p) {
+    return (d * 10000) + (s * 100) + p;
+  }
+
+  const o = document.createElement('div');
+  o.id = 'moneyPouchModal';
+  o.className = 'modal-overlay';
+
+  o.innerHTML = `
+    <div class="modal" style="max-width:360px;padding:28px 36px;text-align:center;">
+      <h2 style="font-size:18px;margin-bottom:4px;letter-spacing:1px;">💰 Money Pouch</h2>
+      <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.5);margin-bottom:20px;">
+        "A Lannister always pays his debts."
+      </p>
+
+      ${['dragons','stags','pennies'].map(coin => {
+        const icons = {dragons:'Images/Dragon Coin Icon.webp', stags:'Images/Stag Coin Icon.webp', pennies:'Images/Penny Coin Icon.webp'};
+        const labels = {dragons:'Dragons', stags:'Stags', pennies:'Pennies'};
+        const colors = {dragons:'rgba(212,160,23,.9)', stags:'rgba(180,180,180,.85)', pennies:'rgba(176,110,50,.9)'};
+        return `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 6px;margin-bottom:6px;
+                    border:1px solid rgba(139,106,0,.3);background:rgba(0,0,0,.25);border-radius:2px;">
+          <img src="${icons[coin]}" alt="${labels[coin]}"
+            style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--gold);
+                   object-fit:cover;flex-shrink:0;background:var(--gold-bg);"
+            onerror="this.style.display='none';this.nextElementSibling.style.marginLeft='0'">
+          <span style="font-family:var(--got);font-size:11px;color:${colors[coin]};flex:1;text-align:left;letter-spacing:.5px;">${labels[coin]}</span>
+          <button onclick="moneyAdj('${coin}',-1)"
+            style="width:26px;height:26px;border:1px solid rgba(139,106,0,.5);background:rgba(80,40,0,.5);
+                   color:var(--text-gold);font-size:16px;font-weight:700;cursor:pointer;line-height:1;
+                   font-family:var(--got);flex-shrink:0;"
+            onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
+          <span id="mp_${coin}" style="font-family:var(--got);font-size:18px;color:${colors[coin]};
+                 min-width:44px;text-align:center;text-shadow:0 0 8px currentColor;line-height:1;">
+            ${getV('money_'+coin)}
+          </span>
+          <button onclick="moneyAdj('${coin}',+1)"
+            style="width:26px;height:26px;border:1px solid rgba(139,106,0,.5);background:rgba(80,40,0,.5);
+                   color:var(--text-gold);font-size:16px;font-weight:700;cursor:pointer;line-height:1;
+                   font-family:var(--got);flex-shrink:0;"
+            onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
+        </div>`;
+      }).join('')}
+
+      <div style="border-top:1px solid rgba(139,106,0,.35);margin-top:10px;padding-top:10px;
+                  display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-family:var(--got);font-size:9px;color:rgba(232,200,74,.5);letter-spacing:1px;">TOTAL VALUE</span>
+        <span id="mp_total" style="font-family:var(--got);font-size:14px;color:var(--text-gold);">
+          ${calcTotal(getV('money_dragons'), getV('money_stags'), getV('money_pennies'))} pennies
+        </span>
+      </div>
+      <p style="font-family:'IM Fell English',serif;font-size:9px;color:rgba(232,200,74,.3);margin:6px 0 16px;font-style:italic;">
+        1 Dragon = 100 Stags = 10,000 Pennies
+      </p>
+      <button class="rest-btn" onclick="document.getElementById('moneyPouchModal').remove()"
+        style="width:100%;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
+    </div>`;
+
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function moneyAdj(coin, delta) {
+  const hidEl = document.getElementById('money_' + coin);
+  if (!hidEl) return;
+  const newVal = Math.max(0, (parseInt(hidEl.value, 10) || 0) + delta);
+  hidEl.value = newVal;
+
+  // Update display in modal
+  const dispEl = document.getElementById('mp_' + coin);
+  if (dispEl) dispEl.textContent = newVal;
+
+  // Recalc total
+  const d = parseInt(document.getElementById('money_dragons')?.value || '0', 10) || 0;
+  const s = parseInt(document.getElementById('money_stags')?.value   || '0', 10) || 0;
+  const p = parseInt(document.getElementById('money_pennies')?.value  || '0', 10) || 0;
+  const totEl = document.getElementById('mp_total');
+  if (totEl) totEl.textContent = (d * 10000 + s * 100 + p) + ' pennies';
+
+  // Persist immediately
+  _saveData();
+}
 
 /* ── Init ── */
 window.addEventListener('DOMContentLoaded', ()=>{
