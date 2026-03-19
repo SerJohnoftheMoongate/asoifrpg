@@ -633,7 +633,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="header-drops" onclick="event.stopPropagation()">
     <select id="origin" onchange="applyOriginProfs()"><option value="">— Origin —</option><option>The Vale</option><option>The Westerlands</option><option>Dorne</option><option>The Crownlands</option><option>The North</option><option>The Iron Islands</option><option>The Riverlands</option><option>The Reach</option><option>The Stormlands</option></select>
-    <select id="class_" onchange="updateSpecOptions(true)"><option value="">— Class —</option><option>Warrior</option><option>Survivalist</option><option>Priest</option><option>Envoy</option></select>
+    <select id="class_" onchange="updateSpecOptions(true);updateKnightImage()"><option value="">— Class —</option><option>Warrior</option><option>Survivalist</option><option>Priest</option><option>Envoy</option></select>
     <select id="spec" onchange="applySpecFeatures()"><option value="">— Specialisation —</option></select>
   </div>
   <div class="header-drops2" onclick="event.stopPropagation()">
@@ -763,7 +763,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <div class="knight-wrap" id="knightWrap">
 
       <!-- Armored Knight IMG -->
-<img src="Images/Knight_Background.webp" alt="Knight" class="knight-svg"
+<img id="knightImg" src="Images/Knight_Background.webp" alt="Knight" class="knight-svg"
       style="width:100%; height:auto; display:block;"> 
 
       <!-- Equipment Slot Circles -->
@@ -3132,12 +3132,28 @@ function moneyAdj(coin, delta) {
   _saveData();
 }
 
+/* ── Knight image — changes based on selected class ── */
+const CLASS_KNIGHT_IMAGES = {
+  'Warrior':    'Images/Knight_Background.webp',
+  'Survivalist':'Images/Survivalist Equipment.webp',
+  'Envoy':      'Images/Envoy Equipment.webp',
+  'Priest':     'Images/Priest Equipment.webp',
+};
+
+function updateKnightImage() {
+  const cls = document.getElementById('class_')?.value || '';
+  const img = document.getElementById('knightImg');
+  if (!img) return;
+  img.src = CLASS_KNIGHT_IMAGES[cls] || 'Images/Knight_Background.webp';
+}
+
 /* ── Init ── */
 window.addEventListener('DOMContentLoaded', ()=>{
   buildAllTables();
   load();
   buildAllTables(); // re-render tables with loaded data
   calcDC();         // ensure DC fields are correct after load
+  updateKnightImage(); // set correct knight image for loaded class
   // Autosave every 5 seconds
   setInterval(()=>{ _saveData(); }, 5000);
 });
