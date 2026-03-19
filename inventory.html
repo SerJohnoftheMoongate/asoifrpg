@@ -856,8 +856,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <div class="inv-col-icon-row">
       <img class="inv-col-icon" src="Images/Backpack Icon.webp" alt="Backpack" onerror="this.style.background='var(--gold-bg)'">
     </div>
-    <div class="inv-cw-row" style="flex-wrap:wrap;gap:3px;">
-      <div style="display:flex;align-items:center;gap:5px;width:100%;">
+    <div class="inv-cw-row">
+      <div style="display:flex;align-items:center;gap:5px;">
         <div class="inv-cw-lbl" style="flex-shrink:0;">Carrying Weight</div>
         <div class="inv-cw-inp" style="display:flex;gap:2px;align-items:center;flex:1;">
           <input type="text" id="bp_cw_cur" readonly placeholder="0" style="flex:1;height:24px;font-size:12px;font-weight:700;text-align:center;">
@@ -865,13 +865,12 @@ textarea{resize:none;font-weight:400;font-size:12px}
           <input type="text" id="bp_cw_max" readonly placeholder="—" style="flex:1;height:24px;font-size:12px;font-weight:700;text-align:center;background:#1a1400;color:var(--text-gold);border-color:rgba(139,106,0,.5);">
         </div>
       </div>
-      </div>
     </div>
 
     <div style="padding:3px 4px 4px;">
       <button id="bp_size_btn" onclick="openBagSizeModal()"
         class="rest-btn"
-        style="width:100%;padding:5px 8px;font-size:11px;background:rgba(60,40,0,.45);border-color:rgba(180,130,0,.5);color:var(--text-gold);">
+        style="width:100%;padding:6px 8px;font-size:11px;background:rgba(60,40,0,.45);border-color:rgba(180,130,0,.5);color:var(--text-gold);">
         🎒 Bag: Medium (25 kg)
       </button>
       <input type="hidden" id="bp_size" value="25">
@@ -910,8 +909,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <div class="inv-col-icon-row">
       <img class="inv-col-icon" src="Images/Steed Icon.webp" alt="Steed" onerror="this.style.background='var(--gold-bg)'">
     </div>
-    <div class="inv-cw-row" style="flex-wrap:wrap;gap:3px;">
-      <div style="display:flex;align-items:center;gap:5px;width:100%;">
+    <div class="inv-cw-row">
+      <div style="display:flex;align-items:center;gap:5px;">
         <div class="inv-cw-lbl" style="flex-shrink:0;">Carrying Weight</div>
         <div class="inv-cw-inp" style="display:flex;gap:2px;align-items:center;flex:1;">
           <input type="text" id="st_cw_cur" readonly placeholder="0" style="flex:1;height:24px;font-size:12px;font-weight:700;text-align:center;">
@@ -919,13 +918,12 @@ textarea{resize:none;font-weight:400;font-size:12px}
           <input type="text" id="st_cw_max" readonly placeholder="—" style="flex:1;height:24px;font-size:12px;font-weight:700;text-align:center;background:#1a1400;color:var(--text-gold);border-color:rgba(139,106,0,.5);">
         </div>
       </div>
-      </div>
     </div>
 
     <div style="padding:3px 4px 4px;">
       <button id="st_animal_btn" onclick="openSteedModal()"
         class="rest-btn"
-        style="width:100%;padding:5px 8px;font-size:11px;background:rgba(30,20,60,.45);border-color:rgba(100,80,180,.4);color:rgba(200,180,255,.85);">
+        style="width:100%;padding:6px 8px;font-size:11px;background:rgba(30,20,60,.45);border-color:rgba(100,80,180,.4);color:rgba(200,180,255,.85);">
         🐴 Steed: None
       </button>
       <input type="hidden" id="st_animal" value="0">
