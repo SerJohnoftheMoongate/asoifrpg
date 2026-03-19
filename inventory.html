@@ -315,7 +315,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .inv-sev-lbl{
   width:70px;height:26px;
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--got);font-size:11px;
+  font-family:var(--got);font-size:10px;
   border:1px solid var(--gold);flex-shrink:0;
   letter-spacing:.5px;
 }
@@ -323,7 +323,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .sev-medium{background:#8B6900;color:#fff;}
 .sev-critical{background:#8B1A1A;color:#fff;}
 .inv-sev-inp{flex:1;height:26px;}
-.inv-sev-inp input{height:100%;font-size:12px;text-align:center;}
+.inv-sev-inp input{height:100%;font-size:15px;text-align:center;}
 
 .inv-hp-block{
   padding:5px 7px;
@@ -375,7 +375,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   border-bottom:1px solid var(--gold);
 }
 .inv-quote-text{
-  font-size:14px;
+  font-size:15px;
   line-height:1.55;
   color:var(--quote-fg);
   font-family:'IM Fell English',serif;
@@ -725,6 +725,12 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div>
     </div>
 
+    <!-- Quote -->
+    <div class="inv-quote-block">
+      <div class="inv-quote-text">"Little one, a peasant may skin a common squirrel for his pot, but if he finds a gold squirrel in his tree he takes it to his lord, or he will wish he did."</div>
+      <div class="inv-quote-attr">~ Pello of Tyrosh "Greenbeard"</div>
+    </div>
+
     <!-- Money Pouch -->
     <div style="padding:4px 0 6px;">
       <button onclick="openMoneyPouchModal()"
@@ -743,12 +749,6 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <input type="hidden" id="money_dragons" value="0">
     <input type="hidden" id="money_stags"   value="0">
     <input type="hidden" id="money_pennies" value="0">
-
-    <!-- Quote -->
-    <div class="inv-quote-block">
-      <div class="inv-quote-text">"Little one, a peasant may skin a common squirrel for his pot, but if he finds a gold squirrel in his tree he takes it to his lord, or he will wish he did."</div>
-      <div class="inv-quote-attr">~ Pello of Tyrosh "Greenbeard"</div>
-    </div>
 
   </div><!-- /inv-stats-panel -->
 
