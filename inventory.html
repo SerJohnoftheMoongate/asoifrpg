@@ -702,7 +702,6 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div>
       <div style="display:flex;gap:3px;">
         <input type="text" id="hp_temp" placeholder="Temp HP" style="flex:1;height:20px;font-size:11px;text-align:center;">
-        <input type="text" id="inv_hitdice" placeholder="Hit Dice" style="flex:1;height:20px;font-size:11px;text-align:center;">
       </div>
     </div>
     
@@ -2509,10 +2508,10 @@ function openSlotModal(slotId) {
       <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:#c8b87a;line-height:1.7;margin:18px 0 10px;padding:0 10px;">
         "A man cannot sup from the beggar's bowl all his life and stay a man."
       </p>
-      <p style="font-family:var(--got);font-size:10px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:24px;">
+      <p style="font-family:var(--got);font-size:12px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:24px;">
         ~ Daenerys Targaryen
       </p>
-      <button class="rest-btn" onclick="document.getElementById('slotPickerModal').remove()" style="min-width:120px;">Understood</button>
+      <button class="rest-btn" onclick="document.getElementById('slotPickerModal').remove()" style="min-width:120px; display:block; margin:0 auto;">Understood</button>
     </div>`;
   } else {
     // ── Items found: show picker ──
