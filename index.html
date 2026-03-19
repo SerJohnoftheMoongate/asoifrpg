@@ -195,6 +195,13 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .act-inp{height:21px}
 .act-what input{cursor:pointer!important;font-size:10px;}
 .act-what input::placeholder{color:rgba(139,106,0,.45);font-style:italic;font-size:9px;}
+.wpn-tag-row{display:flex;flex-wrap:wrap;gap:3px;padding:0 2px 3px;min-height:0;}
+.wpn-tag-row:empty{display:none;}
+.wpn-tag{font-family:var(--got);font-size:7.5px;letter-spacing:.4px;padding:1px 5px;border-radius:2px;line-height:1.6;flex-shrink:0;border:1px solid;}
+.wpn-tag-dmg-slashing  {color:#ff7777;border-color:rgba(220,80,80,.55);background:rgba(80,0,0,.3);}
+.wpn-tag-dmg-piercing  {color:#ffaa55;border-color:rgba(200,120,50,.55);background:rgba(60,25,0,.3);}
+.wpn-tag-dmg-bludgeoning{color:#aaaacc;border-color:rgba(120,120,180,.5);background:rgba(20,20,50,.3);}
+.wpn-tag-prop{color:rgba(232,200,74,.6);border-color:rgba(139,106,0,.35);background:rgba(20,15,0,.3);}
 .wpn-radio-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
 .wpn-radio{display:flex;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border:1px solid rgba(139,106,0,.4);border-radius:2px;font-family:var(--got);font-size:11px;color:var(--text-gold);letter-spacing:.5px;transition:all .15s;}
 .wpn-radio:hover,.wpn-radio.selected{background:rgba(139,106,0,.25);border-color:var(--gold-lt);}
@@ -525,11 +532,42 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div class="prof-section">
     <div class="sec">Proficiencies</div>
     <div class="prof-section-inner">
-      <div class="prof-field"><div class="prof-field-lbl">Armor:</div><textarea id="armor" rows="2"></textarea></div>
-      <div class="prof-field"><div class="prof-field-lbl">Weapons:</div><textarea id="weapons" rows="2"></textarea></div>
+      <div class="prof-field">
+        <div class="prof-field-lbl">Weapons:</div>
+        <div id="wpn_prof_display" onclick="openWeaponProfModal()" title="Click to edit weapon proficiencies"
+          style="min-height:30px;border:1px solid var(--gold);padding:4px 6px;cursor:pointer;
+                 background:rgba(10,8,0,.55);display:flex;align-items:center;flex-wrap:wrap;gap:4px;
+                 transition:background .15s;"
+          onmouseover="this.style.background='rgba(139,106,0,.2)'"
+          onmouseout="this.style.background='rgba(10,8,0,.55)'">
+          <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;
+                       color:rgba(232,200,74,.35);">None selected</span>
+        </div>
+        <!-- Hidden checkboxes — auto-saved by _collectSheetData -->
+        <input type="checkbox" id="prof_wpn_simple_melee"   style="display:none">
+        <input type="checkbox" id="prof_wpn_simple_ranged"  style="display:none">
+        <input type="checkbox" id="prof_wpn_martial_melee"  style="display:none">
+        <input type="checkbox" id="prof_wpn_martial_ranged" style="display:none">
+        <input type="checkbox" id="prof_wpn_unique"         style="display:none">
+      </div>
       <div class="prof-field"><div class="prof-field-lbl">Tools:</div><textarea id="tools" rows="2"></textarea></div>
       <div class="prof-field"><div class="prof-field-lbl">Languages:</div><textarea id="languages" rows="2"></textarea></div>
     </div>
+  </div>
+  <!-- Hidden weapon category inputs (auto-saved) -->
+  <div style="display:none">
+    <input type="text" id="act_wcat_1"><input type="text" id="act_wcat_2"><input type="text" id="act_wcat_3"><input type="text" id="act_wcat_4">
+    <input type="text" id="act_wcat_5"><input type="text" id="act_wcat_6"><input type="text" id="act_wcat_7"><input type="text" id="act_wcat_8">
+    <input type="text" id="bon_wcat_1"><input type="text" id="bon_wcat_2"><input type="text" id="bon_wcat_3"><input type="text" id="bon_wcat_4">
+    <input type="text" id="bon_wcat_5"><input type="text" id="bon_wcat_6"><input type="text" id="bon_wcat_7"><input type="text" id="bon_wcat_8">
+    <input type="text" id="act_wdmg_1"><input type="text" id="act_wdmg_2"><input type="text" id="act_wdmg_3"><input type="text" id="act_wdmg_4">
+    <input type="text" id="act_wdmg_5"><input type="text" id="act_wdmg_6"><input type="text" id="act_wdmg_7"><input type="text" id="act_wdmg_8">
+    <input type="text" id="bon_wdmg_1"><input type="text" id="bon_wdmg_2"><input type="text" id="bon_wdmg_3"><input type="text" id="bon_wdmg_4">
+    <input type="text" id="bon_wdmg_5"><input type="text" id="bon_wdmg_6"><input type="text" id="bon_wdmg_7"><input type="text" id="bon_wdmg_8">
+    <input type="text" id="act_wprop_1"><input type="text" id="act_wprop_2"><input type="text" id="act_wprop_3"><input type="text" id="act_wprop_4">
+    <input type="text" id="act_wprop_5"><input type="text" id="act_wprop_6"><input type="text" id="act_wprop_7"><input type="text" id="act_wprop_8">
+    <input type="text" id="bon_wprop_1"><input type="text" id="bon_wprop_2"><input type="text" id="bon_wprop_3"><input type="text" id="bon_wprop_4">
+    <input type="text" id="bon_wprop_5"><input type="text" id="bon_wprop_6"><input type="text" id="bon_wprop_7"><input type="text" id="bon_wprop_8">
   </div>
 
   <!-- REPUTATION DIAL with notorious/famed icons -->
@@ -664,7 +702,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 <div class="col-icon-top"><img class="col-icon" src="Images/Action Icon.webp" alt="Actions"></div>  
   <div id="attack_count_bar" style="font-family:'IM Fell English',serif;font-size:14.5px;color:var(--text-gold);padding:3px 6px 2px;border-bottom:1px solid rgba(139,106,0,.35);background:rgba(0,0,0,.18);letter-spacing:.3px;display:none;"></div>
   <div class="act-table">
-    <div class="act-hdr"><div class="act-col-lbl">What</div><div class="act-col-lbl">m.</div><div class="act-col-lbl">AR</div><div class="act-col-lbl">DR</div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_1" onclick="openWeaponModal('act',1)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_1" readonly></div><div class="act-inp"><input type="text" id="act_a_1" readonly></div><div class="act-inp"><input type="text" id="act_d_1" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_2" onclick="openWeaponModal('act',2)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_2" readonly></div><div class="act-inp"><input type="text" id="act_a_2" readonly></div><div class="act-inp"><input type="text" id="act_d_2" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_3" onclick="openWeaponModal('act',3)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_3" readonly></div><div class="act-inp"><input type="text" id="act_a_3" readonly></div><div class="act-inp"><input type="text" id="act_d_3" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_4" onclick="openWeaponModal('act',4)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_4" readonly></div><div class="act-inp"><input type="text" id="act_a_4" readonly></div><div class="act-inp"><input type="text" id="act_d_4" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_5" onclick="openWeaponModal('act',5)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_5" readonly></div><div class="act-inp"><input type="text" id="act_a_5" readonly></div><div class="act-inp"><input type="text" id="act_d_5" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_6" onclick="openWeaponModal('act',6)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_6" readonly></div><div class="act-inp"><input type="text" id="act_a_6" readonly></div><div class="act-inp"><input type="text" id="act_d_6" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_7" onclick="openWeaponModal('act',7)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_7" readonly></div><div class="act-inp"><input type="text" id="act_a_7" readonly></div><div class="act-inp"><input type="text" id="act_d_7" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_8" onclick="openWeaponModal('act',8)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_8" readonly></div><div class="act-inp"><input type="text" id="act_a_8" readonly></div><div class="act-inp"><input type="text" id="act_d_8" readonly></div></div>
+    <div class="act-hdr"><div class="act-col-lbl">What</div><div class="act-col-lbl">m.</div><div class="act-col-lbl">AR</div><div class="act-col-lbl">DR</div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_1" onclick="openWeaponModal('act',1)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_1" readonly></div><div class="act-inp"><input type="text" id="act_a_1" readonly></div><div class="act-inp"><input type="text" id="act_d_1" readonly></div></div><div class="wpn-tag-row" id="act_tags_1"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_2" onclick="openWeaponModal('act',2)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_2" readonly></div><div class="act-inp"><input type="text" id="act_a_2" readonly></div><div class="act-inp"><input type="text" id="act_d_2" readonly></div></div><div class="wpn-tag-row" id="act_tags_2"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_3" onclick="openWeaponModal('act',3)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_3" readonly></div><div class="act-inp"><input type="text" id="act_a_3" readonly></div><div class="act-inp"><input type="text" id="act_d_3" readonly></div></div><div class="wpn-tag-row" id="act_tags_3"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_4" onclick="openWeaponModal('act',4)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_4" readonly></div><div class="act-inp"><input type="text" id="act_a_4" readonly></div><div class="act-inp"><input type="text" id="act_d_4" readonly></div></div><div class="wpn-tag-row" id="act_tags_4"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_5" onclick="openWeaponModal('act',5)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_5" readonly></div><div class="act-inp"><input type="text" id="act_a_5" readonly></div><div class="act-inp"><input type="text" id="act_d_5" readonly></div></div><div class="wpn-tag-row" id="act_tags_5"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_6" onclick="openWeaponModal('act',6)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_6" readonly></div><div class="act-inp"><input type="text" id="act_a_6" readonly></div><div class="act-inp"><input type="text" id="act_d_6" readonly></div></div><div class="wpn-tag-row" id="act_tags_6"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_7" onclick="openWeaponModal('act',7)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_7" readonly></div><div class="act-inp"><input type="text" id="act_a_7" readonly></div><div class="act-inp"><input type="text" id="act_d_7" readonly></div></div><div class="wpn-tag-row" id="act_tags_7"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_8" onclick="openWeaponModal('act',8)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_8" readonly></div><div class="act-inp"><input type="text" id="act_a_8" readonly></div><div class="act-inp"><input type="text" id="act_d_8" readonly></div></div><div class="wpn-tag-row" id="act_tags_8"></div>
   </div>
   <button class="rest-btn" onclick="openAdditionalActionsModal()" style="width:100%;margin:6px 0;font-size:11.5px;padding:7px 10px;letter-spacing:.4px;">Additional Actions</button><div id="ax_feat_container"></div>  <div style="flex:1"></div>
   <div class="sec">Actions</div>
@@ -674,7 +712,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 <div class="col">
 <div class="col-icon-top"><img class="col-icon" src="Images/Bonus Action Icon.webp" alt="Bonus Actions"></div>
   <div class="act-table">
-    <div class="act-hdr"><div class="act-col-lbl">What</div><div class="act-col-lbl">m.</div><div class="act-col-lbl">AR</div><div class="act-col-lbl">DR</div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_1" onclick="openWeaponModal('bon',1)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_1" readonly></div><div class="act-inp"><input type="text" id="bon_a_1" readonly></div><div class="act-inp"><input type="text" id="bon_d_1" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_2" onclick="openWeaponModal('bon',2)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_2" readonly></div><div class="act-inp"><input type="text" id="bon_a_2" readonly></div><div class="act-inp"><input type="text" id="bon_d_2" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_3" onclick="openWeaponModal('bon',3)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_3" readonly></div><div class="act-inp"><input type="text" id="bon_a_3" readonly></div><div class="act-inp"><input type="text" id="bon_d_3" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_4" onclick="openWeaponModal('bon',4)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_4" readonly></div><div class="act-inp"><input type="text" id="bon_a_4" readonly></div><div class="act-inp"><input type="text" id="bon_d_4" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_5" onclick="openWeaponModal('bon',5)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_5" readonly></div><div class="act-inp"><input type="text" id="bon_a_5" readonly></div><div class="act-inp"><input type="text" id="bon_d_5" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_6" onclick="openWeaponModal('bon',6)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_6" readonly></div><div class="act-inp"><input type="text" id="bon_a_6" readonly></div><div class="act-inp"><input type="text" id="bon_d_6" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_7" onclick="openWeaponModal('bon',7)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_7" readonly></div><div class="act-inp"><input type="text" id="bon_a_7" readonly></div><div class="act-inp"><input type="text" id="bon_d_7" readonly></div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_8" onclick="openWeaponModal('bon',8)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_8" readonly></div><div class="act-inp"><input type="text" id="bon_a_8" readonly></div><div class="act-inp"><input type="text" id="bon_d_8" readonly></div></div>
+    <div class="act-hdr"><div class="act-col-lbl">What</div><div class="act-col-lbl">m.</div><div class="act-col-lbl">AR</div><div class="act-col-lbl">DR</div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_1" onclick="openWeaponModal('bon',1)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_1" readonly></div><div class="act-inp"><input type="text" id="bon_a_1" readonly></div><div class="act-inp"><input type="text" id="bon_d_1" readonly></div></div><div class="wpn-tag-row" id="bon_tags_1"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_2" onclick="openWeaponModal('bon',2)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_2" readonly></div><div class="act-inp"><input type="text" id="bon_a_2" readonly></div><div class="act-inp"><input type="text" id="bon_d_2" readonly></div></div><div class="wpn-tag-row" id="bon_tags_2"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_3" onclick="openWeaponModal('bon',3)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_3" readonly></div><div class="act-inp"><input type="text" id="bon_a_3" readonly></div><div class="act-inp"><input type="text" id="bon_d_3" readonly></div></div><div class="wpn-tag-row" id="bon_tags_3"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_4" onclick="openWeaponModal('bon',4)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_4" readonly></div><div class="act-inp"><input type="text" id="bon_a_4" readonly></div><div class="act-inp"><input type="text" id="bon_d_4" readonly></div></div><div class="wpn-tag-row" id="bon_tags_4"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_5" onclick="openWeaponModal('bon',5)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_5" readonly></div><div class="act-inp"><input type="text" id="bon_a_5" readonly></div><div class="act-inp"><input type="text" id="bon_d_5" readonly></div></div><div class="wpn-tag-row" id="bon_tags_5"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_6" onclick="openWeaponModal('bon',6)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_6" readonly></div><div class="act-inp"><input type="text" id="bon_a_6" readonly></div><div class="act-inp"><input type="text" id="bon_d_6" readonly></div></div><div class="wpn-tag-row" id="bon_tags_6"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_7" onclick="openWeaponModal('bon',7)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_7" readonly></div><div class="act-inp"><input type="text" id="bon_a_7" readonly></div><div class="act-inp"><input type="text" id="bon_d_7" readonly></div></div><div class="wpn-tag-row" id="bon_tags_7"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_8" onclick="openWeaponModal('bon',8)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_8" readonly></div><div class="act-inp"><input type="text" id="bon_a_8" readonly></div><div class="act-inp"><input type="text" id="bon_d_8" readonly></div></div><div class="wpn-tag-row" id="bon_tags_8"></div>
   </div>
   <button class="rest-btn" onclick="openAdditionalBonusActionsModal()" style="width:100%;margin:6px 0;font-size:11.5px;padding:7px 10px;letter-spacing:.4px;">Additional Bonus Actions</button><div id="bx_feat_container"></div>
   <div style="flex:1"></div>
@@ -1615,7 +1653,143 @@ function load(){
   });
   recalc();
   if(_septonAspect) _applyAspectProficiency(_septonAspect);
+  updateWpnProfDisplay();
+  refreshWeaponProfColors();
+  refreshAllWeaponTags();
 }
+// ── WEAPON PROFICIENCY HELPERS ──
+const WPN_PROF_DEFS = [
+  { id: 'prof_wpn_simple_melee',   label: 'Simple Melee',   color: 'rgba(212,160,23,.9)'  },
+  { id: 'prof_wpn_simple_ranged',  label: 'Simple Ranged',  color: 'rgba(212,160,23,.9)'  },
+  { id: 'prof_wpn_martial_melee',  label: 'Martial Melee',  color: 'rgba(200,130,80,.9)'  },
+  { id: 'prof_wpn_martial_ranged', label: 'Martial Ranged', color: 'rgba(200,130,80,.9)'  },
+  { id: 'prof_wpn_unique',         label: 'Unique',         color: 'rgba(180,120,220,.9)' },
+];
+
+// Cat string from weapon modal → proficiency checkbox id
+const WPN_CAT_TO_PROF = {
+  'Simple Melee':   'prof_wpn_simple_melee',
+  'Simple Ranged':  'prof_wpn_simple_ranged',
+  'Martial Melee':  'prof_wpn_martial_melee',
+  'Martial Ranged': 'prof_wpn_martial_ranged',
+  'Unique':         'prof_wpn_unique',
+};
+
+function isWeaponProficient(cat) {
+  if (!cat) return true; // no category set — don't penalise
+  const cbId = WPN_CAT_TO_PROF[cat];
+  if (!cbId) return true;
+  return !!(document.getElementById(cbId)?.checked);
+}
+
+function updateWpnProfDisplay() {
+  const disp = document.getElementById('wpn_prof_display');
+  if (!disp) return;
+  const active = WPN_PROF_DEFS.filter(p => document.getElementById(p.id)?.checked);
+  if (active.length === 0) {
+    disp.innerHTML = `<span style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.35);">None selected</span>`;
+  } else {
+    disp.innerHTML = active.map(p =>
+      `<span style="font-family:var(--got);font-size:9px;letter-spacing:.4px;padding:2px 7px;
+              border:1px solid ${p.color};color:${p.color};background:rgba(0,0,0,.3);border-radius:2px;">${p.label}</span>`
+    ).join('');
+  }
+  refreshWeaponProfColors();
+}
+
+function refreshWeaponTags(prefix, idx) {
+  const tagRow = document.getElementById(`${prefix}_tags_${idx}`);
+  if (!tagRow) return;
+  const wEl   = document.getElementById(`${prefix}_w_${idx}`);
+  const dmgEl = document.getElementById(`${prefix}_wdmg_${idx}`);
+  const propEl= document.getElementById(`${prefix}_wprop_${idx}`);
+  const hasWeapon = wEl && wEl.value && wEl.value !== '⚔ click to add';
+  if (!hasWeapon) { tagRow.innerHTML = ''; return; }
+  const dmg   = dmgEl  ? dmgEl.value.trim()  : '';
+  const props = propEl ? propEl.value.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  const dmgClassMap = { Slashing:'wpn-tag-dmg-slashing', Piercing:'wpn-tag-dmg-piercing', Bludgeoning:'wpn-tag-dmg-bludgeoning' };
+  let html = '';
+  if (dmg) html += `<span class="wpn-tag ${dmgClassMap[dmg]||'wpn-tag-prop'}">${dmg}</span>`;
+  props.forEach(p => { html += `<span class="wpn-tag wpn-tag-prop">${p}</span>`; });
+  tagRow.innerHTML = html;
+}
+
+function refreshAllWeaponTags() {
+  ['act','bon'].forEach(prefix => {
+    for (let i = 1; i <= 8; i++) refreshWeaponTags(prefix, i);
+  });
+}
+
+function refreshWeaponProfColors() {
+  // Re-apply red/normal colour on all weapon name inputs based on current proficiencies
+  ['act','bon'].forEach(prefix => {
+    for (let i = 1; i <= 8; i++) {
+      const wEl  = document.getElementById(`${prefix}_w_${i}`);
+      const catEl = document.getElementById(`${prefix}_wcat_${i}`);
+      if (!wEl || !catEl) continue;
+      const cat = catEl.value;
+      const hasWeapon = wEl.value && wEl.value !== '⚔ click to add';
+      if (hasWeapon && cat) {
+        wEl.style.color = isWeaponProficient(cat) ? '' : '#ff4444';
+      } else {
+        wEl.style.color = '';
+      }
+    }
+  });
+}
+
+function openWeaponProfModal() {
+  document.getElementById('wpnProfModal')?.remove();
+  const o = document.createElement('div');
+  o.id = 'wpnProfModal';
+  o.className = 'modal-overlay';
+
+  const btns = WPN_PROF_DEFS.map(p => {
+    const checked = document.getElementById(p.id)?.checked;
+    return `<button id="wpnprofbtn_${p.id}" onclick="toggleWpnProf('${p.id}')"
+      style="flex:1;padding:11px 6px;font-family:var(--got);font-size:10px;letter-spacing:.4px;
+             border:1.5px solid ${checked ? p.color : 'rgba(139,106,0,.3)'};
+             background:${checked ? 'rgba(139,106,0,.25)' : 'rgba(0,0,0,.25)'};
+             color:${checked ? p.color : 'rgba(232,200,74,.45)'};
+             cursor:pointer;border-radius:2px;transition:all .15s;min-width:0;"
+      onmouseover="this.style.filter='brightness(1.25)'" onmouseout="this.style.filter=''">
+      ${checked ? '✓ ' : ''}${p.label}
+    </button>`;
+  }).join('');
+
+  o.innerHTML = `<div class="modal" style="max-width:460px;padding:28px 36px;text-align:center;">
+    <h2 style="font-size:17px;margin-bottom:6px;">Weapon Proficiencies</h2>
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;
+              color:rgba(232,200,74,.45);margin-bottom:20px;">
+      Select all weapon types you are proficient with.<br>
+      Non-proficient weapons will not add your proficiency bonus to AR.
+    </p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">${btns}</div>
+    <button class="rest-btn" onclick="document.getElementById('wpnProfModal').remove()"
+      style="width:100%;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Done</button>
+  </div>`;
+
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function toggleWpnProf(checkboxId) {
+  const cb = document.getElementById(checkboxId);
+  if (!cb) return;
+  cb.checked = !cb.checked;
+  const def = WPN_PROF_DEFS.find(p => p.id === checkboxId);
+  const btn = document.getElementById('wpnprofbtn_' + checkboxId);
+  if (btn && def) {
+    const on = cb.checked;
+    btn.style.border     = `1.5px solid ${on ? def.color : 'rgba(139,106,0,.3)'}`;
+    btn.style.background = on ? 'rgba(139,106,0,.25)' : 'rgba(0,0,0,.25)';
+    btn.style.color      = on ? def.color : 'rgba(232,200,74,.45)';
+    btn.textContent      = (on ? '✓ ' : '') + def.label;
+  }
+  updateWpnProfDisplay();
+  save();
+}
+
 // ── WEAPON CONFIGURATION MODAL ──
 const DAMAGE_DICE=['1d4','2d4','1d6','2d6','1d8','1d10','1d12'];
  
@@ -1625,10 +1799,12 @@ function openWeaponModal(prefix, idx){
   const mEl=document.getElementById(`${prefix}_m_${idx}`);
   const aEl=document.getElementById(`${prefix}_a_${idx}`);
   const dEl=document.getElementById(`${prefix}_d_${idx}`);
+  const catEl=document.getElementById(`${prefix}_wcat_${idx}`);
   const existingName=wEl?wEl.value.replace('⚔ click to add','').trim():'';
   const existingRange=mEl?mEl.value:'';
   const existingAR=aEl?aEl.value:'';
   const existingDR=dEl?dEl.value:'';
+  const existingCat=catEl?catEl.value:'';
  
   // Figure out which stat was previously chosen
   let existingStat='prowess';
@@ -1641,36 +1817,110 @@ function openWeaponModal(prefix, idx){
  
   const diceHTML=DAMAGE_DICE.map(d=>`
     <div class="wpn-radio${existingDR.startsWith(d)?' selected':''}" data-die="${d}" onclick="selectWpnDie(this)">${d}</div>`).join('');
+
+  const WPN_CATS = ['Simple Melee','Simple Ranged','Martial Melee','Martial Ranged','Unique'];
+  const WPN_PROPS = ['Ammunition','Finesse','Heavy','Light','Loading','Range','Reach','Special','Thrown','Two-Handed','Versatile'];
+  const dmgEl = document.getElementById(`${prefix}_wdmg_${idx}`);
+  const propEl = document.getElementById(`${prefix}_wprop_${idx}`);
+  const existingDmg = dmgEl ? dmgEl.value : '';
+  const existingProps = propEl ? propEl.value.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  const catHTML = WPN_CATS.map(c => {
+    const sel = existingCat === c;
+    return `<div class="wpn-radio${sel?' selected':''}" data-cat="${c}" onclick="selectWpnCat(this)">${c}</div>`;
+  }).join('');
  
   const o=document.createElement('div');o.className='modal-overlay';o.id='wpnModal';
-  o.innerHTML=`<div class="modal" style="max-width:640px;padding:32px 48px;text-align:left;">
-    <h2 style="font-size:22px;margin-bottom:6px;">⚔ Configure Weapon</h2>
-    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:#888;margin-bottom:20px;">Set the weapon's name, range and combat statistics.</p>
- 
+  o._prefix=prefix; o._idx=idx;
+  o.innerHTML=`<div class="modal" style="max-width:560px;padding:22px 28px;text-align:left;">
+    <h2 style="font-size:17px;margin-bottom:2px;letter-spacing:.5px;">⚔ Configure Weapon</h2>
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;margin-bottom:14px;">Name, category, damage and combat stats.</p>
+
+    <!-- Row 1: Name -->
     <span class="wpn-lbl">WEAPON NAME</span>
-    <input class="wpn-inp" id="wpn_name" type="text" placeholder="e.g. Longsword, Shortbow…" value="${existingName}">
- 
-    <span class="wpn-lbl">RANGE (m.)</span>
-    <input class="wpn-inp" id="wpn_range" type="text" placeholder="e.g. 5, 20/60…" value="${existingRange}" style="width:120px;">
- 
-    <span class="wpn-lbl">ATTACK ROLL BASED ON</span>
-    <div class="wpn-radio-row" style="margin-bottom:14px;">
-      <div class="wpn-radio${existingStat==='prowess'?' selected':''}" data-stat="prowess" onclick="selectWpnStat(this)">⚔ Prowess</div>
-      <div class="wpn-radio${existingStat==='dexterity'?' selected':''}" data-stat="dexterity" onclick="selectWpnStat(this)">🏹 Dexterity</div>
+    <input class="wpn-inp" id="wpn_name" type="text" placeholder="e.g. Longsword, Shortbow…" value="${existingName}" style="margin-bottom:10px;">
+
+    <!-- Row 2: Category + Damage Type side by side -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px;">
+      <div>
+        <span class="wpn-lbl">CATEGORY</span>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          ${WPN_CATS.map(c => {
+            const sel = existingCat === c;
+            return `<div class="wpn-radio${sel?' selected':''}" data-cat="${c}" onclick="selectWpnCat(this)"
+              style="padding:4px 8px;font-size:10px;">${c}</div>`;
+          }).join('')}
+        </div>
+      </div>
+      <div>
+        <span class="wpn-lbl">DAMAGE TYPE</span>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div class="wpn-radio${existingDmg==='Slashing'?' selected':''}" data-dmgtype="Slashing" onclick="selectWpnDmgType(this)"
+            style="padding:4px 8px;font-size:10px;${existingDmg==='Slashing'?'border-color:#ff7777;color:#ff7777;background:rgba(80,0,0,.25);':''}">⚔ Slashing</div>
+          <div class="wpn-radio${existingDmg==='Piercing'?' selected':''}" data-dmgtype="Piercing" onclick="selectWpnDmgType(this)"
+            style="padding:4px 8px;font-size:10px;${existingDmg==='Piercing'?'border-color:#ffaa55;color:#ffaa55;background:rgba(60,25,0,.25);':''}">🗡 Piercing</div>
+          <div class="wpn-radio${existingDmg==='Bludgeoning'?' selected':''}" data-dmgtype="Bludgeoning" onclick="selectWpnDmgType(this)"
+            style="padding:4px 8px;font-size:10px;${existingDmg==='Bludgeoning'?'border-color:#aaaacc;color:#aaaacc;background:rgba(20,20,50,.25);':''}">🔨 Bludgeoning</div>
+        </div>
+      </div>
     </div>
- 
-    <span class="wpn-lbl">ATTACK RATING (AR)</span>
-    <div class="wpn-ar-preview" id="wpn_ar_preview">${aEl&&aEl.value?aEl.value:'—'}</div>
-    <p style="font-family:'IM Fell English',serif;font-size:10px;color:#666;margin-top:-10px;margin-bottom:10px;text-align:center;">Stat skill score + Proficiency Bonus + Custom Modifier</p>
- 
-    <span class="wpn-lbl">CUSTOM ATTACK MODIFIER</span>
-    <input class="wpn-inp" id="wpn_custom_mod" type="number" placeholder="e.g. 2 or -1 (leave empty for 0)" value="${existingCustomMod}" style="width:200px;" oninput="recalcWpnAR()">
-    <p style="font-family:'IM Fell English',serif;font-size:10px;color:#666;margin-top:-10px;margin-bottom:16px;">Added on top of the AR. Leave empty to use 0.</p>
- 
-    <span class="wpn-lbl">DAMAGE ROLL (DR)</span>
-    <div class="wpn-radio-row" id="wpn_dice_row">${diceHTML}</div>
- 
-    <div style="display:flex;gap:10px;margin-top:16px;">
+
+    <!-- No-prof warning -->
+    <div id="wpn_noprof_warn" style="display:none;font-family:var(--got);font-size:9px;color:#ff5555;
+         letter-spacing:.4px;margin-bottom:8px;padding:3px 8px;
+         background:rgba(60,0,0,.3);border:1px solid rgba(200,50,50,.4);border-radius:2px;">
+      ⚠ Not proficient — proficiency bonus will not be added
+    </div>
+
+    <!-- Row 3: Properties (compact pills) -->
+    <span class="wpn-lbl">PROPERTIES</span>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
+      ${WPN_PROPS.map(p => {
+        const on = existingProps.includes(p);
+        return `<button type="button" data-prop="${p}" data-selected="${on?'1':'0'}" onclick="toggleWpnProp(this)"
+          style="padding:3px 8px;font-family:var(--got);font-size:8.5px;letter-spacing:.3px;
+                 border:1px solid ${on?'var(--gold-lt)':'rgba(139,106,0,.35)'};
+                 background:${on?'rgba(139,106,0,.3)':'rgba(0,0,0,.2)'};
+                 color:${on?'var(--text-gold)':'rgba(232,200,74,.45)'};
+                 cursor:pointer;border-radius:2px;transition:all .15s;"
+          onmouseover="this.style.filter='brightness(1.25)'" onmouseout="this.style.filter=''">
+          ${on?'✓ ':''}${p}
+        </button>`;
+      }).join('')}
+    </div>
+
+    <!-- Row 4: Range + Attack Stat side by side -->
+    <div style="display:grid;grid-template-columns:120px 1fr;gap:12px;margin-bottom:10px;">
+      <div>
+        <span class="wpn-lbl">RANGE (m.)</span>
+        <input class="wpn-inp" id="wpn_range" type="text" placeholder="e.g. 5, 20/60…" value="${existingRange}" style="margin-bottom:0;width:100%;">
+      </div>
+      <div>
+        <span class="wpn-lbl">ATTACK ROLL STAT</span>
+        <div style="display:flex;gap:6px;">
+          <div class="wpn-radio${existingStat==='prowess'?' selected':''}" data-stat="prowess" onclick="selectWpnStat(this)" style="flex:1;justify-content:center;padding:6px 4px;font-size:10px;">⚔ Prowess</div>
+          <div class="wpn-radio${existingStat==='dexterity'?' selected':''}" data-stat="dexterity" onclick="selectWpnStat(this)" style="flex:1;justify-content:center;padding:6px 4px;font-size:10px;">🏹 Dexterity</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 5: AR preview + Custom modifier side by side -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;align-items:end;">
+      <div>
+        <span class="wpn-lbl">ATTACK RATING (AR)</span>
+        <div class="wpn-ar-preview" id="wpn_ar_preview" style="margin-bottom:0;">${aEl&&aEl.value?aEl.value:'—'}</div>
+      </div>
+      <div>
+        <span class="wpn-lbl">CUSTOM MODIFIER</span>
+        <input class="wpn-inp" id="wpn_custom_mod" type="number" placeholder="0" value="${existingCustomMod}" style="width:100%;margin-bottom:0;" oninput="recalcWpnAR()">
+      </div>
+    </div>
+
+    <!-- Row 6: Damage dice -->
+    <span class="wpn-lbl">DAMAGE DICE (DR)</span>
+    <div class="wpn-radio-row" id="wpn_dice_row" style="margin-bottom:14px;">${diceHTML}</div>
+
+    <!-- Buttons -->
+    <div style="display:flex;gap:8px;">
       <button onclick="confirmWeapon('${prefix}',${idx})" style="flex:2;">Confirm</button>
       <button onclick="clearWeapon('${prefix}',${idx})" style="flex:1;background:rgba(80,20,4,.4);color:#cc6644;border-color:#883311;">Clear</button>
       <button onclick="document.getElementById('wpnModal').remove()" style="flex:1;background:rgba(30,25,10,.5);color:#888;border-color:rgba(100,80,0,.3);">Cancel</button>
@@ -1701,15 +1951,51 @@ function selectWpnDie(el){
   document.querySelectorAll('#wpnModal [data-die]').forEach(e=>e.classList.remove('selected'));
   el.classList.add('selected');
 }
+
+function selectWpnCat(el){
+  document.querySelectorAll('#wpnModal [data-cat]').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  recalcWpnAR(); // proficiency warning may change
+}
+
+function selectWpnDmgType(el){
+  const DMG_STYLES = {
+    Slashing:    {border:'#ff7777', color:'#ff7777', bg:'rgba(80,0,0,.25)'},
+    Piercing:    {border:'#ffaa55', color:'#ffaa55', bg:'rgba(60,25,0,.25)'},
+    Bludgeoning: {border:'#aaaacc', color:'#aaaacc', bg:'rgba(20,20,50,.25)'},
+  };
+  document.querySelectorAll('#wpnModal [data-dmgtype]').forEach(e=>{
+    e.classList.remove('selected');
+    e.style.borderColor=''; e.style.color=''; e.style.background='';
+  });
+  el.classList.add('selected');
+  const s = DMG_STYLES[el.dataset.dmgtype] || {};
+  el.style.borderColor = s.border||''; el.style.color = s.color||''; el.style.background = s.bg||'';
+}
+
+function toggleWpnProp(btn){
+  const on = btn.getAttribute('data-selected') === '1';
+  btn.setAttribute('data-selected', on ? '0' : '1');
+  btn.style.border      = on ? '1px solid rgba(139,106,0,.35)' : '1px solid var(--gold-lt)';
+  btn.style.background  = on ? 'rgba(0,0,0,.2)' : 'rgba(139,106,0,.3)';
+  btn.style.color       = on ? 'rgba(232,200,74,.45)' : 'var(--text-gold)';
+  btn.textContent       = (on ? '' : '✓ ') + btn.dataset.prop;
+}
  
 function recalcWpnAR(){
   const statEl=document.querySelector('#wpnModal [data-stat].selected');
   const stat=statEl?statEl.dataset.stat:'prowess';
   const skillVal=parseInt(document.getElementById('scr_'+stat)?.value)||0;
   const customModVal=parseInt(document.getElementById('wpn_custom_mod')?.value)||0;
-  const total=skillVal+customModVal;
+  const catEl=document.querySelector('#wpnModal [data-cat].selected');
+  const cat=catEl?catEl.dataset.cat:'';
+  const profOk=isWeaponProficient(cat);
+  const profVal=profOk?(parseInt(document.getElementById('proficiency')?.value)||0):0;
+  const total=skillVal+profVal+customModVal;
   const preview=document.getElementById('wpn_ar_preview');
   if(preview) preview.textContent = total >= 0 ? '+'+total : String(total);
+  const warn=document.getElementById('wpn_noprof_warn');
+  if(warn) warn.style.display = (cat && !profOk) ? 'block' : 'none';
 }
  
 function confirmWeapon(prefix, idx){
@@ -1719,13 +2005,16 @@ function confirmWeapon(prefix, idx){
   const stat=statEl?statEl.dataset.stat:'prowess';
   const dieEl=document.querySelector('#wpnModal [data-die].selected');
   const die=dieEl?dieEl.dataset.die:'1d6';
+  const catEl=document.querySelector('#wpnModal [data-cat].selected');
+  const cat=catEl?catEl.dataset.cat:'';
   const skillVal=parseInt(document.getElementById('scr_'+stat)?.value)||0;
-  const profVal=parseInt(document.getElementById('proficiency')?.value)||0;
+  const profOk=isWeaponProficient(cat);
+  const profVal=profOk?(parseInt(document.getElementById('proficiency')?.value)||0):0;
  
   // Custom modifier for AR: default to 0 if left empty
   const customModVal=parseInt(document.getElementById('wpn_custom_mod')?.value)||0;
  
-  // AR = stat modifier + proficiency + custom modifier
+  // AR = stat modifier + proficiency (if proficient) + custom modifier
   const arTotal=skillVal+profVal+customModVal;
   const arStr=arTotal>=0?'+'+arTotal:String(arTotal);
  
@@ -1737,20 +2026,38 @@ function confirmWeapon(prefix, idx){
   const mEl=document.getElementById(`${prefix}_m_${idx}`);
   const aEl=document.getElementById(`${prefix}_a_${idx}`);
   const dEl=document.getElementById(`${prefix}_d_${idx}`);
-  if(wEl) wEl.value=name||'Unnamed';
+  const dmgTypeEl = document.querySelector('#wpnModal [data-dmgtype].selected');
+  const dmgType = dmgTypeEl ? dmgTypeEl.dataset.dmgtype : '';
+  const selectedProps = [...document.querySelectorAll('#wpnModal [data-prop][data-selected="1"]')]
+    .map(b => b.dataset.prop).join(',');
+
+  const wcEl=document.getElementById(`${prefix}_wcat_${idx}`);
+  const wdEl=document.getElementById(`${prefix}_wdmg_${idx}`);
+  const wpEl=document.getElementById(`${prefix}_wprop_${idx}`);
+  if(wEl){ wEl.value=name||'Unnamed'; wEl.style.color=(!profOk && cat) ? '#ff4444' : ''; }
   if(mEl) mEl.value=range;
   if(aEl) aEl.value=arStr;
   if(dEl) dEl.value=drStr;
- 
+  if(wcEl) wcEl.value=cat;
+  if(wdEl) wdEl.value=dmgType;
+  if(wpEl) wpEl.value=selectedProps;
+
   document.getElementById('wpnModal').remove();
+  refreshWeaponTags(prefix, idx);
   save();
 }
  
 function clearWeapon(prefix, idx){
   ['w','m','a','d'].forEach(f=>{
     const el=document.getElementById(`${prefix}_${f}_${idx}`);
+    if(el){ el.value=''; el.style.color=''; }
+  });
+  ['wcat','wdmg','wprop'].forEach(f=>{
+    const el=document.getElementById(`${prefix}_${f}_${idx}`);
     if(el) el.value='';
   });
+  const tagRow=document.getElementById(`${prefix}_tags_${idx}`);
+  if(tagRow) tagRow.innerHTML='';
   document.getElementById('wpnModal').remove();
   save();
 }
