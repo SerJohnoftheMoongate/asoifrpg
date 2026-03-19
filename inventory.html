@@ -648,6 +648,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div style="display:flex;gap:8px;">
       <button class="rest-btn" onclick="showMenuWarning()"><img src="Images/Menu Icon.webp" class="ri"> MENU</button>
       <button class="rest-btn" id="editBtn" onclick="openEditModal()"><img src="Images/Edit Icon.webp" class="ri"> EDIT</button>
+      <button class="rest-btn" onclick="openWesterosMap()" style="letter-spacing:.5px;">🗺 WESTEROS</button>
     </div>
   </div>
   <input type="file" accept="image/*" id="fBg" style="display:none">
@@ -3130,6 +3131,111 @@ function moneyAdj(coin, delta) {
   if (totEl) totEl.textContent = Math.floor(d + s / 210 + p / 1470) + ' Dragons';
 
   _saveData();
+}
+
+/* ══════════════════════════════════════════════════════════
+   WESTEROS MAP MODAL  — zoomable political map
+══════════════════════════════════════════════════════════ */
+function openWesterosMap() {
+  document.getElementById('westerosMapModal')?.remove();
+
+  const o = document.createElement('div');
+  o.id = 'westerosMapModal';
+  o.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(0,0,0,.92);
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    overflow:hidden;
+  `;
+
+  o.innerHTML = `
+    <div style="font-family:'GameOfThrones','Cinzel',serif;font-size:24px;color:#e8c84a;
+                letter-spacing:3px;text-shadow:0 0 20px rgba(184,134,11,.6);
+                padding:20px 0 12px;flex-shrink:0;">Map of Westeros</div>
+
+    <!-- Zoom controls -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-shrink:0;">
+      <button id="mapZoomOut" onclick="westerosZoom(-0.2)"
+        style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--gold);
+               background:rgba(60,40,0,.6);color:var(--text-gold);font-size:20px;font-weight:700;
+               cursor:pointer;display:flex;align-items:center;justify-content:center;
+               line-height:1;transition:filter .15s;"
+        onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
+      <span id="mapZoomLabel" style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.6);
+             min-width:44px;text-align:center;letter-spacing:.5px;">100%</span>
+      <button id="mapZoomIn" onclick="westerosZoom(+0.2)"
+        style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--gold);
+               background:rgba(60,40,0,.6);color:var(--text-gold);font-size:20px;font-weight:700;
+               cursor:pointer;display:flex;align-items:center;justify-content:center;
+               line-height:1;transition:filter .15s;"
+        onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
+      <button onclick="westerosZoomReset()"
+        style="padding:4px 12px;border:1px solid rgba(139,106,0,.5);border-radius:2px;
+               background:rgba(40,30,0,.5);color:rgba(232,200,74,.55);font-family:var(--got);
+               font-size:9px;letter-spacing:.5px;cursor:pointer;transition:filter .15s;"
+        onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">RESET</button>
+    </div>
+
+    <!-- Scrollable / pannable map container -->
+    <div id="mapViewport" style="flex:1;width:100%;overflow:auto;display:flex;
+                                  align-items:flex-start;justify-content:center;cursor:grab;">
+      <div id="mapScaler" style="transform-origin:top center;transition:transform .2s ease;">
+        <img id="westerosMapImg"
+          src="https://gameofthrones.net/images/Westeros_Maps/Map_Westeros_Political.gif"
+          alt="Map of Westeros"
+          style="display:block;max-width:900px;width:90vw;
+                 border:3px solid #b8860b;box-shadow:0 0 40px rgba(0,0,0,.8);"
+          onerror="document.getElementById('westerosMapFallback').style.display='block';this.style.display='none'">
+        <div id="westerosMapFallback" style="display:none;font-family:'IM Fell English',serif;
+               font-style:italic;font-size:13px;color:rgba(232,200,74,.5);margin-top:20px;text-align:center;padding:20px;">
+          Map could not be loaded — check your internet connection.
+        </div>
+      </div>
+    </div>
+
+    <!-- Close button -->
+    <button onclick="document.getElementById('westerosMapModal').remove()"
+      class="rest-btn"
+      style="flex-shrink:0;margin:14px 0;padding:8px 28px;font-size:12px;letter-spacing:1px;">
+      ← Close Map
+    </button>
+  `;
+
+  document.body.appendChild(o);
+
+  // Initialise zoom state
+  o._zoom = 1.0;
+  const scaler = document.getElementById('mapScaler');
+  const label  = document.getElementById('mapZoomLabel');
+
+  window._westerosUpdateZoom = () => {
+    scaler.style.transform = `scale(${o._zoom})`;
+    label.textContent = Math.round(o._zoom * 100) + '%';
+  };
+  window._westerosModal = o;
+
+  // Mouse-wheel zoom
+  document.getElementById('mapViewport').addEventListener('wheel', e => {
+    e.preventDefault();
+    westerosZoom(e.deltaY < 0 ? 0.15 : -0.15);
+  }, { passive: false });
+
+  // Click-outside closes
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function westerosZoom(delta) {
+  const o = window._westerosModal;
+  if (!o) return;
+  o._zoom = Math.min(4, Math.max(0.4, o._zoom + delta));
+  window._westerosUpdateZoom?.();
+}
+
+function westerosZoomReset() {
+  const o = window._westerosModal;
+  if (!o) return;
+  o._zoom = 1.0;
+  window._westerosUpdateZoom?.();
 }
 
 /* ── Knight image — changes based on selected class ── */
