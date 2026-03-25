@@ -3297,7 +3297,7 @@ const SPEC_LEVEL_FEATURES = {
       desc_fn: (lvl) => {
         const uses = lvl >= 17 ? 6 : lvl >= 12 ? 5 : lvl >= 6 ? 4 : lvl >= 3 ? 3 : 2;
         const die  = lvl >= 12 ? '3d4' : lvl >= 6 ? '2d4' : '1d4';
-        return `When you sustain an injury for the first time in combat you can choose to enter a state of Battle Frenzy, letting yourself be consumed by primal bloodlust. While frenzied you gain +2 AC and add ${die} to your damage rolls${lvl < 6 ? ' (scales to 2d4 at Lvl 6, 3d4 at Lvl 12)' : lvl < 12 ? ' (scales to 3d4 at Lvl 12)' : ''}.\n\nFrenzy ends when you neither attack nor take damage in a round of combat. You may Frenzy ${uses} time${uses > 1 ? 's' : ''} per long rest (2 at Lvl 1 · 3 at Lvl 3 · 4 at Lvl 6 · 5 at Lvl 12 · 6 at Lvl 17).`;
+        return `When you sustain an injury for the first time in combat you can choose to enter a state of Battle Frenzy, letting yourself be consumed by primal bloodlust. While frenzied you gain +2 AC and add ${die} to your damage rolls${lvl < 6 ? ' (scales to 2d4 at Lvl 6, 3d4 at Lvl 12)' : lvl < 12 ? ' (scales to 3d4 at Lvl 12)' : ''}.\n\nAdditionally, when in a state of Frenzy, the threshold for inflicting medium or critical wounds on your enemy is lowered by 2.\n\nFrenzy ends when you neither attack nor take damage in a round of combat. You may Frenzy ${uses} time${uses > 1 ? 's' : ''} per long rest (2 at Lvl 1 · 3 at Lvl 3 · 4 at Lvl 6 · 5 at Lvl 12 · 6 at Lvl 17).`;
       },
       level_required: 1
     },
@@ -3319,7 +3319,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Adrenaline Fuelled',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `Reaction: When you are hit by a targeted wounding strike, you may negate the severity of the wound by one level — critical becomes moderate, moderate becomes mild, and a mild wound is shaken off entirely (you still take the hit's damage).`,
+      desc_fn: () => `Reaction: When you are hit by a targeted wounding strike, you may negate the severity of the wound by one level — critical becomes medium, medium becomes mild, and a mild wound is shaken off entirely (you still take the hit's damage).`,
       level_required: 10
     },
     {
@@ -3486,7 +3486,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Unlimited Supply',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `You are proficient with a fletching kit. With one in your possession, spend a short rest to craft 10 fletched arrows or bolts. You need sticks, feathers and resin for hardened points.`,
+      desc_fn: () => `Starting at the first level, you gain proficiency with a fletching kit. You will gain a fletching kit and you are able to craft your own arrow or bolt supply. You will need to collect sticks, feathers and resin for hardened points.  It takes a short rest to create 10 fletched arrows or bolts. In addition, you have advantage on strategy checks involving archery.`,
       level_required: 1
     },
     {
@@ -3507,7 +3507,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Muscle Memory',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `Your archery muscles are formidable. The range of all your ranged weapons increases by 50% (e.g. 100 m becomes 150 m). No bowstring is too tough for you to draw.`,
+      desc_fn: () => `Your archery muscles are formidable. The range of all your ranged weapons increases by 50% (e.g. 100 m becomes 150 m). No bowstring is too tough for you to draw. In addition, you deal additional damage when making a wounding attack. The additional damage is based on the body part you are targeting.\n\n• Head = 1d6 additional damage\n• Leg = 1d8 additional damage\n• Arm = 1d10 additional damage\n• Torso = 1d12 additional damage`,
       level_required: 10
     },
     {
