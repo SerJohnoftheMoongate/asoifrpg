@@ -183,6 +183,15 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .feats-inner{padding:5px}
 .feat-inp{height:24px;margin-bottom:3px}
 .feat-inp input{height:100%;font-size:13px}
+.feat-inp input[readonly]{cursor:pointer!important;color:var(--text-gold);}
+.feat-inp input[readonly]::placeholder{color:rgba(232,200,74,.35);font-style:italic;}
+.feat-desc{font-family:'IM Fell English',serif;font-size:11px;color:#bbb;line-height:1.45;
+           padding:4px 6px 5px;border-left:2px solid rgba(139,106,0,.4);
+           margin:0 0 5px 2px;display:none;}
+.feat-desc.has-feat{display:block;}
+.feat-desc .feat-bonus-badge{font-family:var(--got);font-size:8px;color:#8ecf6a;
+           border:1px solid rgba(100,180,80,.4);background:rgba(20,50,10,.4);
+           padding:1px 5px;border-radius:2px;margin-left:4px;vertical-align:middle;}
 
 /* ── COLS 4 & 5 ── */
 .col-icon-top{display:flex;justify-content:center;padding:5px;border-bottom:1px solid var(--gold);background:var(--panel);flex-shrink:0}
@@ -663,9 +672,12 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div class="feats-section">
     <div class="sec">Feats</div>
     <div class="feats-inner">
-      <div class="feat-inp"><input type="text" id="feat_1" placeholder="Feat 1..."></div>
-      <div class="feat-inp"><input type="text" id="feat_2" placeholder="Feat 2..."></div>
-      <div class="feat-inp"><input type="text" id="feat_3" placeholder="Feat 3..."></div>
+      <div class="feat-inp"><input type="text" id="feat_1" placeholder="Click to choose feat…" readonly onclick="openFeatPicker(1)"></div>
+      <div id="feat_desc_1" class="feat-desc"></div>
+      <div class="feat-inp"><input type="text" id="feat_2" placeholder="Click to choose feat…" readonly onclick="openFeatPicker(2)"></div>
+      <div id="feat_desc_2" class="feat-desc"></div>
+      <div class="feat-inp"><input type="text" id="feat_3" placeholder="Click to choose feat…" readonly onclick="openFeatPicker(3)"></div>
+      <div id="feat_desc_3" class="feat-desc"></div>
     </div>
 
   <!-- CONSTITUTION SECTION -->
@@ -1553,6 +1565,7 @@ function _collectSheetData() {
   try { d._cs_home_turf           = typeof _chosenTerrains         !== 'undefined' ? _chosenTerrains         : []; } catch(e) {}
   try { d._cs_warg_bond           = typeof _wargBondAnimals        !== 'undefined' ? _wargBondAnimals        : []; } catch(e) {}
   try { d._cs_greater_warg_bond   = typeof _greaterWargBondAnimals !== 'undefined' ? _greaterWargBondAnimals : []; } catch(e) {}
+  try { d._cs_feat_bonuses        = _appliedFeatBonuses; } catch(e) {}
   const elPL = document.getElementById('pL');       if (elPL)  d._img_pL = elPL.style.backgroundImage  || '';
   const elPR = document.getElementById('pR');       if (elPR)  d._img_pR = elPR.style.backgroundImage  || '';
   const elBg = document.getElementById('headerBg'); if (elBg)  d._img_bg = elBg.style.backgroundImage  || '';
@@ -1624,7 +1637,17 @@ function load(){
   recalc();
   updateLevel();
   updateShortRestBtn();
+  // applyOriginProfs() repopulates the culture dropdown, wiping any value set by the generic
+  // loop above — so we save it first and restore it afterwards.
+  const _savedCulture = d.culture || '';
   applyOriginProfs();
+  if (_savedCulture) {
+    const cSel = document.getElementById('culture');
+    if (cSel) {
+      cSel.value = _savedCulture;
+      if (cSel.value === _savedCulture) applyCultureBonus();
+    }
+  }
   // Inspiration
   try { if((d._cs_insp||localStorage.getItem('cs_insp'))==='1') toggleInspiration(); } catch(e){}
   // Accent colour
@@ -1642,21 +1665,200 @@ function load(){
   try{ if(d._cs_home_turf!==undefined){      _chosenTerrains=d._cs_home_turf;                    try{localStorage.setItem('cs_home_turf',JSON.stringify(_chosenTerrains));}catch(e){} } }catch(e){}
   try{ if(d._cs_warg_bond!==undefined){      _wargBondAnimals=d._cs_warg_bond;                   try{localStorage.setItem('cs_warg_bond',JSON.stringify(_wargBondAnimals));}catch(e){} } }catch(e){}
   try{ if(d._cs_greater_warg_bond!==undefined){ _greaterWargBondAnimals=d._cs_greater_warg_bond; try{localStorage.setItem('cs_greater_warg_bond',JSON.stringify(_greaterWargBondAnimals));}catch(e){} } }catch(e){}
-  // Re-register culture bonuses
-  const _lc = document.getElementById('culture').value;
-  _appliedCultureBonus = {};
-  _pendingCultureBonus = {};
-  Object.entries(CULTURE_BONUSES[_lc] || {}).forEach(([ability, bonus]) => {
-    const el = document.getElementById('stat_' + ability);
-    if (el && el.value !== '') { _appliedCultureBonus[ability] = bonus; }
-    else { _pendingCultureBonus[ability] = bonus; }
-  });
   recalc();
   if(_septonAspect) _applyAspectProficiency(_septonAspect);
+  // Restore feat applied-bonus tracking (no re-application needed — values already in saved stats)
+  try { if(d._cs_feat_bonuses !== undefined) _appliedFeatBonuses = d._cs_feat_bonuses; } catch(e){}
   updateWpnProfDisplay();
   refreshWeaponProfColors();
   refreshAllWeaponTags();
+  // Restore feat descriptions from saved feat names
+  [1,2,3].forEach(i => {
+    const name = document.getElementById('feat_'+i)?.value;
+    if (name) _restoreFeatDisplay(i, name);
+  });
 }
+// ── FEATS SYSTEM ──
+// Ability bonus mapping: feat text refers to game-world skill names mapped to stat ids
+const FEAT_ABILITY_MAP = {
+  'Martial':     'strength',
+  'Intrigue':    'subtlety',
+  'Diplomacy':   'charisma',
+  'Stewardship': 'wisdom',
+  'Learning':    'knowledge',
+  'Attunement':  'spirit',
+};
+
+// Reverse map: stat id → display name
+const FEAT_ABILITY_DISPLAY = {
+  strength:  'Martial',
+  subtlety:  'Intrigue',
+  charisma:  'Diplomacy',
+  wisdom:    'Stewardship',
+  knowledge: 'Learning',
+  spirit:    'Attunement',
+};
+
+const FEATS_DATA = [
+  { name:'Actor',               desc:'+1 in Intrigue, advantage on Deception checks, mimic the speech of a person or the sounds made by an animal.',                                                             bonus:{ability:'subtlety',  amount:1} },
+  { name:'Alert',               desc:'+5 to initiative, can\'t be surprised and enemies you don\'t see don\'t gain advantage on attack rolls against you.',                                                       bonus:null },
+  { name:'Athlete',             desc:'+1 in Martial. You stand up and climb more quickly, and you can jump with only a 5-ft run.',                                                                               bonus:{ability:'strength',  amount:1} },
+  { name:'Blacksmiths Apprentice', desc:'+1 on Stewardship, proficiency with Blacksmith\'s Tools, and you gain the ability to repair armor and arms up to the \'Decent\' condition.',                           bonus:{ability:'wisdom',    amount:1} },
+  { name:'Charger',             desc:'As part of the Dash action you can make a melee attack with a +5 bonus if you move at least 10 ft before.',                                                                bonus:null },
+  { name:'Crossbow Expert',     desc:'You ignore the loading property of crossbows and don\'t have disadvantage for being in contact with a creature when you shoot.',                                            bonus:null },
+  { name:'Crusher',             desc:'+1 in Martial. 5 ft extra move when you hit (bludgeoning) and attacks with advantage after a critical hit.',                                                               bonus:{ability:'strength',  amount:1} },
+  { name:'Courtly Presence',    desc:'+1 in Diplomacy, gain advantage on persuasion when speaking in court.',                                                                                                    bonus:{ability:'charisma',  amount:1} },
+  { name:'Defensive Duelist',   desc:'You can add your proficiency bonus to your AC if you are wielding a finesse weapon, in reaction to a melee attack.',                                                       bonus:null },
+  { name:'Dual Wielder',        desc:'+1 to AC if you\'re wielding a melee weapon in each hand, two-weapon fighting with non-light weapons, draw two weapons.',                                                  bonus:null },
+  { name:'Cave Dweller',        desc:'Advantage to Perception and Investigation checks, to saving throws vs traps, and search for traps at normal pace.',                                                        bonus:null },
+  { name:'Fighting Initiate',   desc:'You learn one Fighting Style option from the warrior class.',                                                                                                              bonus:null },
+  { name:'Grappler',            desc:'You have advantage on attack rolls when grappling, and can try to restrain an enemy grappled by you.',                                                                     bonus:null },
+  { name:'Great Weapon Master', desc:'Extra attack after a melee critical hit and you can choose to take -5 to attack roll to add +10 to damage with a heavy weapon.',                                           bonus:null },
+  { name:'Healer',              desc:'You can use medical herbs or remedies to stabilize a creature and restore it to 1 hp.',                                                                                    bonus:null },
+  { name:'Heavily Armored',     desc:'+1 in Martial and you gain proficiency with heavy armor.',                                                                                                                 bonus:{ability:'strength',  amount:1} },
+  { name:'Heavy Armor Master',  desc:'Heavy Armor grants Bludgeoning resistance.',                                                                                                                               bonus:null },
+  { name:'Keen Mind',           desc:'+1 in Learning, you know which way is north, when is the next sunrise/sunset, and recall any events within the past month.',                                               bonus:{ability:'knowledge', amount:1} },
+  { name:'Lightly Armored',     desc:'+1 in Martial and you gain proficiency with light armor.',                                                                                                                 bonus:{ability:'strength',  amount:1} },
+  { name:'Homeschooled',        desc:'+1 in Learning, you have the ability to write, read and you know one extra language.',                                                                                     bonus:{ability:'knowledge', amount:1} },
+  { name:'Martial Adept',       desc:'You learn two maneuvers from the Knight Subclass and gain one Valor die (d6).',                                                                                            bonus:null },
+  { name:'Squire',              desc:'+1 in Martial, proficiency with one type of martial weapon, shields and can mount horses.',                                                                                bonus:{ability:'strength',  amount:1} },
+  { name:'Medium Armor Master', desc:'No disadvantage to Stealth checks and medium armor grants piercing resistance.',                                                                                           bonus:null },
+  { name:'Mobile',              desc:'Your speed increases by 10 ft, you can Dash on difficult terrain without malus, and don\'t provoke opportunity attacks in melee.',                                         bonus:null },
+  { name:'Moderately Armored',  desc:'+1 in Martial and you gain proficiency with medium armor and shields.',                                                                                                    bonus:{ability:'strength',  amount:1} },
+  { name:'Mounted Combatant',   desc:'Advantage on melee attacks against unmounted creatures and force an attack to target you instead of your mount.',                                                          bonus:null },
+  { name:'Mummer',              desc:'+1 in Intrigue, proficient with a disguise kit.',                                                                                                                          bonus:{ability:'subtlety',  amount:1} },
+  { name:'Observant',           desc:'+1 in Learning, you can read on lips, and you have a +5 bonus in passive Perception.',                                                                                     bonus:{ability:'knowledge', amount:1} },
+  { name:'Armor Piercer',       desc:'+1 in Martial, you negate armor resistances.',                                                                                                                             bonus:{ability:'strength',  amount:1} },
+  { name:'Poisoner',            desc:'Proficiency with poisoner\'s kit, apply as a bonus action and your attacks ignore resistance to poison damage.',                                                            bonus:null },
+  { name:'Polearm Master',      desc:'You can make an extra attack with a polearm weapon, and make an opportunity attack if a creature enters your reach.',                                                      bonus:null },
+  { name:'Prodigy',             desc:'You gain proficiency with one skill, one tool or one language, and you gain expertise with one skill.',                                                                    bonus:null },
+  { name:'Resilient',           desc:'+1 in one ability of your choice and you gain proficiency in saving throws using that ability. (Apply +1 to the chosen ability manually.)',                                bonus:null },
+  { name:'Renowned',            desc:'The amount of renown you gain for your deeds will increase by 1.5 times your level.',                                                                                      bonus:null },
+  { name:'Savage Attacker',     desc:'You can reroll melee weapon attack damage once per turn.',                                                                                                                  bonus:null },
+  { name:'Wounding Attacker',   desc:'When attempting to wound an enemy, you may always use a Dice level lower than the standard penalty when rolling a wounding attack.',                                       bonus:null },
+  { name:'Sentinel',            desc:'A successful attack of opportunity reduces enemy speed to 0 for this turn and possibility to make an opportunity attack even if enemy disengages.',                        bonus:null },
+  { name:'Siege Expert',        desc:'You may add your proficiency bonus when operating siege weapons and when attempting to break doors.',                                                                       bonus:null },
+  { name:'Sharpshooter',        desc:'Your ranged attacks ignore some cover, no disadvantage at long range, and possibility to take -5 to hit for +10 on ranged damage.',                                       bonus:null },
+  { name:'Shield Master',       desc:'You may add an additional +1 to your AC when wearing a shield. You can Shield Bash as a bonus action. If you succeed in a prowess combat roll you knock your opponent prone.', bonus:null },
+  { name:'Skill Expert',        desc:'+1 in one ability of your choice, proficiency in one skill and expertise in one other in which you have proficiency. (Apply +1 to the chosen ability manually.)',          bonus:null },
+  { name:'Skilled',             desc:'You gain proficiency with three skills or tools.',                                                                                                                          bonus:null },
+  { name:'Skulker',             desc:'Ranged weapon attack doesn\'t reveal your position and possibility to hide in a lightly obscured area.',                                                                    bonus:null },
+  { name:'Slasher',             desc:'+1 in Martial. Reduce target\'s speed by 10 ft when you hit (slashing) and target has disadvantage on attack rolls.',                                                     bonus:{ability:'strength',  amount:1} },
+  { name:'Swimmer',             desc:'You gain the ability to Swim and Dive.',                                                                                                                                    bonus:null },
+  { name:'Tavern Brawler',      desc:'+1 in Martial, proficiency with improvised weapons, d4 for unarmed strike, and grapple with a bonus action.',                                                              bonus:{ability:'strength',  amount:1} },
+  { name:'Tough',               desc:'Your hit point maximum increases by an amount equal to twice your level then by +2 at each level.',                                                                        bonus:null },
+  { name:'Weapon Master',       desc:'+1 in Martial and you gain proficiency with four weapons.',                                                                                                                 bonus:{ability:'strength',  amount:1} },
+];
+
+// Tracks which stat bonus was applied per slot: { 1: {ability:'strength', amount:1}, ... }
+let _appliedFeatBonuses = {};
+
+function _applyFeatBonus(slot, bonus) {
+  if (!bonus) return;
+  const el = document.getElementById('stat_' + bonus.ability);
+  if (!el || el.value === '' || el.value === '—') return;
+  const newVal = Math.min(23, Math.max(4, parseInt(el.value) + bonus.amount));
+  el.value = String(newVal);
+  _appliedFeatBonuses[slot] = { ability: bonus.ability, amount: bonus.amount };
+  recalc();
+}
+
+function _removeFeatBonus(slot) {
+  const prev = _appliedFeatBonuses[slot];
+  if (!prev) return;
+  const el = document.getElementById('stat_' + prev.ability);
+  if (el && el.value !== '' && el.value !== '—') {
+    el.value = String(Math.min(23, Math.max(4, parseInt(el.value) - prev.amount)));
+    recalc();
+  }
+  delete _appliedFeatBonuses[slot];
+}
+
+function _restoreFeatDisplay(slot, name) {
+  const feat = FEATS_DATA.find(f => f.name === name);
+  const descEl = document.getElementById('feat_desc_' + slot);
+  if (!descEl) return;
+  if (!feat) { descEl.className = 'feat-desc'; descEl.innerHTML = ''; return; }
+  const badge = feat.bonus
+    ? `<span class="feat-bonus-badge">+${feat.bonus.amount} ${FEAT_ABILITY_DISPLAY[feat.bonus.ability]||feat.bonus.ability}</span>`
+    : '';
+  descEl.innerHTML = feat.desc + badge;
+  descEl.className = 'feat-desc has-feat';
+}
+
+function openFeatPicker(slot) {
+  document.getElementById('featPickerModal')?.remove();
+  const current = document.getElementById('feat_' + slot)?.value || '';
+
+  const rows = FEATS_DATA.map(f => {
+    const isCurrent = f.name === current;
+    const bonusTag = f.bonus
+      ? `<span style="font-family:var(--got);font-size:8px;color:#8ecf6a;border:1px solid rgba(100,180,80,.35);
+               background:rgba(20,50,10,.35);padding:1px 5px;border-radius:2px;flex-shrink:0;">
+           +${f.bonus.amount} ${FEAT_ABILITY_DISPLAY[f.bonus.ability]||f.bonus.ability}
+         </span>` : '';
+    return `<div onclick="selectFeat(${slot},'${f.name.replace(/'/g,"\\'")}','featPickerModal')"
+      style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;margin-bottom:4px;cursor:pointer;
+             border:1px solid ${isCurrent?'var(--gold-lt)':'rgba(139,106,0,.3)'};
+             background:${isCurrent?'rgba(139,106,0,.2)':'rgba(0,0,0,.2)'};border-radius:2px;
+             transition:background .12s;"
+      onmouseover="this.style.background='rgba(139,106,0,.18)'"
+      onmouseout="this.style.background='${isCurrent?'rgba(139,106,0,.2)':'rgba(0,0,0,.2)'}'" >
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:var(--got);font-size:11px;color:${isCurrent?'var(--text-gold)':'#ccc'};
+                    letter-spacing:.4px;margin-bottom:2px;">${f.name}${isCurrent?' ✓':''}</div>
+        <div style="font-family:'IM Fell English',serif;font-size:11px;color:#888;line-height:1.4;">${f.desc}</div>
+      </div>
+      ${bonusTag}
+    </div>`;
+  }).join('');
+
+  const o = document.createElement('div');
+  o.id = 'featPickerModal';
+  o.className = 'modal-overlay';
+  o.innerHTML = `<div class="modal" style="max-width:560px;padding:24px 30px;max-height:85vh;display:flex;flex-direction:column;">
+    <h2 style="font-size:17px;margin-bottom:4px;flex-shrink:0;">Choose Feat — Slot ${slot}</h2>
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.45);
+              margin-bottom:12px;flex-shrink:0;">Click a feat to select it. Feats with ability bonuses apply automatically.</p>
+    <div style="overflow-y:auto;flex:1;">${rows}</div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-shrink:0;">
+      ${current ? `<button class="rest-btn" onclick="clearFeat(${slot},'featPickerModal')"
+        style="flex:1;background:rgba(60,10,10,.4);border-color:rgba(140,30,30,.5);color:#ff7777;">
+        ✕ Remove Feat
+      </button>` : ''}
+      <button class="rest-btn" onclick="document.getElementById('featPickerModal').remove()"
+        style="flex:1;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function selectFeat(slot, name, modalId) {
+  // Remove any existing bonus for this slot
+  _removeFeatBonus(slot);
+  // Set the name
+  const inp = document.getElementById('feat_' + slot);
+  if (inp) inp.value = name;
+  // Apply new bonus if any
+  const feat = FEATS_DATA.find(f => f.name === name);
+  if (feat?.bonus) _applyFeatBonus(slot, feat.bonus);
+  // Update description
+  _restoreFeatDisplay(slot, name);
+  document.getElementById(modalId)?.remove();
+  save();
+}
+
+function clearFeat(slot, modalId) {
+  _removeFeatBonus(slot);
+  const inp = document.getElementById('feat_' + slot);
+  if (inp) inp.value = '';
+  const descEl = document.getElementById('feat_desc_' + slot);
+  if (descEl) { descEl.className = 'feat-desc'; descEl.innerHTML = ''; }
+  document.getElementById(modalId)?.remove();
+  save();
+}
+
 // ── WEAPON PROFICIENCY HELPERS ──
 const WPN_PROF_DEFS = [
   { id: 'prof_wpn_simple_melee',   label: 'Simple Melee',   color: 'rgba(212,160,23,.9)'  },
