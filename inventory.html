@@ -3159,7 +3159,7 @@ function openMoneyPouchModal() {
 
   // 1 Dragon = 210 Stags = 1,470 Copper Stars
   function calcTotalDragons(d, s, p) {
-    return Math.floor(d + s / 210 + p / 1470);
+    return Math.floor(d + s / 7 + p / 49);
   }
 
   // Per-coin palette: [gradient stops, border colour, text colour, glow colour]
@@ -3219,7 +3219,7 @@ function openMoneyPouchModal() {
         </span>
       </div>
       <p style="font-family:'IM Fell English',serif;font-size:9px;color:rgba(232,200,74,.3);margin:6px 0 16px;font-style:italic;">
-        1 Gold Dragon = 210 Silver Stags = 1,470 Copper Stars
+        1 Gold Dragon = 7 Silver Stags = 49 Copper Stars
       </p>
       <button class="rest-btn" onclick="document.getElementById('moneyPouchModal').remove()"
         style="width:100%;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
@@ -3243,7 +3243,7 @@ function moneyAdj(coin, delta) {
   const s = parseInt(document.getElementById('money_stags')?.value   || '0', 10) || 0;
   const p = parseInt(document.getElementById('money_pennies')?.value  || '0', 10) || 0;
   const totEl = document.getElementById('mp_total');
-  if (totEl) totEl.textContent = Math.floor(d + s / 210 + p / 1470) + ' Dragons';
+  if (totEl) totEl.textContent = Math.floor(d + s / 7 + p / 49) + ' Dragons';
 
   _saveData();
 }
