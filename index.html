@@ -185,7 +185,6 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .feat-inp input{height:100%;font-size:13px}
 .feat-inp input[readonly]{cursor:pointer!important;color:var(--text-gold);}
 .feat-inp input[readonly]::placeholder{color:rgba(232,200,74,.35);font-style:italic;}
-.feat-inp input::placeholder{color:var(--text-gold);font-style:italic;font-size:11px;}
 .feat-desc{font-family:'IM Fell English',serif;font-size:11px;color:#bbb;line-height:1.45;
            padding:4px 6px 5px;border-left:2px solid rgba(139,106,0,.4);
            margin:0 0 5px 2px;display:none;}
@@ -2658,6 +2657,7 @@ const CLASS_LEVEL_FEATURES = {
     {
       name: 'Master Negotiator',
       action_type: 'A', recovery: 'LR',
+      recovery_fn: (lvl) => lvl >= 9 ? 'SR+LR' : 'LR',
       uses_fn: (lvl) => {
         const dipEl = document.getElementById('mod_charisma');
         return Math.max(1, parseInt((dipEl||{}).value) || 1);
@@ -4147,8 +4147,9 @@ function _applyFeatureToSlot(slot, f){
     }
     if(srBtn) srBtn.classList.remove('active');
     if(lrBtn) lrBtn.classList.remove('active');
-    if((f.recovery==='SR'||f.recovery==='SR+LR') && srBtn) srBtn.classList.add('active');
-    if((f.recovery==='LR'||f.recovery==='SR+LR') && lrBtn) lrBtn.classList.add('active');
+    const _recovery = f.recovery_fn ? f.recovery_fn(_cachedLevel) : f.recovery;
+    if((_recovery==='SR'||_recovery==='SR+LR') && srBtn) srBtn.classList.add('active');
+    if((_recovery==='LR'||_recovery==='SR+LR') && lrBtn) lrBtn.classList.add('active');
     const uses = Math.min(f.uses_fn(_cachedLevel), 6);
     for(let d=0;d<6;d++){
       const dot=document.getElementById(slot.dotPfx+'_'+d);
