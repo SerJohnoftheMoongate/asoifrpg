@@ -2658,12 +2658,12 @@ const CLASS_LEVEL_FEATURES = {
       name: 'Master Negotiator',
       action_type: 'A', recovery: 'LR',
       uses_fn: (lvl) => {
-        const dipEl = document.getElementById('charisma_bonus');
+        const dipEl = document.getElementById('mod_charisma');
         return Math.max(1, parseInt((dipEl||{}).value) || 1);
       },
       desc_fn: (lvl) => {
         const die = lvl >= 15 ? '1d12' : lvl >= 10 ? '1d10' : lvl >= 5 ? '1d8' : '1d6';
-        const dipEl = document.getElementById('charisma_bonus');
+        const dipEl = document.getElementById('mod_charisma');
         const dip = Math.max(1, parseInt((dipEl||{}).value) || 1);
         return `Words are wind, but words can blow down the walls of a castle. When you find yourself in a situation where you have to roll a diplomacy-related ability check, combat roll or saving throw, you may expend one Envoy Die (${die}) to gain an edge and add it to your roll.\n\nUsable ${dip} time${dip>1?'s':''} per long rest (equal to your Diplomacy modifier). Regain all expended uses on a long rest.\n\nEnvoy Die: 1d6 (Lvl 1) → 1d8 (Lvl 5) → 1d10 (Lvl 10) → 1d12 (Lvl 15). Currently: ${die}.`;
       },
@@ -2674,11 +2674,11 @@ const CLASS_LEVEL_FEATURES = {
       name: 'Wingman',
       action_type: 'BA', recovery: 'LR',
       uses_fn: (lvl) => {
-        const dipEl = document.getElementById('charisma_bonus');
+        const dipEl = document.getElementById('mod_charisma');
         return Math.max(1, parseInt((dipEl||{}).value) || 1);
       },
       desc_fn: (lvl) => {
-        const dipEl = document.getElementById('charisma_bonus');
+        const dipEl = document.getElementById('mod_charisma');
         const dip = Math.max(1, parseInt((dipEl||{}).value) || 1);
         const die = lvl >= 15 ? '1d12' : lvl >= 10 ? '1d10' : lvl >= 5 ? '1d8' : '1d6';
         if(lvl >= 13) return `Use a Bonus Action to inspire up to two people within 60 feet who can hear you. Each gains one Envoy Die (${die}) for the entire day.\n\nThey can roll the die and add the number to one diplomacy ability check, combat roll, or saving throw — after rolling the d20 but before the GM announces success or failure. Once rolled, the die is lost. A person can only hold one Envoy Die at a time.\n\nUsable ${dip} time${dip>1?'s':''} per long rest (equal to your Diplomacy modifier).`;
