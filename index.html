@@ -1563,6 +1563,7 @@ function _collectSheetData() {
   try { d._cs_septon_aspect_prof  = typeof _septonAspectProfSkill  !== 'undefined' ? _septonAspectProfSkill  : ''; } catch(e) {}
   try { d._cs_fighting_styles     = typeof _chosenStyles           !== 'undefined' ? _chosenStyles           : {}; } catch(e) {}
   try { d._cs_home_turf           = typeof _chosenTerrains         !== 'undefined' ? _chosenTerrains         : []; } catch(e) {}
+  try { d._cs_cultural_ambassador = typeof _chosenCultures         !== 'undefined' ? _chosenCultures         : []; } catch(e) {}
   try { d._cs_warg_bond           = typeof _wargBondAnimals        !== 'undefined' ? _wargBondAnimals        : []; } catch(e) {}
   try { d._cs_greater_warg_bond   = typeof _greaterWargBondAnimals !== 'undefined' ? _greaterWargBondAnimals : []; } catch(e) {}
   try { d._cs_feat_bonuses        = _appliedFeatBonuses; } catch(e) {}
@@ -1663,6 +1664,7 @@ function load(){
   try{ if(d._cs_septon_aspect_prof!==undefined){ _septonAspectProfSkill=d._cs_septon_aspect_prof; try{localStorage.setItem('cs_septon_aspect_prof',_septonAspectProfSkill);}catch(e){} } }catch(e){}
   try{ if(d._cs_fighting_styles!==undefined){ _chosenStyles=d._cs_fighting_styles;               try{localStorage.setItem('cs_fighting_styles',JSON.stringify(_chosenStyles));}catch(e){} } }catch(e){}
   try{ if(d._cs_home_turf!==undefined){      _chosenTerrains=d._cs_home_turf;                    try{localStorage.setItem('cs_home_turf',JSON.stringify(_chosenTerrains));}catch(e){} } }catch(e){}
+  try{ if(d._cs_cultural_ambassador!==undefined){ _chosenCultures=d._cs_cultural_ambassador;      try{localStorage.setItem('cs_cultural_ambassador',JSON.stringify(_chosenCultures));}catch(e){} } }catch(e){}
   try{ if(d._cs_warg_bond!==undefined){      _wargBondAnimals=d._cs_warg_bond;                   try{localStorage.setItem('cs_warg_bond',JSON.stringify(_wargBondAnimals));}catch(e){} } }catch(e){}
   try{ if(d._cs_greater_warg_bond!==undefined){ _greaterWargBondAnimals=d._cs_greater_warg_bond; try{localStorage.setItem('cs_greater_warg_bond',JSON.stringify(_greaterWargBondAnimals));}catch(e){} } }catch(e){}
   recalc();
@@ -2611,7 +2613,80 @@ const CLASS_LEVEL_FEATURES = {
       level_required: 11
     },
   ]
-  // Add more classes: 'Envoy': [...]
+  ,'Envoy': [
+    // ── ADDITIONAL FEATURES (passive) ──
+    {
+      name: 'Globetrotter',
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      desc_fn: () => `Your journeys across Westeros and beyond have given you broad knowledge of people and places. You gain proficiency in two of the following skills: History, Religion, and a language of your choice.\n\nAdditionally, when you enter a new settlement or region, you can make a History or Religion check with advantage (DC set by GM) to recall useful information about local customs, important figures, ongoing conflicts, or opportunities. This knowledge can provide crucial context for negotiations or avoiding cultural missteps.`,
+      level_required: 1
+    },
+    {
+      name: 'Silver Tongue',
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      desc_fn: (lvl) => {
+        if(lvl >= 19) return `You are a master at saying the right thing at the right time. When you make a diplomacy check or combat roll, you can treat any roll of 9 or lower as a 10.\n\nAt level 19: you can treat every diplomacy check or combat roll of 18 and higher as a critical success.`;
+        return `You are a master at saying the right thing at the right time. When you make a diplomacy check or combat roll, you can treat a roll of 9 or lower as a 10.\n\n(At Lvl 19: rolls of 18+ count as critical successes.)`;
+      },
+      level_required: 2
+    },
+    {
+      name: 'Enhanced Replenishment',
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      desc_fn: () => `You regain all of your expended Envoy Dice when you finish a short or long rest, instead of only on a long rest.`,
+      level_required: 9
+    },
+    {
+      name: 'Cultural Ambassador',
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      special: 'cultural_ambassador',
+      desc_fn: (lvl) => {
+        const maxPicks = lvl >= 17 ? 2 : 1;
+        const chosen = _chosenCultures.slice(0, maxPicks);
+        const names = chosen.map(k=>{ const c=CULTURAL_AMBASSADOR_CULTURES.find(x=>x.key===k); return c?c.name:''; }).filter(Boolean);
+        if(names.length>0) return `You are fully integrated with ${names.length>1?'the following cultures':'the culture'} of: ${names.join(' & ')}.\n\nWhile conferring with someone of ${names.length>1?'these cultures':'this culture'}, you gain advantage on all Persuasion, Intimidation, and Negotiation combat rolls.${lvl < 17 ? '\n\n(Second culture unlocks at Lvl 17.)' : ''}`;
+        return `You are completely up to speed and integrated with a culture of your choice. Choose a culture below — while conferring with someone of that culture you gain advantage on all Persuasion, Intimidation, and Negotiation combat rolls.\n\nChoose between: Dorne, The Westerlands, The Vale, The North, The Riverlands, The Iron Islands, The Reach, The Stormlands, The Crownlands.${lvl < 17 ? '\n\n(Second culture unlocks at Lvl 17.)' : ''}`;
+      },
+      level_required: 11
+    },
+    // ── ACTION column ──
+    {
+      name: 'Master Negotiator',
+      action_type: 'A', recovery: 'LR',
+      uses_fn: (lvl) => {
+        const dipEl = document.getElementById('charisma_bonus');
+        return Math.max(1, parseInt((dipEl||{}).value) || 1);
+      },
+      desc_fn: (lvl) => {
+        const die = lvl >= 15 ? '1d12' : lvl >= 10 ? '1d10' : lvl >= 5 ? '1d8' : '1d6';
+        const dipEl = document.getElementById('charisma_bonus');
+        const dip = Math.max(1, parseInt((dipEl||{}).value) || 1);
+        return `Words are wind, but words can blow down the walls of a castle. When you find yourself in a situation where you have to roll a diplomacy-related ability check, combat roll or saving throw, you may expend one Envoy Die (${die}) to gain an edge and add it to your roll.\n\nUsable ${dip} time${dip>1?'s':''} per long rest (equal to your Diplomacy modifier). Regain all expended uses on a long rest.\n\nEnvoy Die: 1d6 (Lvl 1) → 1d8 (Lvl 5) → 1d10 (Lvl 10) → 1d12 (Lvl 15). Currently: ${die}.`;
+      },
+      level_required: 1
+    },
+    // ── BONUS ACTION column ──
+    {
+      name: 'Wingman',
+      action_type: 'BA', recovery: 'LR',
+      uses_fn: (lvl) => {
+        const dipEl = document.getElementById('charisma_bonus');
+        return Math.max(1, parseInt((dipEl||{}).value) || 1);
+      },
+      desc_fn: (lvl) => {
+        const dipEl = document.getElementById('charisma_bonus');
+        const dip = Math.max(1, parseInt((dipEl||{}).value) || 1);
+        const die = lvl >= 15 ? '1d12' : lvl >= 10 ? '1d10' : lvl >= 5 ? '1d8' : '1d6';
+        if(lvl >= 13) return `Use a Bonus Action to inspire up to two people within 60 feet who can hear you. Each gains one Envoy Die (${die}) for the entire day.\n\nThey can roll the die and add the number to one diplomacy ability check, combat roll, or saving throw — after rolling the d20 but before the GM announces success or failure. Once rolled, the die is lost. A person can only hold one Envoy Die at a time.\n\nUsable ${dip} time${dip>1?'s':''} per long rest (equal to your Diplomacy modifier).`;
+        return `Use a Bonus Action to choose one person within 60 feet who can hear you. That person gains one Envoy Die (${die}).\n\nOnce within the next hour, they can roll the die and add it to one diplomacy ability check, combat roll, or saving throw — after rolling the d20 but before the GM announces success or failure. Once rolled, the die is lost. A person can only hold one Envoy Die at a time.\n\nUsable ${dip} time${dip>1?'s':''} per long rest (equal to your Diplomacy modifier). (At Lvl 13: inspire two people at once, and the die lasts the entire day.)`;
+      },
+      level_required: 6
+    },
+  ]
   ,'Priest': [
     // ── ACTION column ──
     {
@@ -3067,6 +3142,22 @@ let _chosenTerrains = [];
 (function(){ try{ _chosenTerrains=JSON.parse(localStorage.getItem('cs_home_turf')||'[]'); }catch(e){ _chosenTerrains=[]; } })();
 function saveChosenTerrains(){ try{ localStorage.setItem('cs_home_turf',JSON.stringify(_chosenTerrains)); }catch(e){} }
 
+// ── ENVOY: CULTURAL AMBASSADOR ──
+const CULTURAL_AMBASSADOR_CULTURES = [
+  { key:'dorne',        name:'Dorne',          emoji:'☀' },
+  { key:'westerlands',  name:'The Westerlands', emoji:'⚒' },
+  { key:'vale',         name:'The Vale',        emoji:'🦅' },
+  { key:'north',        name:'The North',       emoji:'❄' },
+  { key:'riverlands',   name:'The Riverlands',  emoji:'🌊' },
+  { key:'iron_islands', name:'The Iron Islands',emoji:'⚓' },
+  { key:'reach',        name:'The Reach',       emoji:'🌾' },
+  { key:'stormlands',   name:'The Stormlands',  emoji:'⛈' },
+  { key:'crownlands',   name:'The Crownlands',  emoji:'👑' },
+];
+let _chosenCultures = [];
+(function(){ try{ _chosenCultures=JSON.parse(localStorage.getItem('cs_cultural_ambassador')||'[]'); }catch(e){ _chosenCultures=[]; } })();
+function saveChosenCultures(){ try{ localStorage.setItem('cs_cultural_ambassador',JSON.stringify(_chosenCultures)); }catch(e){} }
+
 // ── GREENSEER: WARG BOND ANIMALS ──
 const WARG_BOND_ANIMALS = [
   { key:'crow_raven', name:'Crow / Raven', emoji:'🪶' },
@@ -3306,6 +3397,59 @@ function openHomeTurfModal(){
   });
   o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
 }
+function openCulturalAmbassadorModal(){
+  const existing=document.getElementById('caModal');
+  if(existing) existing.remove();
+  const maxPicks = _cachedLevel >= 17 ? 2 : 1;
+  let _picked = _chosenCultures.slice(0, maxPicks);
+  const o=document.createElement('div');
+  o.className='modal-overlay'; o.id='caModal';
+  const slotLabels = ['Primary culture','Second culture'];
+  function cardBorder(key){ return _picked.includes(key)?'var(--gold)':'rgba(180,140,60,.35)'; }
+  function cardBg(key){ return _picked.includes(key)?'rgba(120,80,0,.35)':'rgba(20,12,0,.5)'; }
+  o.innerHTML=`<div class="modal" style="max-width:500px;padding:30px 36px;">
+    <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Cultural Ambassador</div>
+    <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:6px;font-style:italic;">Choose ${maxPicks===2?'up to 2 cultures':'one culture'} to specialise in — you gain advantage on all Persuasion, Intimidation and Negotiation rolls when conferring with someone of that culture.</div>
+    ${maxPicks===1?`<div style="color:#8a7040;font-size:11px;font-family:'IM Fell English',serif;margin-bottom:16px;font-style:italic;">(Second culture unlocks at Lvl 17)</div>`:'<div style="margin-bottom:16px;"></div>'}
+    <div id="ca_cards" style="display:flex;flex-direction:column;gap:8px;margin-bottom:22px;">${CULTURAL_AMBASSADOR_CULTURES.map(e=>`<div class="ca-card" data-key="${e.key}" style="cursor:pointer;border:2px solid ${cardBorder(e.key)};border-radius:5px;padding:10px 14px;background:${cardBg(e.key)};transition:border .15s,background .15s;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;flex-shrink:0;">${e.emoji}</span><span style="font-family:'Cinzel',serif;font-size:13px;color:var(--text-gold);">${e.name}</span>${_picked.includes(e.key)?`<span data-label="1" style="margin-left:auto;font-family:'IM Fell English',serif;font-size:11px;color:#c8b87a;font-style:italic;">${slotLabels[_picked.indexOf(e.key)]}</span>`:''}</div>`).join('')}</div>
+    <div style="display:flex;gap:10px;">
+      <button id="ca_confirm" class="rest-btn" style="flex:1;">✓ Confirm</button>
+      <button class="rest-btn" style="background:rgba(80,40,0,.4);" onclick="document.getElementById('caModal').remove()">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  function refreshCards(){
+    o.querySelectorAll('.ca-card').forEach(card=>{
+      const key=card.dataset.key;
+      card.style.border=`2px solid ${cardBorder(key)}`;
+      card.style.background=cardBg(key);
+      const lbl=card.querySelector('[data-label]');
+      const idx=_picked.indexOf(key);
+      if(idx>=0){
+        if(lbl){ lbl.textContent=slotLabels[idx]; }
+        else { const s=document.createElement('span'); s.dataset.label='1'; s.style.cssText='margin-left:auto;font-family:"IM Fell English",serif;font-size:11px;color:#c8b87a;font-style:italic;'; s.textContent=slotLabels[idx]; card.appendChild(s); }
+      } else { if(lbl) lbl.remove(); }
+    });
+  }
+  o.querySelectorAll('.ca-card').forEach(card=>{
+    card.addEventListener('click',()=>{
+      const key=card.dataset.key;
+      const idx=_picked.indexOf(key);
+      if(idx>=0){ _picked.splice(idx,1); }
+      else if(_picked.length<maxPicks){ _picked.push(key); }
+      refreshCards();
+    });
+  });
+  o.querySelector('#ca_confirm').addEventListener('click',()=>{
+    if(_picked.length===0){ alert('Please choose at least one culture.'); return; }
+    _chosenCultures=_picked.slice();
+    saveChosenCultures();
+    o.remove();
+    applySpecFeatures();
+  });
+  o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
+}
+
 const SPEC_LEVEL_FEATURES = {
   'Mercenary': [
     {
@@ -3824,6 +3968,8 @@ function _applyFeatureToSlot(slot, f){
       if(oldFsBtn) oldFsBtn.remove();
       const oldHtBtn = block.querySelector('.ht-pick-btn');
       if(oldHtBtn) oldHtBtn.remove();
+      const oldCaBtn = block.querySelector('.ca-pick-btn');
+      if(oldCaBtn) oldCaBtn.remove();
       const oldWbSmBtn = block.querySelector('.wb-small-btn');
       if(oldWbSmBtn) oldWbSmBtn.remove();
       const oldWbLgBtn = block.querySelector('.wb-large-btn');
@@ -3925,7 +4071,25 @@ function _applyFeatureToSlot(slot, f){
         htBtn.onclick = openHomeTurfModal;
         htBtn.style.pointerEvents = 'auto'; htBtn.style.cursor = 'pointer';
       } else if(htBtn){ htBtn.remove(); }
-      // Warg Bond animal picker (small animals)
+      // Cultural Ambassador culture picker
+      let caBtn = block.querySelector('.ca-pick-btn');
+      if(f.special === 'cultural_ambassador'){
+        if(!caBtn){
+          caBtn = document.createElement('button');
+          caBtn.className = 'ca-pick-btn rest-btn';
+          caBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;';
+          block.appendChild(caBtn);
+        }
+        const maxPicks = _cachedLevel >= 17 ? 2 : 1;
+        const validCultures = _chosenCultures.slice(0, maxPicks);
+        const names = validCultures.map(k=>{ const c=CULTURAL_AMBASSADOR_CULTURES.find(x=>x.key===k); return c?c.name:''; }).filter(Boolean);
+        caBtn.textContent = names.length > 0 ? `🌍 ${names.join(' & ')} (change)` : '🌍 Choose Culture…';
+        caBtn.style.cssText = names.length > 0
+          ? 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(0,80,100,.55);border-color:rgba(0,160,200,.6);color:#aaeeff;'
+          : 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(140,0,0,.55);border-color:rgba(220,40,40,.7);color:#ffaaaa;';
+        caBtn.onclick = openCulturalAmbassadorModal;
+        caBtn.style.pointerEvents = 'auto'; caBtn.style.cursor = 'pointer';
+      } else if(caBtn){ caBtn.remove(); }
       let wbSmBtn = block.querySelector('.wb-small-btn');
       if(f.special === 'warg_bond_small'){
         if(!wbSmBtn){
@@ -3997,6 +4161,7 @@ function _applyFeatureToSlot(slot, f){
     [aBtn,baBtn,srBtn,lrBtn].forEach(b=>{ if(b) b.classList.remove('active'); });
     const oldFsBtn2=block?block.querySelector('.fs-pick-btn'):null; if(oldFsBtn2) oldFsBtn2.remove();
     const oldHtBtn2=block?block.querySelector('.ht-pick-btn'):null; if(oldHtBtn2) oldHtBtn2.remove();
+    const oldCaBtn2=block?block.querySelector('.ca-pick-btn'):null; if(oldCaBtn2) oldCaBtn2.remove();
     const oldCodBtn2=block?block.querySelector('.cod-popup-btn'):null; if(oldCodBtn2) oldCodBtn2.remove();
     const oldWbSmBtn2=block?block.querySelector('.wb-small-btn'):null; if(oldWbSmBtn2) oldWbSmBtn2.remove();
     const oldWbLgBtn2=block?block.querySelector('.wb-large-btn'):null; if(oldWbLgBtn2) oldWbLgBtn2.remove();
