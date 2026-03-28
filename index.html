@@ -2185,13 +2185,13 @@ function openWeaponModal(prefix, idx){
     <div style="display:flex;gap:5px;margin-bottom:16px;">
       ${WPN_CONDITIONS.map(c => {
         const sel = existingCond === c.key;
-        return `<button type="button" data-cond="${c.key}" onclick="selectWpnCondition(this)"
+        return `<button type="button" data-cond="${c.key}" data-selected="${sel?'1':'0'}" onclick="selectWpnCondition(this)"
           style="flex:1;padding:6px 4px;font-family:var(--got);font-size:9px;letter-spacing:.3px;cursor:pointer;border-radius:2px;transition:all .15s;
                  border:2px solid ${sel ? c.color : 'rgba(139,106,0,.3)'};
                  background:${sel ? c.bg : 'rgba(0,0,0,.2)'};
                  color:${sel ? c.color : 'rgba(232,200,74,.45)'};
                  box-shadow:${sel ? `0 0 6px ${c.color}55` : 'none'};">
-          <div style="width:8px;height:8px;border-radius:50%;background:${c.color};margin:0 auto 3px;${sel?'':'opacity:.4'}"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:${c.color};margin:0 auto 3px;opacity:${sel?'1':'.4'}"></div>
           ${c.label}<br><span style="font-size:8px;opacity:.8;">${c.mod > 0 ? '+' : ''}${c.mod} AR</span>
         </button>`;
       }).join('')}
@@ -2255,18 +2255,20 @@ function selectWpnCondition(btn){
   document.querySelectorAll('#wpnModal [data-cond]').forEach(b => {
     const c = WPN_CONDITIONS.find(x => x.key === b.dataset.cond);
     if(!c) return;
-    b.style.border     = `2px solid rgba(139,106,0,.3)`;
-    b.style.background = 'rgba(0,0,0,.2)';
-    b.style.color      = 'rgba(232,200,74,.45)';
-    b.style.boxShadow  = 'none';
+    b.dataset.selected   = '0';
+    b.style.border       = `2px solid rgba(139,106,0,.3)`;
+    b.style.background   = 'rgba(0,0,0,.2)';
+    b.style.color        = 'rgba(232,200,74,.45)';
+    b.style.boxShadow    = 'none';
     b.querySelector('div').style.opacity = '.4';
   });
   const c = WPN_CONDITIONS.find(x => x.key === btn.dataset.cond);
   if(!c) return;
-  btn.style.border     = `2px solid ${c.color}`;
-  btn.style.background = c.bg;
-  btn.style.color      = c.color;
-  btn.style.boxShadow  = `0 0 6px ${c.color}55`;
+  btn.dataset.selected   = '1';
+  btn.style.border       = `2px solid ${c.color}`;
+  btn.style.background   = c.bg;
+  btn.style.color        = c.color;
+  btn.style.boxShadow    = `0 0 6px ${c.color}55`;
   btn.querySelector('div').style.opacity = '1';
   recalcWpnAR();
 }
@@ -2289,18 +2291,10 @@ function recalcWpnAR(){
   const cat=catEl?catEl.dataset.cat:'';
   const profOk=isWeaponProficient(cat);
   const profVal=profOk?(parseInt(document.getElementById('proficiency')?.value)||0):0;
-  const condBtn=document.querySelector('#wpnModal [data-cond]');
-  const selCondBtn=document.querySelector('#wpnModal [data-cond][style*="box-shadow: 0"]') ||
-                   document.querySelector('#wpnModal [data-cond][style*="box-shadow:0"]');
-  // Find the selected condition by checking which button has the non-faded dot
-  let condMod=0;
-  document.querySelectorAll('#wpnModal [data-cond]').forEach(b=>{
-    const dotEl=b.querySelector('div');
-    if(dotEl && dotEl.style.opacity!=='.4' && dotEl.style.opacity!==''){
-      const c=WPN_CONDITIONS.find(x=>x.key===b.dataset.cond);
-      if(c) condMod=c.mod;
-    }
-  });
+  const selCondBtn=document.querySelector('#wpnModal [data-cond][data-selected="1"]');
+  const condKey=selCondBtn?selCondBtn.dataset.cond:'decent';
+  const condEntry=WPN_CONDITIONS.find(x=>x.key===condKey);
+  const condMod=condEntry?condEntry.mod:0;
   const total=skillVal+profVal+customModVal+condMod;
   const preview=document.getElementById('wpn_ar_preview');
   if(preview) preview.textContent = total >= 0 ? '+'+total : String(total);
@@ -2323,9 +2317,15 @@ function confirmWeapon(prefix, idx){
  
   // Custom modifier for AR: default to 0 if left empty
   const customModVal=parseInt(document.getElementById('wpn_custom_mod')?.value)||0;
- 
-  // AR = stat modifier + proficiency (if proficient) + custom modifier
-  const arTotal=skillVal+profVal+customModVal;
+
+  // Condition modifier
+  const selCondBtn=document.querySelector('#wpnModal [data-cond][data-selected="1"]');
+  const selCond=selCondBtn?selCondBtn.dataset.cond:'decent';
+  const condEntry=WPN_CONDITIONS.find(x=>x.key===selCond);
+  const condMod=condEntry?condEntry.mod:0;
+
+  // AR = stat modifier + proficiency (if proficient) + custom modifier + condition modifier
+  const arTotal=skillVal+profVal+customModVal+condMod;
   const arStr=arTotal>=0?'+'+arTotal:String(arTotal);
  
   // DR unchanged: die + stat modifier only
@@ -2345,12 +2345,6 @@ function confirmWeapon(prefix, idx){
   const wdEl=document.getElementById(`${prefix}_wdmg_${idx}`);
   const wpEl=document.getElementById(`${prefix}_wprop_${idx}`);
   const wcondEl=document.getElementById(`${prefix}_wcond_${idx}`);
-  // Find selected condition
-  let selCond='decent';
-  document.querySelectorAll('#wpnModal [data-cond]').forEach(b=>{
-    const dotEl=b.querySelector('div');
-    if(dotEl && dotEl.style.opacity!=='.4' && dotEl.style.opacity!=='') selCond=b.dataset.cond;
-  });
   if(wEl){ wEl.value=name||'Unnamed'; wEl.style.color=(!profOk && cat) ? '#ff4444' : ''; }
   if(mEl) mEl.value=range;
   if(aEl) aEl.value=arStr;
