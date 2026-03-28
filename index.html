@@ -1036,6 +1036,8 @@ function doRest(type){
     _applyAspectProficiency(''); // removes prof from old aspect skill
     _septonAspect='';
     saveSeptonAspect();
+    // Reset Maester Stellar Points on long rest
+    if(_maesterLink === 'bronze'){ _stellarPoints = 3; saveStellarPoints(); }
     applySpecFeatures();
     save();
   } else {
@@ -1564,6 +1566,9 @@ function _collectSheetData() {
   try { d._cs_fighting_styles     = typeof _chosenStyles           !== 'undefined' ? _chosenStyles           : {}; } catch(e) {}
   try { d._cs_home_turf           = typeof _chosenTerrains         !== 'undefined' ? _chosenTerrains         : []; } catch(e) {}
   try { d._cs_cultural_ambassador = typeof _chosenCultures         !== 'undefined' ? _chosenCultures         : []; } catch(e) {}
+  try { d._cs_maester_link        = typeof _maesterLink            !== 'undefined' ? _maesterLink            : ''; } catch(e) {}
+  try { d._cs_stellar_points      = typeof _stellarPoints          !== 'undefined' ? _stellarPoints          : 3;  } catch(e) {}
+  try { d._cs_war_chest           = typeof _warChest               !== 'undefined' ? _warChest               : 0;  } catch(e) {}
   try { d._cs_warg_bond           = typeof _wargBondAnimals        !== 'undefined' ? _wargBondAnimals        : []; } catch(e) {}
   try { d._cs_greater_warg_bond   = typeof _greaterWargBondAnimals !== 'undefined' ? _greaterWargBondAnimals : []; } catch(e) {}
   try { d._cs_feat_bonuses        = _appliedFeatBonuses; } catch(e) {}
@@ -1665,6 +1670,9 @@ function load(){
   try{ if(d._cs_fighting_styles!==undefined){ _chosenStyles=d._cs_fighting_styles;               try{localStorage.setItem('cs_fighting_styles',JSON.stringify(_chosenStyles));}catch(e){} } }catch(e){}
   try{ if(d._cs_home_turf!==undefined){      _chosenTerrains=d._cs_home_turf;                    try{localStorage.setItem('cs_home_turf',JSON.stringify(_chosenTerrains));}catch(e){} } }catch(e){}
   try{ if(d._cs_cultural_ambassador!==undefined){ _chosenCultures=d._cs_cultural_ambassador;      try{localStorage.setItem('cs_cultural_ambassador',JSON.stringify(_chosenCultures));}catch(e){} } }catch(e){}
+  try{ if(d._cs_maester_link!==undefined){        _maesterLink=d._cs_maester_link;                 try{localStorage.setItem('cs_maester_link',_maesterLink);}catch(e){} } }catch(e){}
+  try{ if(d._cs_stellar_points!==undefined){      _stellarPoints=parseInt(d._cs_stellar_points);   try{localStorage.setItem('cs_stellar_points',String(_stellarPoints));}catch(e){} } }catch(e){}
+  try{ if(d._cs_war_chest!==undefined){           _warChest=parseInt(d._cs_war_chest);             try{localStorage.setItem('cs_war_chest',String(_warChest));}catch(e){} } }catch(e){}
   try{ if(d._cs_warg_bond!==undefined){      _wargBondAnimals=d._cs_warg_bond;                   try{localStorage.setItem('cs_warg_bond',JSON.stringify(_wargBondAnimals));}catch(e){} } }catch(e){}
   try{ if(d._cs_greater_warg_bond!==undefined){ _greaterWargBondAnimals=d._cs_greater_warg_bond; try{localStorage.setItem('cs_greater_warg_bond',JSON.stringify(_greaterWargBondAnimals));}catch(e){} } }catch(e){}
   recalc();
@@ -3159,6 +3167,33 @@ let _chosenCultures = [];
 (function(){ try{ _chosenCultures=JSON.parse(localStorage.getItem('cs_cultural_ambassador')||'[]'); }catch(e){ _chosenCultures=[]; } })();
 function saveChosenCultures(){ try{ localStorage.setItem('cs_cultural_ambassador',JSON.stringify(_chosenCultures)); }catch(e){} }
 
+// ── MAESTER: CHAIN LINK SPECIALISATION ──
+const MAESTER_LINKS = [
+  { key:'bronze',   name:'Bronze',        subtitle:'Astronomy & Astrology', emoji:'🌟',
+    col:'passive',
+    desc: (lvl) => `You have forged the bronze link, mastering the movements of stars and celestial omens. You gain 3 Stellar Points per long rest.\n\nWhenever you make an attack roll, ability check, or saving throw, you can spend one Stellar Point to roll an additional d20 and choose which result to use.\n\nAdditionally, you can always determine true north, the current date, and time until sunrise or sunset by observing the heavens.\n\nProficiency: Cartographer's Tools.` },
+  { key:'gold',     name:'Gold',          subtitle:'Finances', emoji:'💰',
+    col:'action',
+    desc: (lvl) => `You have forged the gold link, learning that wars and politics are won long before they begin. At the end of a long rest, you may convert replenished Envoy Dice into a War Chest (max 10 dice).\n\nAs an Action (within 30 ft.), distribute up to 2 Envoy Dice to one person. Each die must be used on a separate attack roll and lasts the entire day.\n\nProficiency: Jeweler's Tools.` },
+  { key:'iron',     name:'Iron',          subtitle:'Warfare', emoji:'⚔',
+    col:'action',
+    desc: (lvl) => `You have forged the iron link not just in study, but in practice. You gain proficiency with shields and martial melee weapons, and may use Intelligence instead of Strength or Dexterity for melee attack and damage rolls.\n\nOnce per turn when you hit a creature with a melee weapon attack, you may expend an Envoy Die to deal extra damage equal to the die and choose one effect:\n• Push the target back 10 feet\n• Impose disadvantage on its next attack\n• Allow an ally to move 10 feet without provoking reactions.` },
+  { key:'valyrian', name:'Valyrian Steel', subtitle:'Mystic', emoji:'🕯',
+    col:'passive',
+    desc: (lvl) => `You come into possession of a famed glass candle. Once per long rest, spend 10 minutes attuning to it and choose a place to observe. Roll a Sense ability check — on a success you can watch and hear activity at that location for 10 minutes.\n\n• Familiar place: +5 bonus\n• Briefly visited: normal roll\n• Heard/read about second-hand: −5 penalty\n\nThe further the destination, the higher the DC. You may also receive unsolicited messages or visions from others who possess glass candles.\n\nProficiency: Receive one item with a mythical property (discuss with GM).` },
+];
+let _maesterLink = '';
+(function(){ try{ _maesterLink = localStorage.getItem('cs_maester_link') || ''; }catch(e){ _maesterLink = ''; } })();
+function saveMaesterLink(){ try{ localStorage.setItem('cs_maester_link', _maesterLink); }catch(e){} }
+
+let _stellarPoints = 3;
+(function(){ try{ const v = localStorage.getItem('cs_stellar_points'); if(v !== null) _stellarPoints = parseInt(v); }catch(e){} })();
+function saveStellarPoints(){ try{ localStorage.setItem('cs_stellar_points', String(_stellarPoints)); }catch(e){} }
+
+let _warChest = 0;
+(function(){ try{ const v = localStorage.getItem('cs_war_chest'); if(v !== null) _warChest = parseInt(v); }catch(e){} })();
+function saveWarChest(){ try{ localStorage.setItem('cs_war_chest', String(_warChest)); }catch(e){} }
+
 // ── GREENSEER: WARG BOND ANIMALS ──
 const WARG_BOND_ANIMALS = [
   { key:'crow_raven', name:'Crow / Raven', emoji:'🪶' },
@@ -3398,6 +3433,127 @@ function openHomeTurfModal(){
   });
   o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
 }
+function openMaesterLinkModal(){
+  const existing = document.getElementById('maesterLinkModal');
+  if(existing) existing.remove();
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'maesterLinkModal';
+  let _picked = _maesterLink;
+  function cardBorder(key){ return _picked === key ? 'var(--gold)' : 'rgba(180,140,60,.35)'; }
+  function cardBg(key){ return _picked === key ? 'rgba(120,80,0,.35)' : 'rgba(20,12,0,.5)'; }
+  o.innerHTML = `<div class="modal" style="max-width:540px;padding:30px 36px;">
+    <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Forge Your Chain Link</div>
+    <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:6px;font-style:italic;">At Lvl 10 you forge your specialisation link. Choose wisely — this choice is permanent.</div>
+    <div style="color:#8a7040;font-size:11px;font-family:'IM Fell English',serif;margin-bottom:18px;font-style:italic;">Gold & Iron grant an Action feature · Bronze & Valyrian Steel grant a passive feature.</div>
+    <div id="ml_cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;">
+      ${MAESTER_LINKS.map(l => `<div class="ml-card" data-key="${l.key}" style="cursor:pointer;border:2px solid ${cardBorder(l.key)};border-radius:5px;padding:12px 16px;background:${cardBg(l.key)};transition:border .15s,background .15s;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <span style="font-size:20px;">${l.emoji}</span>
+          <span style="font-family:'Cinzel',serif;font-size:13px;color:var(--text-gold);">${l.name}</span>
+          <span style="font-family:var(--got);font-size:9px;color:rgba(232,200,74,.55);letter-spacing:.4px;margin-left:4px;">${l.subtitle}</span>
+          ${_picked === l.key ? '<span style="margin-left:auto;color:var(--gold-lt);font-size:13px;">✓</span>' : ''}
+        </div>
+        <div style="font-family:\'IM Fell English\',serif;font-size:11px;color:#a09070;line-height:1.5;">${l.desc(1).split('\n')[0]}</div>
+      </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button id="ml_confirm" class="rest-btn" style="flex:1;">✓ Forge Link</button>
+      <button class="rest-btn" style="background:rgba(80,40,0,.4);" onclick="document.getElementById('maesterLinkModal').remove()">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  function refreshCards(){
+    o.querySelectorAll('.ml-card').forEach(card => {
+      const key = card.dataset.key;
+      card.style.border = `2px solid ${cardBorder(key)}`;
+      card.style.background = cardBg(key);
+      let chk = card.querySelector('.ml-chk');
+      if(_picked === key){
+        if(!chk){ const s = document.createElement('span'); s.className='ml-chk'; s.style.cssText='margin-left:auto;color:var(--gold-lt);font-size:13px;'; s.textContent='✓'; card.querySelector('div').appendChild(s); }
+      } else { if(chk) chk.remove(); }
+    });
+  }
+  o.querySelectorAll('.ml-card').forEach(card => {
+    card.addEventListener('click', () => { _picked = card.dataset.key; refreshCards(); });
+  });
+  o.querySelector('#ml_confirm').addEventListener('click', () => {
+    if(!_picked){ alert('Please choose a link.'); return; }
+    _maesterLink = _picked;
+    saveMaesterLink();
+    // Reset counters for the newly chosen link
+    if(_maesterLink === 'bronze'){ _stellarPoints = 3; saveStellarPoints(); }
+    if(_maesterLink === 'gold'){ _warChest = 0; saveWarChest(); }
+    o.remove();
+    applySpecFeatures();
+  });
+  o.addEventListener('click', e => { if(e.target === o) o.remove(); });
+}
+
+function openStellarPointsModal(){
+  const existing = document.getElementById('stellarModal');
+  if(existing) existing.remove();
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'stellarModal';
+  function buildInner(){
+    return `<div class="modal" style="max-width:380px;padding:28px 36px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:6px;">🌟</div>
+      <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Stellar Points</div>
+      <div style="font-family:'IM Fell English',serif;font-size:12px;color:#c8b87a;font-style:italic;margin-bottom:18px;">Spend a point to roll an extra d20 and choose which to use. Resets on long rest.</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;">
+        <button onclick="adjustStellarPoints(-1)" style="width:36px;height:36px;font-size:20px;background:rgba(80,20,20,.5);border:1px solid #883;color:var(--text-gold);cursor:pointer;border-radius:2px;">−</button>
+        <div style="font-family:'Cinzel',serif;font-size:42px;color:var(--text-gold);min-width:60px;">${_stellarPoints}</div>
+        <button onclick="adjustStellarPoints(1)" style="width:36px;height:36px;font-size:20px;background:rgba(20,60,20,.5);border:1px solid #883;color:var(--text-gold);cursor:pointer;border-radius:2px;">+</button>
+      </div>
+      <div style="display:flex;justify-content:center;gap:8px;margin-bottom:18px;">
+        ${[0,1,2,3].map(i => `<div style="width:14px;height:14px;border-radius:50%;border:2px solid var(--gold);background:${i < _stellarPoints ? 'var(--gold)' : 'transparent'};transition:background .15s;"></div>`).join('')}
+      </div>
+      <button class="rest-btn" onclick="document.getElementById('stellarModal').remove()" style="width:100%;">Close</button>
+    </div>`;
+  }
+  o.innerHTML = buildInner();
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if(e.target === o) o.remove(); });
+  window.adjustStellarPoints = function(delta){
+    _stellarPoints = Math.max(0, Math.min(3, _stellarPoints + delta));
+    saveStellarPoints(); save();
+    o.innerHTML = buildInner();
+    o.addEventListener('click', e => { if(e.target === o) o.remove(); });
+    applySpecFeatures();
+  };
+}
+
+function openWarChestModal(){
+  const existing = document.getElementById('warChestModal');
+  if(existing) existing.remove();
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'warChestModal';
+  function buildInner(){
+    const pips = Array.from({length:10}, (_,i) => `<div style="width:13px;height:13px;border-radius:50%;border:2px solid var(--gold);background:${i < _warChest ? 'var(--gold)' : 'transparent'};transition:background .15s;"></div>`).join('');
+    return `<div class="modal" style="max-width:400px;padding:28px 36px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:6px;">💰</div>
+      <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">War Chest</div>
+      <div style="font-family:'IM Fell English',serif;font-size:12px;color:#c8b87a;font-style:italic;margin-bottom:18px;">Envoy Dice stored for allies' attack rolls. Max 10. Distribute up to 2 per Action (within 30 ft).</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px;">
+        <button onclick="adjustWarChest(-1)" style="width:36px;height:36px;font-size:20px;background:rgba(80,20,20,.5);border:1px solid #883;color:var(--text-gold);cursor:pointer;border-radius:2px;">−</button>
+        <div style="font-family:'Cinzel',serif;font-size:42px;color:var(--text-gold);min-width:60px;">${_warChest}</div>
+        <button onclick="adjustWarChest(1)" style="width:36px;height:36px;font-size:20px;background:rgba(20,60,20,.5);border:1px solid #883;color:var(--text-gold);cursor:pointer;border-radius:2px;">+</button>
+      </div>
+      <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-bottom:20px;">${pips}</div>
+      <button class="rest-btn" onclick="document.getElementById('warChestModal').remove()" style="width:100%;">Close</button>
+    </div>`;
+  }
+  o.innerHTML = buildInner();
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if(e.target === o) o.remove(); });
+  window.adjustWarChest = function(delta){
+    _warChest = Math.max(0, Math.min(10, _warChest + delta));
+    saveWarChest(); save();
+    o.innerHTML = buildInner();
+    o.addEventListener('click', e => { if(e.target === o) o.remove(); });
+    applySpecFeatures();
+  };
+}
+
 function openCulturalAmbassadorModal(){
   const existing=document.getElementById('caModal');
   if(existing) existing.remove();
@@ -3924,6 +4080,50 @@ const SPEC_LEVEL_FEATURES = {
       level_required: 15
     }
   ]
+  ,'Maester': [
+    {
+      name: "Maester's Chain — Tin",
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      desc_fn: () => `You have forged the first link in your Maester's chain — Tin, the link of Remedies.\n\nThe Citadel gifts you a recipe book containing the four basic remedies you learned during study. During your lifetime you can add new recipes: spend 2 hours writing a detailed instruction guide (costs 1 vial of Ink). New recipes require GM approval.\n\nAdditionally, you have learned to use your rationale to make others see reason. When rolling a diplomacy combat roll (Negotiation, Persuasion, Intimidation), you may add your Learning modifier to the dice roll.`,
+      level_required: 1
+    },
+    {
+      name: "Maester's Chain — Black Iron",
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      desc_fn: () => `You have forged the second link — Black Iron, the link of Ravenry.\n\nThe Citadel provides you with a trained raven, which can be used to send and receive messages across the Seven Kingdoms. The destination must be capable of receiving and sending messages (e.g. a keep, not a group of desert travellers).\n\nYou may also add an Envoy Die to Animal Bond checks related to training ravens.`,
+      level_required: 3
+    },
+    {
+      name: "Maester's Chain — Silver",
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      desc_fn: () => `You have forged the third link — Silver, the link of Alchemy.\n\nYou gain the ability to brew powerful concoctions related to science, chemistry and esotericism. These can heal, harm, or destroy. Recipes may be written into your recipe book: each Alchemy recipe takes 4 hours to write and costs 2 vials of Ink.\n\nYou gain proficiency with Alchemist's Supplies.`,
+      level_required: 7
+    },
+    {
+      name: "Maester's Chain — Specialisation",
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      special: 'maester_link',
+      desc_fn: (lvl) => {
+        if(!_maesterLink){
+          return `At Lvl 10 you forge your fifth link. Choose between:\n\n🌟 Bronze — Astronomy & Astrology: 3 Stellar Points per LR, spend to roll an extra d20.\n💰 Gold — Finances: Build a War Chest of up to 10 Envoy Dice to distribute as attack bonuses.\n⚔ Iron — Warfare: Martial weapon proficiency + shield + use Intelligence for melee attacks.\n🕯 Valyrian Steel — Mystic: Attune to a glass candle once per LR to observe distant places.`;
+        }
+        const link = MAESTER_LINKS.find(l => l.key === _maesterLink);
+        return link ? link.desc(lvl) : '';
+      },
+      level_required: 10
+    },
+    {
+      name: 'Master of the Masses',
+      action_type: 'A', recovery: 'LR',
+      uses_fn: () => 1,
+      desc_fn: () => `You have mastered the art of diplomacy to an exceptional degree.\n\nSuggest a course of activity to up to twelve persons of your choice that you can see within range, who can hear and understand you. The suggestion must be worded so as to make the course of action sound reasonable.\n\nEach target must make a Diplomacy saving throw. On a failed save, it pursues the course of action you described to the best of its ability.\n\nUsable once per long rest.`,
+      level_required: 15
+    },
+  ]
 };
 
 // ── Slot descriptor tables for each column ──
@@ -3971,6 +4171,10 @@ function _applyFeatureToSlot(slot, f){
       if(oldHtBtn) oldHtBtn.remove();
       const oldCaBtn = block.querySelector('.ca-pick-btn');
       if(oldCaBtn) oldCaBtn.remove();
+      const oldMlBtn = block.querySelector('.ml-pick-btn');
+      if(oldMlBtn) oldMlBtn.remove();
+      const oldMlCtr = block.querySelector('.ml-ctr-btn');
+      if(oldMlCtr) oldMlCtr.remove();
       const oldWbSmBtn = block.querySelector('.wb-small-btn');
       if(oldWbSmBtn) oldWbSmBtn.remove();
       const oldWbLgBtn = block.querySelector('.wb-large-btn');
@@ -4091,6 +4295,40 @@ function _applyFeatureToSlot(slot, f){
         caBtn.onclick = openCulturalAmbassadorModal;
         caBtn.style.pointerEvents = 'auto'; caBtn.style.cursor = 'pointer';
       } else if(caBtn){ caBtn.remove(); }
+      // Maester chain link picker
+      let mlBtn = block.querySelector('.ml-pick-btn');
+      if(f.special === 'maester_link'){
+        if(!mlBtn){
+          mlBtn = document.createElement('button');
+          mlBtn.className = 'ml-pick-btn rest-btn';
+          mlBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;';
+          block.appendChild(mlBtn);
+        }
+        const link = MAESTER_LINKS.find(l => l.key === _maesterLink);
+        mlBtn.textContent = link ? `${link.emoji} ${link.name}: ${link.subtitle} (change)` : '⛓ Choose Your Chain Link…';
+        mlBtn.style.cssText = link
+          ? 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(0,80,100,.55);border-color:rgba(0,160,200,.6);color:#aaeeff;'
+          : 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(140,0,0,.55);border-color:rgba(220,40,40,.7);color:#ffaaaa;';
+        mlBtn.onclick = openMaesterLinkModal;
+        mlBtn.style.pointerEvents = 'auto'; mlBtn.style.cursor = 'pointer';
+        // Counter button for chosen link
+        let ctrBtn = block.querySelector('.ml-ctr-btn');
+        if(_maesterLink === 'bronze'){
+          if(!ctrBtn){ ctrBtn = document.createElement('button'); ctrBtn.className = 'ml-ctr-btn rest-btn'; block.appendChild(ctrBtn); }
+          ctrBtn.textContent = `🌟 Stellar Points: ${_stellarPoints} / 3`;
+          ctrBtn.style.cssText = 'width:100%;margin-top:4px;font-size:11px;padding:5px 8px;background:rgba(60,40,0,.5);border-color:rgba(200,170,50,.6);color:#f0d060;';
+          ctrBtn.onclick = openStellarPointsModal;
+          ctrBtn.style.pointerEvents = 'auto'; ctrBtn.style.cursor = 'pointer';
+        } else if(_maesterLink === 'gold'){
+          if(!ctrBtn){ ctrBtn = document.createElement('button'); ctrBtn.className = 'ml-ctr-btn rest-btn'; block.appendChild(ctrBtn); }
+          ctrBtn.textContent = `💰 War Chest: ${_warChest} / 10 Dice`;
+          ctrBtn.style.cssText = 'width:100%;margin-top:4px;font-size:11px;padding:5px 8px;background:rgba(60,40,0,.5);border-color:rgba(200,170,50,.6);color:#f0d060;';
+          ctrBtn.onclick = openWarChestModal;
+          ctrBtn.style.pointerEvents = 'auto'; ctrBtn.style.cursor = 'pointer';
+        } else {
+          if(ctrBtn) ctrBtn.remove();
+        }
+      } else if(mlBtn){ mlBtn.remove(); const oldCtr = block.querySelector('.ml-ctr-btn'); if(oldCtr) oldCtr.remove(); }
       let wbSmBtn = block.querySelector('.wb-small-btn');
       if(f.special === 'warg_bond_small'){
         if(!wbSmBtn){
@@ -4147,10 +4385,16 @@ function _applyFeatureToSlot(slot, f){
     }
     if(srBtn) srBtn.classList.remove('active');
     if(lrBtn) lrBtn.classList.remove('active');
-    const _recovery = f.recovery_fn ? f.recovery_fn(_cachedLevel) : f.recovery;
+    let _recovery = f.recovery_fn ? f.recovery_fn(_cachedLevel) : f.recovery;
+    let _uses = f.uses_fn(_cachedLevel);
+    // Maester link: Valyrian Steel gets 1× LR dot; Bronze gets no dot (stellar points tracked separately)
+    if(f.special === 'maester_link'){
+      if(_maesterLink === 'valyrian'){ _recovery = 'LR'; _uses = 1; }
+      else { _recovery = null; _uses = 0; }
+    }
     if((_recovery==='SR'||_recovery==='SR+LR') && srBtn) srBtn.classList.add('active');
     if((_recovery==='LR'||_recovery==='SR+LR') && lrBtn) lrBtn.classList.add('active');
-    const uses = Math.min(f.uses_fn(_cachedLevel), 6);
+    const uses = Math.min(_uses, 6);
     for(let d=0;d<6;d++){
       const dot=document.getElementById(slot.dotPfx+'_'+d);
       if(!dot) continue;
@@ -4164,6 +4408,8 @@ function _applyFeatureToSlot(slot, f){
     const oldFsBtn2=block?block.querySelector('.fs-pick-btn'):null; if(oldFsBtn2) oldFsBtn2.remove();
     const oldHtBtn2=block?block.querySelector('.ht-pick-btn'):null; if(oldHtBtn2) oldHtBtn2.remove();
     const oldCaBtn2=block?block.querySelector('.ca-pick-btn'):null; if(oldCaBtn2) oldCaBtn2.remove();
+    const oldMlBtn2=block?block.querySelector('.ml-pick-btn'):null; if(oldMlBtn2) oldMlBtn2.remove();
+    const oldMlCtr2=block?block.querySelector('.ml-ctr-btn'):null; if(oldMlCtr2) oldMlCtr2.remove();
     const oldCodBtn2=block?block.querySelector('.cod-popup-btn'):null; if(oldCodBtn2) oldCodBtn2.remove();
     const oldWbSmBtn2=block?block.querySelector('.wb-small-btn'):null; if(oldWbSmBtn2) oldWbSmBtn2.remove();
     const oldWbLgBtn2=block?block.querySelector('.wb-large-btn'):null; if(oldWbLgBtn2) oldWbLgBtn2.remove();
