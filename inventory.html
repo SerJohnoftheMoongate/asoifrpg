@@ -2035,7 +2035,7 @@ function openEquippedItemDetail(slotId) {
   const o = document.createElement('div');
   o.className = 'modal-overlay'; o.id = 'equippedDetailModal';
   o._slotId = slotId;
-  o.innerHTML = `<div class="modal" style="max-width:430px;padding:28px 36px;">
+  o.innerHTML = `<div class="modal" style="max-width:560px;padding:28px 36px;">
     <h2 style="font-size:19px;margin-bottom:4px;">${d.name}</h2>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:${metaStr?'6px':'10px'}">${SLOT_NAMES[slotId]||slotId}</p>
     ${metaStr ? `<p style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.65);text-align:center;margin-bottom:${(d.desc||hasAC)?'10px':'16px'};">${metaStr}</p>` : ''}
@@ -2178,20 +2178,15 @@ function openItemModal(tableId, rowIdx) {
   const hasAC      = item.a !== undefined && item.a !== '';
 
   const qtyHTML = `
-    <div style="margin:16px 0 14px;border-top:1px solid rgba(139,106,0,.25);padding-top:14px;">
-      <div style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.5px;margin-bottom:10px;text-align:center;">QUANTITY</div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
-        <button onclick="itemModalAdjQty(-1)"
-          style="width:36px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.45);border:none;color:var(--text-gold);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;"
-          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
-        <div style="text-align:center;min-width:60px;">
-          <div id="itemMgmt_qty_display" style="font-family:var(--got);font-size:28px;color:var(--text-gold);line-height:1;text-shadow:0 0 10px rgba(232,200,74,.4);">${item.q||'1'}</div>
-          <div style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.35);letter-spacing:1px;margin-top:3px;">QUANTITY</div>
-        </div>
-        <button onclick="itemModalAdjQty(+1)"
-          style="width:36px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.45);border:none;color:var(--text-gold);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;"
-          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
-      </div>
+    <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:10px 0 14px;padding:5px 10px;background:rgba(139,106,0,.08);border:1px solid rgba(139,106,0,.18);border-radius:3px;">
+      <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.35);letter-spacing:1px;flex:1;">QTY</span>
+      <button onclick="itemModalAdjQty(-1)"
+        style="width:22px;height:22px;border:1px solid rgba(139,106,0,.35);background:rgba(60,40,0,.3);color:rgba(232,200,74,.65);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;border-radius:2px;transition:all .15s;font-family:serif;"
+        onmouseover="this.style.background='rgba(139,106,0,.35)';this.style.color='var(--text-gold)'" onmouseout="this.style.background='rgba(60,40,0,.3)';this.style.color='rgba(232,200,74,.65)'">−</button>
+      <span id="itemMgmt_qty_display" style="font-family:var(--got);font-size:15px;color:var(--text-gold);min-width:28px;text-align:center;line-height:1;">${item.q||'1'}</span>
+      <button onclick="itemModalAdjQty(+1)"
+        style="width:22px;height:22px;border:1px solid rgba(139,106,0,.35);background:rgba(60,40,0,.3);color:rgba(232,200,74,.65);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;border-radius:2px;transition:all .15s;font-family:serif;"
+        onmouseover="this.style.background='rgba(139,106,0,.35)';this.style.color='var(--text-gold)'" onmouseout="this.style.background='rgba(60,40,0,.3)';this.style.color='rgba(232,200,74,.65)'">+</button>
     </div>`;
 
   const tagLabel = item.tag ? `<span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);margin-left:8px;">${item.tag}</span>` : '';
