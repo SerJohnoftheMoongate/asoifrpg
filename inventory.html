@@ -2035,12 +2035,16 @@ function openEquippedItemDetail(slotId) {
   const o = document.createElement('div');
   o.className = 'modal-overlay'; o.id = 'equippedDetailModal';
   o._slotId = slotId;
-  o.innerHTML = `<div class="modal" style="max-width:560px;padding:28px 36px;">
-    <h2 style="font-size:19px;margin-bottom:4px;">${d.name}</h2>
+  o.innerHTML = `<div class="modal" style="max-width:680px;padding:28px 44px;">
+    <h2 style="font-size:19px;margin-bottom:4px;text-align:center;">${d.name}</h2>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:${metaStr?'6px':'10px'}">${SLOT_NAMES[slotId]||slotId}</p>
-    ${metaStr ? `<p style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.65);text-align:center;margin-bottom:${(d.desc||hasAC)?'10px':'16px'};">${metaStr}</p>` : ''}
-    ${hasAC ? `<div style="text-align:center;">${condBadge}</div>` : ''}
-    ${d.desc ? `<p style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#c8b87a;text-align:center;line-height:1.6;margin-bottom:14px;padding:0 4px;">${d.desc}</p>` : ''}
+    ${metaStr ? `<p style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.65);text-align:center;margin-bottom:${(d.desc||hasAC)?'12px':'16px'};">${metaStr}</p>` : ''}
+    ${hasAC ? `<div style="text-align:center;margin-bottom:${d.desc?'10px':'0'};">${condBadge}</div>` : ''}
+    ${d.desc ? `<div style="position:relative;text-align:center;padding:14px 28px;margin-bottom:14px;">
+        <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:80%;height:1px;background:linear-gradient(to right,transparent,rgba(200,184,122,.45),transparent);"></div>
+        <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:17px;color:#e8d8a0;text-align:center;line-height:1.7;margin:0;letter-spacing:.2px;">${d.desc}</p>
+        <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:80%;height:1px;background:linear-gradient(to right,transparent,rgba(200,184,122,.45),transparent);"></div>
+      </div>` : ''}
     ${condSelector}
     <div style="display:flex;gap:8px;margin-top:6px;">
       <button class="rest-btn" onclick="unequipItem('${slotId}')" style="flex:1;background:rgba(40,20,60,.45);border-color:rgba(100,80,180,.5);color:rgba(200,180,255,.85);">↩ Unequip → Steed</button>
@@ -2177,18 +2181,6 @@ function openItemModal(tableId, rowIdx) {
   const isSteed    = tableId === 'st_items';
   const hasAC      = item.a !== undefined && item.a !== '';
 
-  const qtyHTML = `
-    <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:10px 0 14px;padding:5px 10px;background:rgba(139,106,0,.08);border:1px solid rgba(139,106,0,.18);border-radius:3px;">
-      <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.35);letter-spacing:1px;flex:1;">QTY</span>
-      <button onclick="itemModalAdjQty(-1)"
-        style="width:22px;height:22px;border:1px solid rgba(139,106,0,.35);background:rgba(60,40,0,.3);color:rgba(232,200,74,.65);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;border-radius:2px;transition:all .15s;font-family:serif;"
-        onmouseover="this.style.background='rgba(139,106,0,.35)';this.style.color='var(--text-gold)'" onmouseout="this.style.background='rgba(60,40,0,.3)';this.style.color='rgba(232,200,74,.65)'">−</button>
-      <span id="itemMgmt_qty_display" style="font-family:var(--got);font-size:15px;color:var(--text-gold);min-width:28px;text-align:center;line-height:1;">${item.q||'1'}</span>
-      <button onclick="itemModalAdjQty(+1)"
-        style="width:22px;height:22px;border:1px solid rgba(139,106,0,.35);background:rgba(60,40,0,.3);color:rgba(232,200,74,.65);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;border-radius:2px;transition:all .15s;font-family:serif;"
-        onmouseover="this.style.background='rgba(139,106,0,.35)';this.style.color='var(--text-gold)'" onmouseout="this.style.background='rgba(60,40,0,.3)';this.style.color='rgba(232,200,74,.65)'">+</button>
-    </div>`;
-
   const tagLabel = item.tag ? `<span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);margin-left:8px;">${item.tag}</span>` : '';
 
   const moveToBpBtn = isSteed
@@ -2206,26 +2198,28 @@ function openItemModal(tableId, rowIdx) {
   const o = document.createElement('div');
   o.className = 'modal-overlay';
   o.id = 'itemMgmtModal';
-  o.innerHTML = `<div class="modal" style="max-width:600px;padding:28px 44px;">
-    <div style="display:flex;align-items:baseline;justify-content:center;gap:0;margin-bottom:4px;flex-wrap:wrap;">
+  o.innerHTML = `<div class="modal" style="max-width:700px;padding:28px 48px;">
+    <div style="display:flex;align-items:baseline;justify-content:center;gap:0;margin-bottom:16px;flex-wrap:wrap;">
       <h2 style="font-size:19px;margin:0;">${item.name}</h2>
       ${tagLabel}
     </div>
-    <div style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:8px;">
-      ${item.w ? item.w+' kg' : ''}${item.w && item.p ? ' · ' : ''}${item.p ? item.p+' price' : ''}
-    </div>
 
-    <!-- Inline description: click text to edit -->
-    <div id="itemDesc_display" style="margin-bottom:14px;text-align:center;cursor:pointer;" onclick="itemDescStartEdit()" title="Click to edit description">
+    <!-- Description as centrepiece -->
+    <div id="itemDesc_display" style="cursor:pointer;margin-bottom:20px;" onclick="itemDescStartEdit()" title="Click to edit description">
       ${item.desc
-        ? `<span style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#c8b87a;line-height:1.6;padding:0 8px;border-bottom:1px dashed rgba(200,184,122,.3);transition:border-color .15s;"
-             onmouseover="this.style.borderColor='rgba(200,184,122,.7)'" onmouseout="this.style.borderColor='rgba(200,184,122,.3)'">${item.desc}</span>`
-        : `<span style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:rgba(232,200,74,.25);letter-spacing:.3px;border-bottom:1px dashed rgba(232,200,74,.15);transition:border-color .15s;"
-             onmouseover="this.style.borderColor='rgba(232,200,74,.4)'" onmouseout="this.style.borderColor='rgba(232,200,74,.15)'">+ add description…</span>`}
+        ? `<div style="position:relative;text-align:center;padding:14px 24px;">
+            <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:80%;height:1px;background:linear-gradient(to right,transparent,rgba(200,184,122,.45),transparent);"></div>
+            <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:17px;color:#e8d8a0;line-height:1.7;letter-spacing:.2px;">${item.desc}</span>
+            <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:80%;height:1px;background:linear-gradient(to right,transparent,rgba(200,184,122,.45),transparent);"></div>
+          </div>`
+        : `<div style="text-align:center;padding:8px 0;">
+            <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:rgba(232,200,74,.2);letter-spacing:.3px;border-bottom:1px dashed rgba(232,200,74,.12);transition:border-color .15s;"
+              onmouseover="this.style.borderColor='rgba(232,200,74,.35)'" onmouseout="this.style.borderColor='rgba(232,200,74,.12)'">+ add description…</span>
+          </div>`}
     </div>
-    <div id="itemDesc_edit" style="display:none;margin-bottom:14px;">
+    <div id="itemDesc_edit" style="display:none;margin-bottom:18px;">
       <textarea id="itemMgmt_desc_edit" placeholder="Describe the item…"
-        style="width:100%;height:72px;font-size:13px;font-family:'IM Fell English',serif;font-style:italic;padding:6px 8px;resize:none;line-height:1.5;border-color:rgba(200,184,122,.5);">${item.desc||''}</textarea>
+        style="width:100%;height:80px;font-size:15px;font-family:'IM Fell English',serif;font-style:italic;padding:10px 14px;resize:none;line-height:1.6;border-color:rgba(200,184,122,.4);text-align:center;background:rgba(200,184,122,.04);">${item.desc||''}</textarea>
       <div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end;">
         <button onclick="itemDescConfirm()" class="rest-btn" style="font-size:11px;padding:3px 12px;">✓ Done</button>
         <button onclick="itemDescCancel()" class="rest-btn" style="font-size:11px;padding:3px 10px;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">✕</button>
@@ -2234,11 +2228,9 @@ function openItemModal(tableId, rowIdx) {
     <!-- Hidden sync field so itemModalSave always reads correctly -->
     <textarea id="itemMgmt_desc" style="display:none;">${item.desc||''}</textarea>
 
-    ${qtyHTML}
-
     <div style="border-top:1px solid rgba(139,106,0,.25);padding-top:14px;margin-top:0;">
       <div style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.5px;margin-bottom:10px;">DETAILS</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr${hasAC?' 1fr':''};gap:6px;margin-bottom:8px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr${hasAC?' 1fr':''};gap:6px;margin-bottom:8px;">
         <div>
           <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Weight (kg)</label>
           <input type="text" id="itemMgmt_w" value="${item.w||''}" placeholder="—"
@@ -2248,6 +2240,18 @@ function openItemModal(tableId, rowIdx) {
           <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Price</label>
           <input type="text" id="itemMgmt_p" value="${item.p||''}" placeholder="—"
             style="width:100%;height:28px;font-size:13px;text-align:center;">
+        </div>
+        <div>
+          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Quantity</label>
+          <div style="display:flex;align-items:center;height:28px;border:1px solid var(--gold);background:var(--input-bg);border-radius:0;">
+            <button onclick="itemModalAdjQty(-1)"
+              style="width:26px;height:100%;border:none;border-right:1px solid rgba(139,106,0,.4);background:rgba(60,40,0,.15);color:rgba(30,20,5,.8);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .12s;flex-shrink:0;"
+              onmouseover="this.style.background='rgba(139,106,0,.25)'" onmouseout="this.style.background='rgba(60,40,0,.15)'">−</button>
+            <span id="itemMgmt_qty_display" style="flex:1;text-align:center;font-family:'IM Fell English',serif;font-size:14px;font-weight:700;color:#1a1000;">${item.q||'1'}</span>
+            <button onclick="itemModalAdjQty(+1)"
+              style="width:26px;height:100%;border:none;border-left:1px solid rgba(139,106,0,.4);background:rgba(60,40,0,.15);color:rgba(30,20,5,.8);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .12s;flex-shrink:0;"
+              onmouseover="this.style.background='rgba(139,106,0,.25)'" onmouseout="this.style.background='rgba(60,40,0,.15)'">+</button>
+          </div>
         </div>
         ${hasAC ? `<div>
           <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">AC Bonus</label>
