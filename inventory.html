@@ -634,7 +634,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="header-drops" onclick="event.stopPropagation()">
     <select id="origin" onchange="applyOriginProfs()"><option value="">— Origin —</option><option>The Vale</option><option>The Westerlands</option><option>Dorne</option><option>The Crownlands</option><option>The North</option><option>The Iron Islands</option><option>The Riverlands</option><option>The Reach</option><option>The Stormlands</option></select>
-    <select id="class_" onchange="updateSpecOptions(true);updateKnightImage()"><option value="">— Class —</option><option>Warrior</option><option>Survivalist</option><option>Priest</option><option>Envoy</option></select>
+    <select id="class_" onchange="updateSpecOptions(true);updateKnightImage()"><option value="">— Class —</option><option>Warrior</option><option>Survivalist</option><option>Priest</option><option>Envoy</option><option>Skulker</option></select>
     <select id="spec" onchange="applySpecFeatures()"><option value="">— Specialisation —</option></select>
   </div>
   <div class="header-drops2" onclick="event.stopPropagation()">
@@ -3255,9 +3255,10 @@ const CLASS_SPECS = {
   'Warrior':    ['Knight','Mercenary','Brute','Martial Archer'],
   'Survivalist':['Strider','Outlaw','Hedge Knight'],
   'Priest':     ['Red Priest','Septon','Greenseer'],
-  'Envoy':      ['Minstrel','Maester','Merchant','Diplomat']
+  'Envoy':      ['Minstrel','Maester','Merchant','Diplomat'],
+  'Skulker':    ['Thief','Assassin','Spy Master']
 };
-const CLASS_HIT_DICE = {'Warrior':'1D12','Survivalist':'1D10','Priest':'1D6','Envoy':'1D8'};
+const CLASS_HIT_DICE = {'Warrior':'1D12','Survivalist':'1D10','Priest':'1D6','Envoy':'1D8','Skulker':'1D8'};
 
 const ORIGIN_CULTURES = {
   'The North':        ['Northmen','Harbormen','Crannogmen'],
@@ -4417,6 +4418,7 @@ const CLASS_KNIGHT_IMAGES = {
   'Survivalist':'Images/Survivalist Equipment.webp',
   'Envoy':      'Images/Envoy Equipment.webp',
   'Priest':     'Images/Priest Equipment.webp',
+  'Skulker':    'Images/Skulker Equipment.webp',
 };
 
 function updateKnightImage() {
