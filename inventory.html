@@ -805,8 +805,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
       <div class="eq-slot slot-ring1" title="Ring / Accessory 1" onclick="openSlotModal('ring1')">
         <img src="Images/Ring Icon.webp" alt="Ring" onerror="this.style.display='none';this.parentNode.innerHTML='💍'">
       </div>
-      <div class="eq-slot slot-ring2" title="Ring / Accessory 2" onclick="openSlotModal('ring2')">
-        <img src="Images/Ring Icon.webp" alt="Ring" onerror="this.style.display='none';this.parentNode.innerHTML='💍'">
+      <div class="eq-slot slot-ring2" title="Quiver" onclick="openSlotModal('ring2')">
+        <img src="Images/Quiver Icon.webp" alt="Quiver" onerror="this.style.display='none';this.parentNode.innerHTML='🏹'">
       </div>
       <div class="eq-slot slot-boots" title="Boots / Sabatons" onclick="openSlotModal('boots')">
         <img src="Images/Boots Icon.webp" alt="Boots" onerror="this.style.display='none';this.parentNode.innerHTML='🥾'">
@@ -1723,7 +1723,7 @@ let currentSlot = null;
 const SLOT_NAMES = {
   head:'Head / Helmet', cloak:'Cloak / Cape', shirt:'Archery',
   armor:'Body Armor', gloves:'Gauntlets / Gloves', ring1:'Ring / Accessory 1',
-  ring2:'Ring / Accessory 2', boots:'Boots / Sabatons', weapon1:'Main Weapon',
+  ring2:'Quiver', boots:'Boots / Sabatons', weapon1:'Main Weapon',
   weapon2:'Off-hand / Secondary', shield:'Shield'
 };
 
@@ -1825,6 +1825,7 @@ const EQUIPPED_GROUPS = [
   ]},
   { sectionId: 'eq_archery_section', slots: [
     { id: 'shirt',   label: 'Archery',      icon: 'Images/Archery Icon.webp' },
+    { id: 'ring2',   label: 'Quiver',       icon: 'Images/Quiver Icon.webp' },
   ]},
   { sectionId: 'eq_weapons_section', slots: [
     { id: 'weapon1', label: 'Main Weapon',  icon: 'Images/Weapon Icon.webp' },
@@ -1839,7 +1840,6 @@ const EQUIPPED_GROUPS = [
   { sectionId: 'eq_acc_section',     slots: [
     { id: 'cloak', label: 'Cloak',  icon: 'Images/Cloak Icon.webp' },
     { id: 'ring1', label: 'Ring I', icon: 'Images/Ring Icon.webp' },
-    { id: 'ring2', label: 'Ring II',icon: 'Images/Ring Icon.webp' },
   ]},
 ];
 
@@ -2025,7 +2025,7 @@ function openItemModal(tableId, rowIdx) {
   const o = document.createElement('div');
   o.className = 'modal-overlay';
   o.id = 'itemMgmtModal';
-  o.innerHTML = `<div class="modal" style="max-width:440px;padding:28px 36px;">
+  o.innerHTML = `<div class="modal" style="max-width:600px;padding:28px 44px;">
     <div style="display:flex;align-items:baseline;justify-content:center;gap:0;margin-bottom:4px;flex-wrap:wrap;">
       <h2 style="font-size:19px;margin:0;">${item.name}</h2>
       ${tagLabel}
@@ -2530,7 +2530,7 @@ const SLOT_TAGS = {
   shirt:   ['Archery'],
   cloak:   ['Cloak'],
   ring1:   ['Ring'],
-  ring2:   ['Ring'],
+  ring2:   ['Archery'],
   gloves:  ['Gauntlets'],
   armor:   ['Body Armor'],
   boots:   ['Sabatons'],
@@ -3040,11 +3040,26 @@ function openToolkitModal(tableId, rowIdx) {
 
   const metaStr = [item.w ? item.w + ' kg' : '', item.p || ''].filter(Boolean).join(' · ');
 
+  const isBackpack = tableId === 'bp_items';
+  const isSteed    = tableId === 'st_items';
+
+  const tkMoveToBpBtn = isSteed
+    ? `<button class="rest-btn" onclick="toolkitMoveTo('st_items','bp_items')"
+         style="flex:1;background:rgba(30,40,60,.4);border-color:rgba(80,100,180,.45);color:rgba(180,200,255,.8);">
+         🎒 → Backpack
+       </button>` : '';
+
+  const tkMoveToStBtn = isBackpack
+    ? `<button class="rest-btn" onclick="toolkitMoveTo('bp_items','st_items')"
+         style="flex:1;background:rgba(30,20,60,.4);border-color:rgba(100,80,180,.45);color:rgba(200,180,255,.8);">
+         🐴 → Steed
+       </button>` : '';
+
   const o = document.createElement('div');
   o.id = 'toolkitModal';
   o.className = 'modal-overlay';
   o.innerHTML = `
-    <div class="modal" style="max-width:420px;padding:28px 36px;">
+    <div class="modal" style="max-width:600px;padding:28px 44px;">
       <div style="display:flex;align-items:baseline;justify-content:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
         <h2 style="font-size:19px;margin:0;">${item.name}</h2>
         <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);">Tools</span>
@@ -3078,6 +3093,11 @@ function openToolkitModal(tableId, rowIdx) {
         </div>
       </div>
 
+      ${(tkMoveToBpBtn || tkMoveToStBtn) ? `
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        ${tkMoveToBpBtn}${tkMoveToStBtn}
+      </div>` : ''}
+
       <div style="display:flex;gap:8px;">
         <button class="rest-btn" onclick="toolkitSave()" style="flex:2;">Save & Close</button>
         <button class="rest-btn" onclick="toolkitDelete()"
@@ -3093,6 +3113,28 @@ function openToolkitModal(tableId, rowIdx) {
   renderList();
   window._toolkitRenderList = renderList;
   o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function toolkitMoveTo(fromTable, toTable) {
+  const modal = document.getElementById('toolkitModal');
+  if (!modal) return;
+  const { _tableId, _rowIdx } = modal;
+  // Save current weight/price edits before moving
+  const item = tableData[_tableId][_rowIdx];
+  if (!item) return;
+  item.w = document.getElementById('toolkitMgmt_w')?.value.trim() || item.w;
+  item.p = document.getElementById('toolkitMgmt_p')?.value.trim() || item.p;
+  const toRows = tableData[toTable];
+  let ti = toRows.findIndex(r => !r.name);
+  if (ti === -1) { toRows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); ti = toRows.length - 1; }
+  toRows[ti] = {...item};
+  tableData[fromTable][_rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
+  if (toTable === 'bp_items' || toTable === 'st_items') sortTableByTag(toTable);
+  buildAllTables();
+  calcWeights();
+  calcDC();
+  _saveData();
+  modal.remove();
 }
 
 function toolkitAdjQty(idx, delta) {
