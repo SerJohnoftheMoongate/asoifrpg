@@ -1081,6 +1081,13 @@ textarea{resize:none;font-weight:400;font-size:12px}
     </div>
 
     <!-- ── Resistance row (armor items only) ── -->
+    <!-- ── Condition row (Shield + Armor items only) ── -->
+    <div id="aim_condition_row" style="display:none;margin-bottom:4px;margin-top:4px;">
+      <label class="aim-lbl" style="font-size:10px;">Condition</label>
+      <div style="display:flex;gap:5px;margin-top:4px;" id="aim_condition_btns">
+      </div>
+    </div>
+
     <div id="aim_resistance_row" style="display:none;margin-bottom:4px;margin-top:4px;">
       <label class="aim-lbl" style="font-size:10px;">Resistances</label>
       <div style="display:flex;gap:8px;margin-top:4px;">
@@ -1994,21 +2001,95 @@ function openEquippedItemDetail(slotId) {
   // Quiver slot gets its own ammo management modal
   if (slotId === 'ring2') { openEquippedQuiverModal(); return; }
   document.getElementById('equippedDetailModal')?.remove();
-  const metaStr = [d.ac ? 'AC +' + d.ac : '', d.w ? d.w + ' kg' : '', d.p || ''].filter(Boolean).join(' · ');
+  const hasAC = AC_BONUS_TAGS.has(d.tag);
+  const cond  = conditionInfo(d.condition || 'decent');
+  const effAC = effectiveItemAC(d);
+  const metaStr = [d.ac ? `AC +${d.ac}` : '', d.w ? d.w + ' kg' : '', d.p || ''].filter(Boolean).join(' · ');
+  const condBadge = hasAC
+    ? `<div style="display:inline-flex;align-items:center;gap:5px;margin-bottom:10px;padding:3px 10px;border-radius:3px;border:1px solid ${cond.color}40;background:${cond.bg};">
+        <span style="width:8px;height:8px;border-radius:50%;background:${cond.color};display:inline-block;box-shadow:0 0 4px ${cond.color};"></span>
+        <span style="font-family:var(--got);font-size:9px;color:${cond.color};letter-spacing:.5px;">${cond.label}</span>
+        <span style="font-family:var(--got);font-size:8px;color:rgba(136,221,136,.8);margin-left:4px;">Effective AC: ${effAC}</span>
+      </div>` : '';
+  const condSelector = hasAC
+    ? `<div style="margin-bottom:14px;">
+        <div style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.5px;margin-bottom:6px;">CONDITION
+          <span id="eqDetail_effAC" style="color:rgba(136,221,136,.8);margin-left:6px;">→ Effective AC: ${effAC}</span>
+        </div>
+        <div style="display:flex;gap:5px;" id="eqDetail_cond_btns">
+          ${ITEM_CONDITIONS.map(c => {
+            const sel = (d.condition || 'decent') === c.key;
+            return `<button type="button" data-cond="${c.key}" onclick="selectEquippedCondition(this,'${slotId}')"
+              style="flex:1;padding:5px 3px;font-family:var(--got);font-size:8.5px;letter-spacing:.3px;
+                     cursor:pointer;border-radius:2px;transition:all .15s;
+                     border:2px solid ${sel ? c.color : 'rgba(139,106,0,.3)'};
+                     background:${sel ? c.bg : 'rgba(0,0,0,.2)'};
+                     color:${sel ? c.color : 'rgba(232,200,74,.45)'};
+                     box-shadow:${sel ? `0 0 6px ${c.color}55` : 'none'};">
+              <div style="width:7px;height:7px;border-radius:50%;background:${c.color};margin:0 auto 3px;opacity:${sel?'1':'.4'}"></div>
+              ${c.label}<br><span style="font-size:7.5px;opacity:.8;">${c.mod > 0 ? '+' : ''}${c.mod} AC</span>
+            </button>`;
+          }).join('')}
+        </div>
+      </div>` : '';
   const o = document.createElement('div');
   o.className = 'modal-overlay'; o.id = 'equippedDetailModal';
-  o.innerHTML = `<div class="modal" style="max-width:400px;padding:28px 36px;">
+  o._slotId = slotId;
+  o.innerHTML = `<div class="modal" style="max-width:430px;padding:28px 36px;">
     <h2 style="font-size:19px;margin-bottom:4px;">${d.name}</h2>
-    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:${metaStr?'6px':'16px'}">${SLOT_NAMES[slotId]||slotId}</p>
-    ${metaStr ? `<p style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.65);text-align:center;margin-bottom:${d.desc?'10px':'16px'};">${metaStr}</p>` : ''}
-    ${d.desc ? `<p style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#c8b87a;text-align:center;line-height:1.6;margin-bottom:16px;padding:0 4px;">${d.desc}</p>` : ''}
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:${metaStr?'6px':'10px'}">${SLOT_NAMES[slotId]||slotId}</p>
+    ${metaStr ? `<p style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.65);text-align:center;margin-bottom:${(d.desc||hasAC)?'10px':'16px'};">${metaStr}</p>` : ''}
+    ${hasAC ? `<div style="text-align:center;">${condBadge}</div>` : ''}
+    ${d.desc ? `<p style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#c8b87a;text-align:center;line-height:1.6;margin-bottom:14px;padding:0 4px;">${d.desc}</p>` : ''}
+    ${condSelector}
     <div style="display:flex;gap:8px;margin-top:6px;">
       <button class="rest-btn" onclick="unequipItem('${slotId}')" style="flex:1;background:rgba(40,20,60,.45);border-color:rgba(100,80,180,.5);color:rgba(200,180,255,.85);">↩ Unequip → Steed</button>
+      <button class="rest-btn" onclick="equippedDetailSave('${slotId}')" style="flex:1;">Save & Close</button>
       <button class="rest-btn" onclick="document.getElementById('equippedDetailModal').remove()" style="background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
     </div>
   </div>`;
   document.body.appendChild(o);
   o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function selectEquippedCondition(btn, slotId) {
+  const container = document.getElementById('eqDetail_cond_btns');
+  if (!container) return;
+  container.querySelectorAll('[data-cond]').forEach(b => {
+    const c = conditionInfo(b.dataset.cond);
+    b.style.border     = `2px solid rgba(139,106,0,.3)`;
+    b.style.background = 'rgba(0,0,0,.2)';
+    b.style.color      = 'rgba(232,200,74,.45)';
+    b.style.boxShadow  = 'none';
+    b.querySelector('div').style.opacity = '.4';
+  });
+  const c = conditionInfo(btn.dataset.cond);
+  btn.style.border     = `2px solid ${c.color}`;
+  btn.style.background = c.bg;
+  btn.style.color      = c.color;
+  btn.style.boxShadow  = `0 0 6px ${c.color}55`;
+  btn.querySelector('div').style.opacity = '1';
+  // Update effective AC preview
+  const d = slotData[slotId];
+  const effEl = document.getElementById('eqDetail_effAC');
+  if (effEl && d) {
+    const effAC = Math.max(0, (parseFloat(d.ac)||0) + c.mod);
+    effEl.textContent = `→ Effective AC: ${effAC}`;
+  }
+}
+
+function equippedDetailSave(slotId) {
+  const d = slotData[slotId];
+  if (!d) { document.getElementById('equippedDetailModal')?.remove(); return; }
+  const condBtns = document.getElementById('eqDetail_cond_btns');
+  if (condBtns) {
+    const selBtn = [...condBtns.querySelectorAll('[data-cond]')].find(b => b.style.boxShadow && b.style.boxShadow !== 'none');
+    if (selBtn) d.condition = selBtn.dataset.cond;
+  }
+  document.getElementById('equippedDetailModal')?.remove();
+  buildEquippedColumn();
+  calcDC();
+  _saveData();
 }
 
 function buildAllTables() {
@@ -2070,7 +2151,7 @@ function unequipItem(slotId) {
   const rows = tableData['st_items'];
   let ri = rows.findIndex(r => !r.name);
   if (ri === -1) { rows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = rows.length - 1; }
-  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'', ammo: Array.isArray(d.ammo) ? d.ammo : [], desc: d.desc||'', resistances: Array.isArray(d.resistances) ? d.resistances : [], vulnerabilities: Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [] };
+  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'', ammo: Array.isArray(d.ammo) ? d.ammo : [], desc: d.desc||'', resistances: Array.isArray(d.resistances) ? d.resistances : [], vulnerabilities: Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [], condition: d.condition||'decent' };
   sortTableByTag('st_items');
   delete slotData[slotId];
   updateSlotUI(slotId);
@@ -2179,6 +2260,30 @@ function openItemModal(tableId, rowIdx) {
             style="width:100%;height:28px;font-size:13px;text-align:center;">
         </div>` : ''}
       </div>
+      ${hasAC ? (() => {
+        const cond = item.condition || 'decent';
+        const effAC = Math.max(0, (parseFloat(item.a)||0) + conditionInfo(cond).mod);
+        return `<div style="margin-top:10px;">
+          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:6px;letter-spacing:.4px;">
+            CONDITION <span id="itemMgmt_cond_effAC" style="color:rgba(136,221,136,.8);margin-left:6px;">→ Effective AC: ${effAC}</span>
+          </label>
+          <div style="display:flex;gap:5px;" id="itemMgmt_cond_btns">
+            ${ITEM_CONDITIONS.map(c => {
+              const sel = cond === c.key;
+              return `<button type="button" data-cond="${c.key}" onclick="selectItemMgmtCondition(this)"
+                style="flex:1;padding:5px 3px;font-family:var(--got);font-size:8.5px;letter-spacing:.3px;
+                       cursor:pointer;border-radius:2px;transition:all .15s;
+                       border:2px solid ${sel ? c.color : 'rgba(139,106,0,.3)'};
+                       background:${sel ? c.bg : 'rgba(0,0,0,.2)'};
+                       color:${sel ? c.color : 'rgba(232,200,74,.45)'};
+                       box-shadow:${sel ? `0 0 6px ${c.color}55` : 'none'};">
+                <div style="width:7px;height:7px;border-radius:50%;background:${c.color};margin:0 auto 3px;opacity:${sel?'1':'.4'}"></div>
+                ${c.label}<br><span style="font-size:7.5px;opacity:.8;">${c.mod > 0 ? '+' : ''}${c.mod} AC</span>
+              </button>`;
+            }).join('')}
+          </div>
+        </div>`;
+      })() : ''}
     </div>
 
     ${(moveToBpBtn || moveToStBtn) ? `
@@ -2210,6 +2315,34 @@ function itemModalAdjQty(delta) {
   modal._currentQty = Math.max(1, (modal._currentQty || 1) + delta);
   const disp = document.getElementById('itemMgmt_qty_display');
   if (disp) disp.textContent = modal._currentQty;
+}
+
+function selectItemMgmtCondition(btn) {
+  const container = document.getElementById('itemMgmt_cond_btns');
+  if (!container) return;
+  container.querySelectorAll('[data-cond]').forEach(b => {
+    const c = conditionInfo(b.dataset.cond);
+    b.style.border     = `2px solid rgba(139,106,0,.3)`;
+    b.style.background = 'rgba(0,0,0,.2)';
+    b.style.color      = 'rgba(232,200,74,.45)';
+    b.style.boxShadow  = 'none';
+    b.querySelector('div').style.opacity = '.4';
+  });
+  const c = conditionInfo(btn.dataset.cond);
+  btn.style.border     = `2px solid ${c.color}`;
+  btn.style.background = c.bg;
+  btn.style.color      = c.color;
+  btn.style.boxShadow  = `0 0 6px ${c.color}55`;
+  btn.querySelector('div').style.opacity = '1';
+  // Update effective AC preview
+  const modal = document.getElementById('itemMgmtModal');
+  const acInput = document.getElementById('itemMgmt_ac');
+  const effEl   = document.getElementById('itemMgmt_cond_effAC');
+  if (effEl && acInput) {
+    const base = parseFloat(acInput.value) || 0;
+    const effAC = Math.max(0, base + c.mod);
+    effEl.textContent = `→ Effective AC: ${effAC}`;
+  }
 }
 
 function itemDescStartEdit() {
@@ -2275,6 +2408,14 @@ function itemModalSave() {
   if (editVisible) itemDescConfirm();
   item.desc = document.getElementById('itemMgmt_desc')?.value.trim() ?? (item.desc || '');
   if (_hasAC) item.a = document.getElementById('itemMgmt_ac')?.value.trim() || '';
+  // Save condition if present
+  if (_hasAC) {
+    const condBtns = document.getElementById('itemMgmt_cond_btns');
+    if (condBtns) {
+      const selBtn = [...condBtns.querySelectorAll('[data-cond]')].find(b => b.style.boxShadow && b.style.boxShadow !== 'none');
+      item.condition = selBtn ? selBtn.dataset.cond : (item.condition || 'decent');
+    }
+  }
   modal.remove();
   if (_tableId === 'bp_items' || _tableId === 'st_items') sortTableByTag(_tableId);
   buildAllTables();
@@ -2605,7 +2746,7 @@ function ingDelete(idx) {
 function updateTotalAC() {
   const base = parseInt(document.getElementById('inv_ac')?.value, 10) || 0;
   let bonus = 0;
-  Object.values(slotData).forEach(d => { bonus += parseFloat(d.ac) || 0; });
+  Object.values(slotData).forEach(d => { bonus += effectiveItemAC(d); });
   const total = base + bonus;
   const el = document.getElementById('inv_ac_total');
   if (el) el.value = total;
@@ -2698,6 +2839,27 @@ function calcWeights() {
 /* ── Tags that require an armor-type selection (Light/Medium/Heavy) ── */
 const ARMOR_PROF_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons']);
 
+/* ── Item condition system (mirrors index.html weapon conditions) ── */
+const ITEM_CONDITIONS = [
+  { key:'tragic',    label:'Tragic',    mod:-2, color:'#cc2222', bg:'rgba(120,0,0,.35)'   },
+  { key:'poor',      label:'Poor',      mod:-1, color:'#cc7722', bg:'rgba(100,50,0,.35)'  },
+  { key:'decent',    label:'Decent',    mod: 0, color:'#ccaa00', bg:'rgba(80,70,0,.35)'   },
+  { key:'good',      label:'Good',      mod:+1, color:'#66bb44', bg:'rgba(20,70,10,.35)'  },
+  { key:'excellent', label:'Excellent', mod:+2, color:'#228844', bg:'rgba(0,80,30,.35)'   },
+];
+
+function conditionInfo(key) {
+  return ITEM_CONDITIONS.find(c => c.key === key) || ITEM_CONDITIONS[2];
+}
+
+/* Effective AC for a slot item — base AC + condition mod, clamped to ≥ 0 */
+function effectiveItemAC(d) {
+  if (!d || !d.ac) return 0;
+  const base = parseFloat(d.ac) || 0;
+  const mod  = conditionInfo(d.condition || 'decent').mod;
+  return Math.max(0, base + mod);
+}
+
 /* ── Tags that show the AC bonus field in the Add Item modal ── */
 const AC_BONUS_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons','Shield']);
 
@@ -2738,6 +2900,9 @@ function openAddItemModal() {
   const vulnRow = document.getElementById('aim_vulnerability_row');
   if(resRow)  resRow.style.display  = 'none';
   if(vulnRow) vulnRow.style.display = 'none';
+  const condRow = document.getElementById('aim_condition_row');
+  if(condRow) condRow.style.display = 'none';
+  buildAimConditionBtns('decent');
   document.querySelectorAll('input[name="aim_resistance"]').forEach(c => c.checked = false);
   document.querySelectorAll('input[name="aim_vulnerability"]').forEach(c => c.checked = false);
   aimArmorTypeChanged();
@@ -2771,6 +2936,11 @@ function aimTagChanged() {
     document.querySelectorAll('input[name="aim_vulnerability"]').forEach(c => { c.checked = false; });
     aimResVulnChanged('resistance'); aimResVulnChanged('vulnerability');
   }
+  // Show/hide condition row for Shield + all Armor tags
+  const condRow = document.getElementById('aim_condition_row');
+  const hasCondition = AC_BONUS_TAGS.has(tag);
+  if(condRow) condRow.style.display = hasCondition ? 'block' : 'none';
+  if(!hasCondition) buildAimConditionBtns('decent');
   aimArmorTypeChanged();
 }
 
@@ -2784,6 +2954,55 @@ function aimArmorTypeChanged() {
     lbl.style.borderColor   = inp.checked ? 'var(--gold)'        : 'rgba(139,106,0,.4)';
     lbl.style.color         = inp.checked ? 'var(--text-gold)'   : 'rgba(232,200,74,.7)';
   });
+}
+
+function buildAimConditionBtns(selectedKey) {
+  const container = document.getElementById('aim_condition_btns');
+  if (!container) return;
+  container.innerHTML = ITEM_CONDITIONS.map(c => {
+    const sel = (selectedKey || 'decent') === c.key;
+    return `<button type="button" data-cond="${c.key}" onclick="selectAimCondition(this)"
+      style="flex:1;padding:6px 4px;font-family:var(--got);font-size:9px;letter-spacing:.3px;
+             cursor:pointer;border-radius:2px;transition:all .15s;
+             border:2px solid ${sel ? c.color : 'rgba(139,106,0,.3)'};
+             background:${sel ? c.bg : 'rgba(0,0,0,.2)'};
+             color:${sel ? c.color : 'rgba(232,200,74,.45)'};
+             box-shadow:${sel ? `0 0 6px ${c.color}55` : 'none'};">
+      <div style="width:8px;height:8px;border-radius:50%;background:${c.color};margin:0 auto 3px;opacity:${sel?'1':'.4'}"></div>
+      ${c.label}<br><span style="font-size:8px;opacity:.8;">${c.mod > 0 ? '+' : ''}${c.mod} AC</span>
+    </button>`;
+  }).join('');
+}
+
+function selectAimCondition(btn) {
+  const container = document.getElementById('aim_condition_btns');
+  if (!container) return;
+  container.querySelectorAll('[data-cond]').forEach(b => {
+    const c = conditionInfo(b.dataset.cond);
+    b.style.border     = `2px solid rgba(139,106,0,.3)`;
+    b.style.background = 'rgba(0,0,0,.2)';
+    b.style.color      = 'rgba(232,200,74,.45)';
+    b.style.boxShadow  = 'none';
+    b.querySelector('div').style.opacity = '.4';
+  });
+  const c = conditionInfo(btn.dataset.cond);
+  btn.style.border     = `2px solid ${c.color}`;
+  btn.style.background = c.bg;
+  btn.style.color      = c.color;
+  btn.style.boxShadow  = `0 0 6px ${c.color}55`;
+  btn.querySelector('div').style.opacity = '1';
+}
+
+function getAimCondition() {
+  const container = document.getElementById('aim_condition_btns');
+  if (!container) return 'decent';
+  const sel = container.querySelector('[data-cond]');
+  // Find the one that's highlighted (has non-default border)
+  const btns = container.querySelectorAll('[data-cond]');
+  for (const b of btns) {
+    if (b.style.boxShadow && b.style.boxShadow !== 'none') return b.dataset.cond;
+  }
+  return 'decent';
 }
 
 function aimResVulnChanged(type) {
@@ -2882,6 +3101,7 @@ function confirmAddItem() {
   const vulnerabilities = ARMOR_PROF_TAGS.has(tag)
     ? [...document.querySelectorAll('input[name="aim_vulnerability"]:checked')].map(c => c.value)
     : [];
+  const condition = AC_BONUS_TAGS.has(tag) ? getAimCondition() : 'decent';
   const dest  = document.querySelector('input[name="aim_dest"]:checked')?.value || 'backpack';
   // Ingredients go directly to the pouch
   if(tag === 'Ingredient') {
@@ -2895,7 +3115,7 @@ function confirmAddItem() {
   const rows=tableData[tableId];
   let idx=rows.findIndex(r=>!r.name);
   if(idx===-1){ rows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); idx=rows.length-1; }
-  rows[idx]={name, tag, q:qty, w:wt, p:prc, a:ac, armorType, desc, resistances, vulnerabilities};
+  rows[idx]={name, tag, q:qty, w:wt, p:prc, a:ac, armorType, desc, resistances, vulnerabilities, condition};
   sortTableByTag(tableId);
   buildAllTables();
   document.getElementById('addItemModal').style.display='none';
@@ -2990,12 +3210,12 @@ function equipItemFromSlot(slotId, srcTable, rowIdx, modalId) {
     const returnRows = tableData['st_items'];
     let ri = returnRows.findIndex(r => !r.name);
     if (ri === -1) { returnRows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = returnRows.length - 1; }
-    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'', ammo: Array.isArray(existing.ammo) ? existing.ammo : [], desc: existing.desc||'', resistances: Array.isArray(existing.resistances) ? existing.resistances : [], vulnerabilities: Array.isArray(existing.vulnerabilities) ? existing.vulnerabilities : [] };
+    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'', ammo: Array.isArray(existing.ammo) ? existing.ammo : [], desc: existing.desc||'', resistances: Array.isArray(existing.resistances) ? existing.resistances : [], vulnerabilities: Array.isArray(existing.vulnerabilities) ? existing.vulnerabilities : [], condition: existing.condition||'decent' };
     sortTableByTag('st_items');
   }
 
   // Equip item into slotData — preserve ammo array for Ammunition items
-  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'', armorType: item.armorType||'', ammo: Array.isArray(item.ammo) ? item.ammo : [], desc: item.desc||'', resistances: Array.isArray(item.resistances) ? item.resistances : [], vulnerabilities: Array.isArray(item.vulnerabilities) ? item.vulnerabilities : [] };
+  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'', armorType: item.armorType||'', ammo: Array.isArray(item.ammo) ? item.ammo : [], desc: item.desc||'', resistances: Array.isArray(item.resistances) ? item.resistances : [], vulnerabilities: Array.isArray(item.vulnerabilities) ? item.vulnerabilities : [], condition: item.condition||'decent' };
 
   // Remove from source table
   tableData[srcTable][rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
@@ -4208,6 +4428,7 @@ function updateKnightImage() {
 
 /* ── Init ── */
 window.addEventListener('DOMContentLoaded', ()=>{
+  buildAimConditionBtns('decent'); // pre-populate condition selector
   buildAllTables();
   load();
   buildAllTables(); // re-render tables with loaded data
