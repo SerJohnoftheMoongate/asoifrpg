@@ -2219,7 +2219,7 @@ function openItemModal(tableId, rowIdx) {
     </div>
     <div id="itemDesc_edit" style="display:none;margin-bottom:18px;">
       <textarea id="itemMgmt_desc_edit" placeholder="Describe the item…"
-        style="width:100%;height:80px;font-size:15px;font-family:'IM Fell English',serif;font-style:italic;padding:10px 14px;resize:none;line-height:1.6;border-color:rgba(200,184,122,.4);text-align:center;background:rgba(200,184,122,.04);">${item.desc||''}</textarea>
+        style="width:100%;height:80px;font-size:15px;font-family:'IM Fell English',serif;font-style:italic;padding:10px 14px;resize:none;line-height:1.6;border-color:rgba(200,184,122,.4);text-align:center;background:rgba(200,184,122,.04);color:#e8d8a0;">${item.desc||''}</textarea>
       <div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end;">
         <button onclick="itemDescConfirm()" class="rest-btn" style="font-size:11px;padding:3px 12px;">✓ Done</button>
         <button onclick="itemDescCancel()" class="rest-btn" style="font-size:11px;padding:3px 10px;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">✕</button>
@@ -2245,11 +2245,11 @@ function openItemModal(tableId, rowIdx) {
           <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Quantity</label>
           <div style="display:flex;align-items:center;height:28px;border:1px solid var(--gold);background:var(--input-bg);border-radius:0;">
             <button onclick="itemModalAdjQty(-1)"
-              style="width:26px;height:100%;border:none;border-right:1px solid rgba(139,106,0,.4);background:rgba(60,40,0,.15);color:rgba(30,20,5,.8);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .12s;flex-shrink:0;"
+              style="width:26px;height:100%;border:none;border-right:1px solid rgba(139,106,0,.4);background:rgba(60,40,0,.15);color:rgba(30,20,5,.8);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding-bottom:2px;transition:background .12s;flex-shrink:0;"
               onmouseover="this.style.background='rgba(139,106,0,.25)'" onmouseout="this.style.background='rgba(60,40,0,.15)'">−</button>
             <span id="itemMgmt_qty_display" style="flex:1;text-align:center;font-family:'IM Fell English',serif;font-size:14px;font-weight:700;color:#1a1000;">${item.q||'1'}</span>
             <button onclick="itemModalAdjQty(+1)"
-              style="width:26px;height:100%;border:none;border-left:1px solid rgba(139,106,0,.4);background:rgba(60,40,0,.15);color:rgba(30,20,5,.8);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .12s;flex-shrink:0;"
+              style="width:26px;height:100%;border:none;border-left:1px solid rgba(139,106,0,.4);background:rgba(60,40,0,.15);color:rgba(30,20,5,.8);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding-bottom:2px;transition:background .12s;flex-shrink:0;"
               onmouseover="this.style.background='rgba(139,106,0,.25)'" onmouseout="this.style.background='rgba(60,40,0,.15)'">+</button>
           </div>
         </div>
