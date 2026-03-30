@@ -1008,6 +1008,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
             <option value="Shield">Shield</option>
             <option value="Weapon">Weapon</option>
             <option value="Archery">Archery</option>
+            <option value="Ammunition">Ammunition</option>
           </optgroup>
           <optgroup label="👘 Worn">
             <option value="Cloak">Cloak</option>
@@ -1078,25 +1079,32 @@ textarea{resize:none;font-weight:400;font-size:12px}
       🌿 Ingredients are automatically stored in your <strong style="font-style:normal;">Ingredient Pouch</strong> — no weight or destination needed.
     </div>
 
-    <!-- ── Row 3: Qty / Weight / Price ── -->
-    <div id="aim_weight_row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:24px;margin-top:18px;">
-      <div>
-        <label class="aim-lbl" style="font-size:10px;">Quantity</label>
-        <input type="text" id="aim_qty" placeholder="1"
-          style="width:100%;height:36px;font-size:15px;text-align:center;font-weight:700;">
+    <!-- ── Row 3: Qty / Weight / Price inline + Description ── -->
+    <div id="aim_weight_row" style="margin-bottom:16px;margin-top:18px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div>
+          <label class="aim-lbl" style="font-size:10px;">Quantity</label>
+          <input type="text" id="aim_qty" placeholder="1"
+            style="width:100%;height:36px;font-size:15px;text-align:center;font-weight:700;">
+        </div>
+        <div>
+          <label class="aim-lbl" style="font-size:10px;">Weight (kg)</label>
+          <input type="text" id="aim_weight" placeholder="—"
+            style="width:100%;height:36px;font-size:15px;text-align:center;">
+        </div>
+        <div>
+          <label class="aim-lbl" style="font-size:10px;">Price</label>
+          <input type="text" id="aim_price" placeholder="—"
+            style="width:100%;height:36px;font-size:15px;text-align:center;">
+        </div>
       </div>
       <div>
-        <label class="aim-lbl" style="font-size:10px;margin-top: 15px;">Weight (kg)</label>
-        <input type="text" id="aim_weight" placeholder="—"
-          style="width:100%;height:36px;font-size:15px;text-align:center;">
-      </div>
-      <div>
-        <label class="aim-lbl" style="font-size:10px;margin-top: 15px;">Price</label>
-        <input type="text" id="aim_price" placeholder="—"
-          style="width:100%;height:36px;font-size:15px;text-align:center;">
+        <label class="aim-lbl" style="font-size:10px;">Description</label>
+        <textarea id="aim_desc" placeholder="Describe the item — material, history, properties…"
+          style="width:100%;height:72px;font-size:13px;font-family:'IM Fell English',serif;
+                 font-style:italic;padding:8px 10px;resize:none;line-height:1.5;"></textarea>
       </div>
     </div>
-
     <!-- ── Row 4: Destination ── -->
     <div id="aim_dest_row" style="margin-bottom:24px;">
       <label class="aim-lbl" style="font-size:10px;margin-bottom:6px;">Store In</label>
@@ -1891,6 +1899,8 @@ function clickEquippedSlot(slotId) {
 function openEquippedItemDetail(slotId) {
   const d = slotData[slotId];
   if (!d || !d.name) return;
+  // Quiver slot gets its own ammo management modal
+  if (slotId === 'ring2') { openEquippedQuiverModal(); return; }
   document.getElementById('equippedDetailModal')?.remove();
   const metaStr = [d.ac ? 'AC +' + d.ac : '', d.w ? d.w + ' kg' : '', d.p || ''].filter(Boolean).join(' · ');
   const o = document.createElement('div');
@@ -1898,8 +1908,8 @@ function openEquippedItemDetail(slotId) {
   o.innerHTML = `<div class="modal" style="max-width:400px;padding:28px 36px;">
     <h2 style="font-size:19px;margin-bottom:4px;">${d.name}</h2>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:${metaStr?'6px':'16px'}">${SLOT_NAMES[slotId]||slotId}</p>
-    ${metaStr ? `<p style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.65);text-align:center;margin-bottom:16px;">${metaStr}</p>` : ''}
-    ${d.notes ? `<p style="font-family:'IM Fell English',serif;font-size:12px;color:#aaa;margin-bottom:14px;line-height:1.5;">${d.notes}</p>` : ''}
+    ${metaStr ? `<p style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.65);text-align:center;margin-bottom:${d.desc?'10px':'16px'};">${metaStr}</p>` : ''}
+    ${d.desc ? `<p style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#c8b87a;text-align:center;line-height:1.6;margin-bottom:16px;padding:0 4px;">${d.desc}</p>` : ''}
     <div style="display:flex;gap:8px;margin-top:6px;">
       <button class="rest-btn" onclick="unequipItem('${slotId}')" style="flex:1;background:rgba(40,20,60,.45);border-color:rgba(100,80,180,.5);color:rgba(200,180,255,.85);">↩ Unequip → Steed</button>
       <button class="rest-btn" onclick="document.getElementById('equippedDetailModal').remove()" style="background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
@@ -1922,7 +1932,7 @@ function buildAllTables() {
    Allows: adjust quantity (±), edit name/weight/price, delete.
 ─────────────────────────────────────────────────────────────── */
 /* ── Tag sort order for backpack and steed ── */
-const TAG_SORT_ORDER = ['Helmet','Body Armor','Gauntlets','Sabatons','Shield','Archery','Weapon','Cloak','Ring','Tools','Book','Food','Camping','Misc','Ingredient',''];
+const TAG_SORT_ORDER = ['Helmet','Body Armor','Gauntlets','Sabatons','Shield','Archery','Ammunition','Weapon','Cloak','Ring','Tools','Book','Food','Camping','Misc','Ingredient',''];
 
 function sortTableByTag(tableId) {
   const rows = tableData[tableId];
@@ -1963,15 +1973,16 @@ function moveItemTo(fromTable, fromIdx, toTable) {
 function unequipItem(slotId) {
   const d = slotData[slotId];
   if (!d || !d.name) return;
-  // Send back to steed
+  // Send back to steed — carry ammo array for Ammunition items
   const rows = tableData['st_items'];
   let ri = rows.findIndex(r => !r.name);
   if (ri === -1) { rows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = rows.length - 1; }
-  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'' };
+  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'', ammo: Array.isArray(d.ammo) ? d.ammo : [], desc: d.desc||'' };
   sortTableByTag('st_items');
   delete slotData[slotId];
   updateSlotUI(slotId);
   document.getElementById('equippedDetailModal')?.remove();
+  document.getElementById('equippedQuiverModal')?.remove();
   buildAllTables();
   calcDC();
 }
@@ -1980,9 +1991,10 @@ function openItemModal(tableId, rowIdx) {
   const item = tableData[tableId][rowIdx];
   if (!item || !item.name) return;
 
-  // Special modals for Book and Tools tags
-  if (item.tag === 'Book')  { openBookModal(tableId, rowIdx);    return; }
-  if (item.tag === 'Tools') { openToolkitModal(tableId, rowIdx); return; }
+  // Special modals for Book, Tools and Ammunition tags
+  if (item.tag === 'Book')       { openBookModal(tableId, rowIdx);    return; }
+  if (item.tag === 'Tools')      { openToolkitModal(tableId, rowIdx); return; }
+  if (item.tag === 'Ammunition') { openAmmoModal(tableId, rowIdx);    return; }
 
   const existing = document.getElementById('itemMgmtModal');
   if (existing) existing.remove();
@@ -2030,9 +2042,10 @@ function openItemModal(tableId, rowIdx) {
       <h2 style="font-size:19px;margin:0;">${item.name}</h2>
       ${tagLabel}
     </div>
-    <div style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:16px;">
+    <div style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:${item.desc ? '8px' : '16px'};">
       ${item.w ? item.w+' kg' : ''}${item.w && item.p ? ' · ' : ''}${item.p ? item.p+' price' : ''}
     </div>
+    ${item.desc ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#c8b87a;text-align:center;margin-bottom:16px;line-height:1.6;padding:0 8px;">${item.desc}</div>` : ''}
 
     ${qtyHTML}
 
@@ -2054,6 +2067,11 @@ function openItemModal(tableId, rowIdx) {
           <input type="text" id="itemMgmt_ac" value="${item.a||''}" placeholder="—"
             style="width:100%;height:28px;font-size:13px;text-align:center;">
         </div>` : ''}
+      </div>
+      <div style="margin-top:6px;">
+        <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Description</label>
+        <textarea id="itemMgmt_desc" placeholder="Describe the item…"
+          style="width:100%;height:64px;font-size:13px;font-family:'IM Fell English',serif;font-style:italic;padding:6px 8px;resize:none;line-height:1.5;">${item.desc||''}</textarea>
       </div>
     </div>
 
@@ -2097,6 +2115,7 @@ function itemModalSave() {
   item.q = String(_currentQty);
   item.w = document.getElementById('itemMgmt_w')?.value.trim() || item.w;
   item.p = document.getElementById('itemMgmt_p')?.value.trim() || item.p;
+  item.desc = document.getElementById('itemMgmt_desc')?.value.trim() ?? (item.desc || '');
   if (_hasAC) item.a = document.getElementById('itemMgmt_ac')?.value.trim() || '';
   modal.remove();
   if (_tableId === 'bp_items' || _tableId === 'st_items') sortTableByTag(_tableId);
@@ -2530,7 +2549,7 @@ const SLOT_TAGS = {
   shirt:   ['Archery'],
   cloak:   ['Cloak'],
   ring1:   ['Ring'],
-  ring2:   ['Archery'],
+  ring2:   ['Ammunition'],
   gloves:  ['Gauntlets'],
   armor:   ['Body Armor'],
   boots:   ['Sabatons'],
@@ -2541,7 +2560,7 @@ const SLOT_TAGS = {
 
 function openAddItemModal() {
   // Reset form
-  ['aim_name','aim_qty','aim_weight','aim_price','aim_ac'].forEach(id=>{
+  ['aim_name','aim_qty','aim_weight','aim_price','aim_ac','aim_desc'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
   const tagSel=document.getElementById('aim_tag');
@@ -2601,6 +2620,7 @@ function confirmAddItem() {
   const qty   = document.getElementById('aim_qty').value.trim() || '1';
   const wt    = document.getElementById('aim_weight').value.trim();
   const prc   = document.getElementById('aim_price').value.trim();
+  const desc  = document.getElementById('aim_desc')?.value.trim() || '';
   const ac    = AC_BONUS_TAGS.has(tag) ? (document.getElementById('aim_ac').value.trim()) : '';
   const armorType = ARMOR_PROF_TAGS.has(tag)
     ? (document.querySelector('input[name="aim_armortype"]:checked')?.value || '')
@@ -2618,7 +2638,7 @@ function confirmAddItem() {
   const rows=tableData[tableId];
   let idx=rows.findIndex(r=>!r.name);
   if(idx===-1){ rows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); idx=rows.length-1; }
-  rows[idx]={name, tag, q:qty, w:wt, p:prc, a:ac, armorType};
+  rows[idx]={name, tag, q:qty, w:wt, p:prc, a:ac, armorType, desc};
   sortTableByTag(tableId);
   buildAllTables();
   document.getElementById('addItemModal').style.display='none';
@@ -2713,12 +2733,12 @@ function equipItemFromSlot(slotId, srcTable, rowIdx, modalId) {
     const returnRows = tableData['st_items'];
     let ri = returnRows.findIndex(r => !r.name);
     if (ri === -1) { returnRows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = returnRows.length - 1; }
-    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'' };
+    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'', ammo: Array.isArray(existing.ammo) ? existing.ammo : [], desc: existing.desc||'' };
     sortTableByTag('st_items');
   }
 
-  // Equip item into slotData
-  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'', armorType: item.armorType||'' };
+  // Equip item into slotData — preserve ammo array for Ammunition items
+  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'', armorType: item.armorType||'', ammo: Array.isArray(item.ammo) ? item.ammo : [], desc: item.desc||'' };
 
   // Remove from source table
   tableData[srcTable][rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
@@ -2995,6 +3015,361 @@ function bookDelete() {
 }
 
 /* ══════════════════════════════════════════════════════════
+   AMMO MODAL  — manage contents of an Ammunition item (inventory)
+   and equipped Quiver slot
+══════════════════════════════════════════════════════════ */
+function openAmmoModal(tableId, rowIdx) {
+  document.getElementById('ammoModal')?.remove();
+  const item = tableData[tableId][rowIdx];
+  if (!item) return;
+  if (!Array.isArray(item.ammo)) item.ammo = [];
+
+  const isBackpack = tableId === 'bp_items';
+  const isSteed    = tableId === 'st_items';
+
+  const ammoMoveToBpBtn = isSteed
+    ? `<button class="rest-btn" onclick="ammoMoveTo('st_items','bp_items')"
+         style="flex:1;background:rgba(30,40,60,.4);border-color:rgba(80,100,180,.45);color:rgba(180,200,255,.8);">
+         🎒 → Backpack
+       </button>` : '';
+  const ammoMoveToStBtn = isBackpack
+    ? `<button class="rest-btn" onclick="ammoMoveTo('bp_items','st_items')"
+         style="flex:1;background:rgba(30,20,60,.4);border-color:rgba(100,80,180,.45);color:rgba(200,180,255,.8);">
+         🐴 → Steed
+       </button>` : '';
+
+  const renderAmmoRows = () => {
+    if (item.ammo.length === 0) {
+      return `<div style="padding:10px 6px;font-family:'IM Fell English',serif;font-size:11px;
+        color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No ammunition added yet</div>`;
+    }
+    return item.ammo.map((a, i) => `
+      <div class="inv-tbl-row inv-item-row" onclick="ammoOpenDetail(${i},'ammoModal')"
+        title="Click to manage"
+        style="cursor:pointer;transition:background .12s;"
+        onmouseover="this.style.background='rgba(139,106,0,.15)'"
+        onmouseout="this.style.background=''">
+        <div class="cell-name" style="display:flex;align-items:center;gap:2px;overflow:hidden;">
+          <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${a.name}</span>
+          <span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.45);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">Ammo</span>
+        </div>
+        <div class="cell-q" style="display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:13px;">${a.qty||1}</span>
+        </div>
+      </div>`).join('');
+  };
+
+  const metaStr = [item.w ? item.w + ' kg' : '', item.p || ''].filter(Boolean).join(' · ');
+
+  const o = document.createElement('div');
+  o.id = 'ammoModal'; o.className = 'modal-overlay';
+  o.innerHTML = `
+    <div class="modal" style="max-width:600px;padding:28px 44px;">
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+        <h2 style="font-size:19px;margin:0;">🏹 ${item.name}</h2>
+        <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);">Ammunition</span>
+      </div>
+      ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:16px;">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
+
+      <div style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:8px;">AMMUNITION</div>
+      <div class="inv-tbl-hdr">
+        <div class="inv-tbl-hdr-cell itc-name">Type</div>
+        <div class="inv-tbl-hdr-cell itc-q">Q</div>
+      </div>
+      <div id="ammo_list" style="max-height:220px;overflow-y:auto;margin-bottom:12px;">${renderAmmoRows()}</div>
+
+      <div style="display:flex;gap:6px;margin-bottom:16px;padding-top:8px;border-top:1px solid rgba(139,106,0,.25);">
+        <input type="text" id="ammo_new_name" placeholder="Add ammunition type (e.g. Arrows)..."
+          style="flex:1;height:30px;font-size:12px;padding:0 8px;"
+          onkeydown="if(event.key==='Enter') ammoAddType('ammoModal')">
+        <button onclick="ammoAddType('ammoModal')" class="rest-btn"
+          style="padding:4px 12px;font-size:11px;">+ Add</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;
+                  border-top:1px solid rgba(139,106,0,.25);padding-top:12px;">
+        <div>
+          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Weight (kg)</label>
+          <input type="text" id="ammoMgmt_w" value="${item.w||''}" placeholder="—"
+            style="width:100%;height:28px;font-size:13px;text-align:center;">
+        </div>
+        <div>
+          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Price</label>
+          <input type="text" id="ammoMgmt_p" value="${item.p||''}" placeholder="—"
+            style="width:100%;height:28px;font-size:13px;text-align:center;">
+        </div>
+      </div>
+
+      ${(ammoMoveToBpBtn || ammoMoveToStBtn) ? `
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        ${ammoMoveToBpBtn}${ammoMoveToStBtn}
+      </div>` : ''}
+
+      <div style="display:flex;gap:8px;">
+        <button class="rest-btn" onclick="ammoSave()" style="flex:2;">Save & Close</button>
+        <button class="rest-btn" onclick="ammoDelete()"
+          style="flex:1;background:#3a0000;border-color:#882222;color:#ff6666;">Delete</button>
+        <button class="rest-btn" onclick="document.getElementById('ammoModal').remove()"
+          style="flex:1;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
+      </div>
+    </div>`;
+
+  o._tableId = tableId;
+  o._rowIdx  = rowIdx;
+  o._renderRows = renderAmmoRows;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+/* ── Equipped Quiver modal — shows ammo in the equipped quiver ── */
+function openEquippedQuiverModal() {
+  document.getElementById('equippedQuiverModal')?.remove();
+  const d = slotData['ring2'];
+  if (!d || !d.name) return;
+  if (!Array.isArray(d.ammo)) d.ammo = [];
+
+  const renderAmmoRows = () => {
+    const listEl = document.getElementById('equippedAmmo_list');
+    if (!listEl) return;
+    if (d.ammo.length === 0) {
+      listEl.innerHTML = `<div style="padding:10px 6px;font-family:'IM Fell English',serif;font-size:11px;
+        color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No ammunition in quiver</div>`;
+      return;
+    }
+    listEl.innerHTML = d.ammo.map((a, i) => `
+      <div class="inv-tbl-row inv-item-row" onclick="ammoOpenDetail(${i},'equippedQuiverModal')"
+        title="Click to manage"
+        style="cursor:pointer;transition:background .12s;"
+        onmouseover="this.style.background='rgba(139,106,0,.15)'"
+        onmouseout="this.style.background=''">
+        <div class="cell-name" style="display:flex;align-items:center;gap:2px;overflow:hidden;">
+          <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${a.name}</span>
+          <span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.45);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">Ammo</span>
+        </div>
+        <div class="cell-q" style="display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:13px;">${a.qty||1}</span>
+        </div>
+      </div>`).join('');
+  };
+
+  const metaStr = [d.w ? d.w + ' kg' : '', d.p || ''].filter(Boolean).join(' · ');
+
+  const o = document.createElement('div');
+  o.id = 'equippedQuiverModal'; o.className = 'modal-overlay';
+  o.innerHTML = `
+    <div class="modal" style="max-width:600px;padding:28px 44px;">
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+        <h2 style="font-size:19px;margin:0;">🏹 ${d.name}</h2>
+        <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);">Equipped · Quiver</span>
+      </div>
+      ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:16px;">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
+
+      <div style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:8px;">AMMUNITION</div>
+      <div class="inv-tbl-hdr">
+        <div class="inv-tbl-hdr-cell itc-name">Type</div>
+        <div class="inv-tbl-hdr-cell itc-q">Q</div>
+      </div>
+      <div id="equippedAmmo_list" style="max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>
+
+      <div style="display:flex;gap:6px;margin-bottom:16px;padding-top:8px;border-top:1px solid rgba(139,106,0,.25);">
+        <input type="text" id="equippedAmmo_new_name" placeholder="Add ammunition type (e.g. Arrows)..."
+          style="flex:1;height:30px;font-size:12px;padding:0 8px;"
+          onkeydown="if(event.key==='Enter') ammoAddType('equippedQuiverModal')">
+        <button onclick="ammoAddType('equippedQuiverModal')" class="rest-btn"
+          style="padding:4px 12px;font-size:11px;">+ Add</button>
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button class="rest-btn" onclick="_saveData();document.getElementById('equippedQuiverModal').remove()" style="flex:2;">Save & Close</button>
+        <button class="rest-btn" onclick="unequipItem('ring2')"
+          style="flex:1;background:rgba(40,20,60,.45);border-color:rgba(100,80,180,.5);color:rgba(200,180,255,.85);">↩ Unequip</button>
+        <button class="rest-btn" onclick="document.getElementById('equippedQuiverModal').remove()"
+          style="flex:1;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
+      </div>
+    </div>`;
+
+  o._source = 'equipped';
+  o._renderRows = renderAmmoRows;
+  document.body.appendChild(o);
+  renderAmmoRows();
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+/* ── Shared ammo helpers (work for both inventory ammoModal and equippedQuiverModal) ── */
+function _getAmmoArray(modalId) {
+  if (modalId === 'equippedQuiverModal') {
+    const d = slotData['ring2'];
+    if (!d) return null;
+    if (!Array.isArray(d.ammo)) d.ammo = [];
+    return d.ammo;
+  }
+  const modal = document.getElementById('ammoModal');
+  if (!modal) return null;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  if (!item) return null;
+  if (!Array.isArray(item.ammo)) item.ammo = [];
+  return item.ammo;
+}
+
+function ammoAddType(modalId) {
+  const inputId = modalId === 'equippedQuiverModal' ? 'equippedAmmo_new_name' : 'ammo_new_name';
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  const name = inp.value.trim();
+  if (!name) return;
+  const arr = _getAmmoArray(modalId);
+  if (!arr) return;
+  arr.push({ name, qty: 1 });
+  inp.value = '';
+  _ammoRerenderList(modalId);
+  if (modalId === 'equippedQuiverModal') _saveData();
+}
+
+function ammoOpenDetail(idx, modalId) {
+  const arr = _getAmmoArray(modalId);
+  const a = arr?.[idx];
+  if (!a) return;
+  const existing = document.getElementById('ammoDetailModal');
+  if (existing) existing.remove();
+
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'ammoDetailModal';
+  o.innerHTML = `<div class="modal" style="max-width:380px;padding:28px 36px;">
+    <div style="display:flex;align-items:baseline;justify-content:center;gap:0;margin-bottom:4px;flex-wrap:wrap;">
+      <h2 style="font-size:19px;margin:0;">${a.name}</h2>
+      <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);margin-left:8px;">Ammo</span>
+    </div>
+
+    <div style="margin:16px 0 14px;border-top:1px solid rgba(139,106,0,.25);padding-top:14px;">
+      <div style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.5px;margin-bottom:10px;text-align:center;">QUANTITY</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+        <button onclick="ammoDetailAdjQty(${idx},'${modalId}',-1)"
+          style="width:36px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.45);border:none;color:var(--text-gold);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;"
+          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
+        <div style="text-align:center;min-width:60px;">
+          <div id="ammoDetail_qty" style="font-family:var(--got);font-size:28px;color:var(--text-gold);line-height:1;text-shadow:0 0 10px rgba(232,200,74,.4);">${a.qty||1}</div>
+          <div style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.35);letter-spacing:1px;margin-top:3px;">QUANTITY</div>
+        </div>
+        <button onclick="ammoDetailAdjQty(${idx},'${modalId}',+1)"
+          style="width:36px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.45);border:none;color:var(--text-gold);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;"
+          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="rest-btn" onclick="document.getElementById('ammoDetailModal').remove()"
+        style="flex:1;">Close</button>
+      <button class="rest-btn" onclick="ammoDetailDelete(${idx},'${modalId}')"
+        style="background:#3a0000;border-color:#882222;color:#ff6666;">Delete</button>
+    </div>
+  </div>`;
+  o._ammoIdx = idx;
+  o._modalId = modalId;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function ammoDetailAdjQty(idx, modalId, delta) {
+  const arr = _getAmmoArray(modalId);
+  if (!arr?.[idx]) return;
+  arr[idx].qty = Math.max(0, (arr[idx].qty || 1) + delta);
+  const detailQty = document.getElementById('ammoDetail_qty');
+  if (detailQty) detailQty.textContent = arr[idx].qty;
+  // Update list row
+  const listId = modalId === 'equippedQuiverModal' ? 'equippedAmmo_list' : 'ammo_list';
+  const listEl = document.getElementById(listId);
+  if (listEl) {
+    const rows = listEl.querySelectorAll('.inv-tbl-row');
+    if (rows[idx]) {
+      const qSpan = rows[idx].querySelector('.cell-q span');
+      if (qSpan) qSpan.textContent = arr[idx].qty;
+    }
+  }
+  if (modalId === 'equippedQuiverModal') _saveData();
+}
+
+function ammoDetailDelete(idx, modalId) {
+  const arr = _getAmmoArray(modalId);
+  if (!arr) return;
+  arr.splice(idx, 1);
+  document.getElementById('ammoDetailModal')?.remove();
+  _ammoRerenderList(modalId);
+  if (modalId === 'equippedQuiverModal') _saveData();
+}
+
+function _ammoRerenderList(modalId) {
+  const listId = modalId === 'equippedQuiverModal' ? 'equippedAmmo_list' : 'ammo_list';
+  const arr = _getAmmoArray(modalId);
+  const listEl = document.getElementById(listId);
+  if (!listEl || !arr) return;
+  if (arr.length === 0) {
+    listEl.innerHTML = `<div style="padding:10px 6px;font-family:'IM Fell English',serif;font-size:11px;
+      color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No ammunition added yet</div>`;
+    return;
+  }
+  listEl.innerHTML = arr.map((a, i) => `
+    <div class="inv-tbl-row inv-item-row" onclick="ammoOpenDetail(${i},'${modalId}')"
+      title="Click to manage"
+      style="cursor:pointer;transition:background .12s;"
+      onmouseover="this.style.background='rgba(139,106,0,.15)'"
+      onmouseout="this.style.background=''">
+      <div class="cell-name" style="display:flex;align-items:center;gap:2px;overflow:hidden;">
+        <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${a.name}</span>
+        <span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.45);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">Ammo</span>
+      </div>
+      <div class="cell-q" style="display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:13px;">${a.qty||1}</span>
+      </div>
+    </div>`).join('');
+}
+
+function ammoSave() {
+  const modal = document.getElementById('ammoModal');
+  if (!modal) return;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  if (!item) return;
+  item.w = document.getElementById('ammoMgmt_w')?.value.trim() || item.w;
+  item.p = document.getElementById('ammoMgmt_p')?.value.trim() || item.p;
+  buildAllTables();
+  calcWeights();
+  _saveData();
+  modal.remove();
+}
+
+function ammoDelete() {
+  const modal = document.getElementById('ammoModal');
+  if (!modal) return;
+  tableData[modal._tableId][modal._rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
+  sortTableByTag(modal._tableId);
+  buildAllTables();
+  calcWeights();
+  calcDC();
+  _saveData();
+  modal.remove();
+}
+
+function ammoMoveTo(fromTable, toTable) {
+  const modal = document.getElementById('ammoModal');
+  if (!modal) return;
+  const { _tableId, _rowIdx } = modal;
+  const item = tableData[_tableId][_rowIdx];
+  if (!item) return;
+  item.w = document.getElementById('ammoMgmt_w')?.value.trim() || item.w;
+  item.p = document.getElementById('ammoMgmt_p')?.value.trim() || item.p;
+  const toRows = tableData[toTable];
+  let ti = toRows.findIndex(r => !r.name);
+  if (ti === -1) { toRows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); ti = toRows.length - 1; }
+  toRows[ti] = {...item};
+  tableData[fromTable][_rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
+  if (toTable === 'bp_items' || toTable === 'st_items') sortTableByTag(toTable);
+  buildAllTables();
+  calcWeights();
+  calcDC();
+  _saveData();
+  modal.remove();
+}
+
+/* ══════════════════════════════════════════════════════════
    TOOLKIT MODAL  — manage contents of a Tools item
 ══════════════════════════════════════════════════════════ */
 function openToolkitModal(tableId, rowIdx) {
@@ -3012,29 +3387,18 @@ function openToolkitModal(tableId, rowIdx) {
       return;
     }
     listEl.innerHTML = item.toolkit.map((t, i) => `
-      <div style="display:flex;align-items:center;gap:6px;padding:6px 4px;margin-bottom:4px;
-                  border-bottom:1px solid rgba(139,106,0,.15);">
-        <span style="font-family:'IM Fell English',serif;font-size:13px;flex:1;color:#e8dfc0;">${t.name}</span>
-        <button onclick="toolkitAdjQty(${i},-1)"
-          style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(139,106,0,.5);
-                 background:rgba(60,30,0,.5);color:var(--text-gold);font-size:14px;font-weight:700;
-                 cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;
-                 transition:filter .15s;"
-          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
-        <span style="font-family:var(--got);font-size:15px;color:var(--text-gold);min-width:28px;
-               text-align:center;text-shadow:0 0 6px rgba(232,200,74,.4);">${t.qty}</span>
-        <button onclick="toolkitAdjQty(${i},+1)"
-          style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(139,106,0,.5);
-                 background:rgba(60,30,0,.5);color:var(--text-gold);font-size:14px;font-weight:700;
-                 cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;
-                 transition:filter .15s;"
-          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
-        <button onclick="toolkitDeleteTool(${i})"
-          style="width:22px;height:22px;border:1px solid rgba(120,30,30,.5);border-radius:2px;
-                 background:rgba(50,10,10,.5);color:#ff6666;font-size:11px;cursor:pointer;
-                 display:flex;align-items:center;justify-content:center;line-height:1;
-                 transition:filter .15s;"
-          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">✕</button>
+      <div class="inv-tbl-row inv-item-row" onclick="toolkitOpenDetail(${i})"
+        title="Click to manage"
+        style="cursor:pointer;transition:background .12s;"
+        onmouseover="this.style.background='rgba(139,106,0,.15)'"
+        onmouseout="this.style.background=''">
+        <div class="cell-name" style="display:flex;align-items:center;gap:2px;overflow:hidden;">
+          <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${t.name}</span>
+          <span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.45);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">Tool</span>
+        </div>
+        <div class="cell-q" style="display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:13px;">${t.qty||1}</span>
+        </div>
       </div>`).join('');
   };
 
@@ -3067,6 +3431,11 @@ function openToolkitModal(tableId, rowIdx) {
       ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:16px;">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
 
       <div style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:8px;">TOOLKIT CONTENTS</div>
+      <!-- Header row -->
+      <div class="inv-tbl-hdr">
+        <div class="inv-tbl-hdr-cell itc-name">Tool</div>
+        <div class="inv-tbl-hdr-cell itc-q">Q</div>
+      </div>
       <div id="toolkit_list" style="max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>
 
       <!-- Add tool row -->
@@ -3135,6 +3504,81 @@ function toolkitMoveTo(fromTable, toTable) {
   calcDC();
   _saveData();
   modal.remove();
+}
+
+function toolkitOpenDetail(idx) {
+  const modal = document.getElementById('toolkitModal');
+  if (!modal) return;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  const t = item?.toolkit?.[idx];
+  if (!t) return;
+  const existing = document.getElementById('toolkitDetailModal');
+  if (existing) existing.remove();
+
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'toolkitDetailModal';
+  o.innerHTML = `<div class="modal" style="max-width:380px;padding:28px 36px;">
+    <div style="display:flex;align-items:baseline;justify-content:center;gap:0;margin-bottom:4px;flex-wrap:wrap;">
+      <h2 style="font-size:19px;margin:0;">${t.name}</h2>
+      <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);margin-left:8px;">Tool</span>
+    </div>
+
+    <div style="margin:16px 0 14px;border-top:1px solid rgba(139,106,0,.25);padding-top:14px;">
+      <div style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.5px;margin-bottom:10px;text-align:center;">QUANTITY</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+        <button onclick="toolkitDetailAdjQty(${idx},-1)"
+          style="width:36px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.45);border:none;color:var(--text-gold);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;"
+          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
+        <div style="text-align:center;min-width:60px;">
+          <div id="toolkitDetail_qty" style="font-family:var(--got);font-size:28px;color:var(--text-gold);line-height:1;text-shadow:0 0 10px rgba(232,200,74,.4);">${t.qty||1}</div>
+          <div style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.35);letter-spacing:1px;margin-top:3px;">QUANTITY</div>
+        </div>
+        <button onclick="toolkitDetailAdjQty(${idx},+1)"
+          style="width:36px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.45);border:none;color:var(--text-gold);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;"
+          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="rest-btn" onclick="document.getElementById('toolkitDetailModal').remove()"
+        style="flex:1;">Close</button>
+      <button class="rest-btn" onclick="toolkitDetailDelete(${idx})"
+        style="background:#3a0000;border-color:#882222;color:#ff6666;">Delete</button>
+    </div>
+  </div>`;
+  o._toolIdx = idx;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function toolkitDetailAdjQty(idx, delta) {
+  const modal = document.getElementById('toolkitModal');
+  if (!modal) return;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  if (!item?.toolkit?.[idx]) return;
+  item.toolkit[idx].qty = Math.max(1, (item.toolkit[idx].qty || 1) + delta);
+  // Update detail display
+  const detailQty = document.getElementById('toolkitDetail_qty');
+  if (detailQty) detailQty.textContent = item.toolkit[idx].qty;
+  // Refresh list row qty
+  const listEl = document.getElementById('toolkit_list');
+  if (listEl) {
+    const rows = listEl.querySelectorAll('.inv-tbl-row');
+    if (rows[idx]) {
+      const qSpan = rows[idx].querySelector('.cell-q span');
+      if (qSpan) qSpan.textContent = item.toolkit[idx].qty;
+    }
+  }
+}
+
+function toolkitDetailDelete(idx) {
+  const modal = document.getElementById('toolkitModal');
+  if (!modal) return;
+  const item = tableData[modal._tableId][modal._rowIdx];
+  if (!item?.toolkit) return;
+  item.toolkit.splice(idx, 1);
+  document.getElementById('toolkitDetailModal')?.remove();
+  window._toolkitRenderList?.();
 }
 
 function toolkitAdjQty(idx, delta) {
