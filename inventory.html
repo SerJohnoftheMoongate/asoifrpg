@@ -1644,6 +1644,14 @@ function load() {
 
   // Dropdowns need rehydration
   updateSpecOptions(false);
+  // Restore spec after options are populated (generic restore can't set it — options don't exist yet)
+  if (d.spec) {
+    const specEl = document.getElementById('spec');
+    if (specEl) {
+      const match = [...specEl.options].find(o => o.textContent === d.spec);
+      if (match) specEl.value = match.value;
+    }
+  }
   const _loadedOrigin = document.getElementById('origin') ? document.getElementById('origin').value : '';
   updateCultureDropdown(_loadedOrigin);
   if (d.culture) {
