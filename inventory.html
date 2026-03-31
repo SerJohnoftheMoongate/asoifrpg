@@ -2258,22 +2258,11 @@ function openItemModal(tableId, rowIdx) {
         </div>
         <div>
           <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Price</label>
-          <div style="display:flex;gap:0;height:28px;">
+          <div style="display:flex;flex-direction:row;gap:0;height:28px;">
             <input type="text" id="itemMgmt_p" value="${item.p||''}" placeholder="—"
-              style="flex:1;height:100%;font-size:13px;text-align:center;border-right:none;min-width:0;">
-            <div style="display:flex;border:1px solid var(--gold);border-left:none;">
-              ${['g','s','c'].map(k => {
-                const cur = CURRENCIES[k];
-                const sel = (item.pc || 'g') === k;
-                return `<button type="button" id="itemMgmt_pc_${k}" onclick="selectItemMgmtCurrency('${k}')"
-                  data-selected="${sel ? '1' : '0'}"
-                  style="width:22px;height:100%;border:none;${k!=='c'?'border-right:1px solid rgba(184,134,11,.3);':''}
-                         background:${sel ? cur.activeBg : cur.inactiveBg};
-                         cursor:pointer;font-family:var(--got);font-size:8px;
-                         color:${sel ? cur.activeColor : cur.inactiveColor};
-                         letter-spacing:.3px;transition:all .15s;"
-                  title="${cur.title}">${cur.label}</button>`;
-              }).join('')}
+              style="flex:1;height:28px;font-size:13px;text-align:center;border-right:none;min-width:0;box-sizing:border-box;">
+            <div style="display:flex;flex-direction:row;flex-shrink:0;border:1px solid var(--gold);border-left:none;height:28px;">
+              ${['g','s','c'].map(k => { const cur = CURRENCIES[k]; const sel = (item.pc||'g')===k; return `<button type="button" id="itemMgmt_pc_${k}" onclick="selectItemMgmtCurrency('${k}')" data-selected="${sel?'1':'0'}" title="${cur.title}" style="width:22px;height:28px;border:none;${k!=='c'?'border-right:1px solid rgba(184,134,11,.3);':''}background:${sel?cur.activeBg:cur.inactiveBg};cursor:pointer;font-family:var(--got);font-size:8px;color:${sel?cur.activeColor:cur.inactiveColor};letter-spacing:.3px;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;">${cur.label}</button>`; }).join('')}
             </div>
           </div>
         </div>
