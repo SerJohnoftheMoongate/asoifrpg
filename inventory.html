@@ -2258,8 +2258,24 @@ function openItemModal(tableId, rowIdx) {
         </div>
         <div>
           <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Price</label>
-          <input type="text" id="itemMgmt_p" value="${item.p||''}" placeholder="—"
-            style="width:100%;height:28px;font-size:13px;text-align:center;">
+          <div style="display:flex;gap:0;height:28px;">
+            <input type="text" id="itemMgmt_p" value="${item.p||''}" placeholder="—"
+              style="flex:1;height:100%;font-size:13px;text-align:center;border-right:none;min-width:0;">
+            <div style="display:flex;border:1px solid var(--gold);border-left:none;">
+              ${['g','s','c'].map(k => {
+                const cur = CURRENCIES[k];
+                const sel = (item.pc || 'g') === k;
+                return `<button type="button" id="itemMgmt_pc_${k}" onclick="selectItemMgmtCurrency('${k}')"
+                  data-selected="${sel ? '1' : '0'}"
+                  style="width:22px;height:100%;border:none;${k!=='c'?'border-right:1px solid rgba(184,134,11,.3);':''}
+                         background:${sel ? cur.activeBg : cur.inactiveBg};
+                         cursor:pointer;font-family:var(--got);font-size:8px;
+                         color:${sel ? cur.activeColor : cur.inactiveColor};
+                         letter-spacing:.3px;transition:all .15s;"
+                  title="${cur.title}">${cur.label}</button>`;
+              }).join('')}
+            </div>
+          </div>
         </div>
         <div>
           <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Quantity</label>
@@ -2421,7 +2437,8 @@ function itemModalSave() {
   if (!item) return;
   item.q = String(_currentQty);
   item.w = document.getElementById('itemMgmt_w')?.value.trim() || item.w;
-  item.p = document.getElementById('itemMgmt_p')?.value.trim() || item.p;
+  item.p  = document.getElementById('itemMgmt_p')?.value.trim() || item.p;
+  item.pc = getItemMgmtCurrency();
   // If edit area is open, confirm it first so hidden field is up to date
   const editVisible = document.getElementById('itemDesc_edit')?.style.display !== 'none';
   if (editVisible) itemDescConfirm();
@@ -2929,6 +2946,25 @@ function selectAimCurrency(key) {
 function getAimCurrency() {
   for (const k of ['g','s','c']) {
     const btn = document.getElementById('aim_pc_' + k);
+    if (btn && btn.dataset.selected === '1') return k;
+  }
+  return 'g';
+}
+
+function selectItemMgmtCurrency(key) {
+  ['g','s','c'].forEach(k => {
+    const btn = document.getElementById('itemMgmt_pc_' + k);
+    if (!btn) return;
+    const cur = CURRENCIES[k];
+    btn.style.background  = k === key ? cur.activeBg    : cur.inactiveBg;
+    btn.style.color       = k === key ? cur.activeColor  : cur.inactiveColor;
+    btn.dataset.selected  = k === key ? '1' : '0';
+  });
+}
+
+function getItemMgmtCurrency() {
+  for (const k of ['g','s','c']) {
+    const btn = document.getElementById('itemMgmt_pc_' + k);
     if (btn && btn.dataset.selected === '1') return k;
   }
   return 'g';
