@@ -1193,8 +1193,21 @@ textarea{resize:none;font-weight:400;font-size:12px}
         </div>
         <div>
           <label class="aim-lbl" style="font-size:10px;">Price</label>
-          <input type="text" id="aim_price" placeholder="—"
-            style="width:100%;height:36px;font-size:15px;text-align:center;">
+          <div style="display:flex;gap:0;height:36px;">
+            <input type="text" id="aim_price" placeholder="—"
+              style="flex:1;height:100%;font-size:15px;text-align:center;border-right:none;min-width:0;">
+            <div style="display:flex;border:1px solid var(--gold);border-left:none;">
+              <button type="button" id="aim_pc_g" onclick="selectAimCurrency('g')"
+                style="width:28px;height:100%;border:none;border-right:1px solid rgba(184,134,11,.4);background:rgba(184,134,11,.5);cursor:pointer;font-family:var(--got);font-size:9px;color:#ffd700;letter-spacing:.3px;transition:all .15s;"
+                title="Gold Dragons">G</button>
+              <button type="button" id="aim_pc_s" onclick="selectAimCurrency('s')"
+                style="width:28px;height:100%;border:none;border-right:1px solid rgba(184,134,11,.4);background:rgba(30,25,10,.4);cursor:pointer;font-family:var(--got);font-size:9px;color:rgba(192,192,192,.5);letter-spacing:.3px;transition:all .15s;"
+                title="Silver Stags">S</button>
+              <button type="button" id="aim_pc_c" onclick="selectAimCurrency('c')"
+                style="width:28px;height:100%;border:none;background:rgba(30,25,10,.4);cursor:pointer;font-family:var(--got);font-size:9px;color:rgba(180,100,40,.5);letter-spacing:.3px;transition:all .15s;"
+                title="Copper Pennies">C</button>
+            </div>
+          </div>
         </div>
       </div>
       <div>
@@ -1905,6 +1918,13 @@ function buildTable(containerId, cols) {
           ${badge}
         </div>`;
       }
+      if (c === 'p' && r.p) {
+        const cur = CURRENCIES[r.pc || 'g'] || CURRENCIES.g;
+        return `<div class="cell-p" style="display:flex;align-items:center;justify-content:center;gap:2px;">
+          <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${cur.color};box-shadow:0 0 3px ${cur.color}88;flex-shrink:0;"></span>
+          <span style="font-size:13px;">${r.p}</span>
+        </div>`;
+      }
       return `<div class="cell-${c}" style="display:flex;align-items:center;justify-content:center;">
         <span style="font-size:13px;">${r[c]||''}</span>
       </div>`;
@@ -2155,7 +2175,7 @@ function unequipItem(slotId) {
   const rows = tableData['st_items'];
   let ri = rows.findIndex(r => !r.name);
   if (ri === -1) { rows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = rows.length - 1; }
-  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'', ammo: Array.isArray(d.ammo) ? d.ammo : [], desc: d.desc||'', resistances: Array.isArray(d.resistances) ? d.resistances : [], vulnerabilities: Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [], condition: d.condition||'decent' };
+  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'', ammo: Array.isArray(d.ammo) ? d.ammo : [], desc: d.desc||'', resistances: Array.isArray(d.resistances) ? d.resistances : [], vulnerabilities: Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [], condition: d.condition||'decent', pc: d.pc||'g' };
   sortTableByTag('st_items');
   delete slotData[slotId];
   updateSlotUI(slotId);
@@ -2877,11 +2897,49 @@ const SLOT_TAGS = {
   shield:  ['Shield'],
 };
 
+/* ── Currency definitions ── */
+const CURRENCIES = {
+  g: { label:'G', title:'Gold Dragons',   color:'#ffd700', activeColor:'#ffd700', activeBg:'rgba(184,134,11,.5)',  inactiveColor:'rgba(255,215,0,.35)',  inactiveBg:'rgba(30,25,10,.4)' },
+  s: { label:'S', title:'Silver Stags',   color:'#c0c8d4', activeColor:'#d0d8e4', activeBg:'rgba(140,150,170,.4)', inactiveColor:'rgba(192,192,192,.35)', inactiveBg:'rgba(30,25,10,.4)' },
+  c: { label:'C', title:'Copper Pennies', color:'#c87040', activeColor:'#e09060', activeBg:'rgba(140,80,30,.4)',   inactiveColor:'rgba(180,100,40,.35)',  inactiveBg:'rgba(30,25,10,.4)' },
+};
+
+function currencyDot(pc) {
+  const cur = CURRENCIES[pc] || CURRENCIES.g;
+  return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${cur.color};box-shadow:0 0 3px ${cur.color}88;flex-shrink:0;" title="${cur.title}"></span>`;
+}
+
+function selectAimCurrency(key) {
+  ['g','s','c'].forEach(k => {
+    const btn = document.getElementById('aim_pc_' + k);
+    if (!btn) return;
+    const cur = CURRENCIES[k];
+    if (k === key) {
+      btn.style.background = cur.activeBg;
+      btn.style.color = cur.activeColor;
+      btn.dataset.selected = '1';
+    } else {
+      btn.style.background = cur.inactiveBg;
+      btn.style.color = cur.inactiveColor;
+      btn.dataset.selected = '0';
+    }
+  });
+}
+
+function getAimCurrency() {
+  for (const k of ['g','s','c']) {
+    const btn = document.getElementById('aim_pc_' + k);
+    if (btn && btn.dataset.selected === '1') return k;
+  }
+  return 'g';
+}
+
 function openAddItemModal() {
   // Reset form
   ['aim_name','aim_qty','aim_weight','aim_price','aim_ac','aim_desc'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
+  selectAimCurrency('g'); // default to Gold Dragons
   const tagSel=document.getElementById('aim_tag');
   if(tagSel) tagSel.value='';
   const acRow  = document.getElementById('aim_ac_row');
@@ -3089,6 +3147,7 @@ function confirmAddItem() {
   const qty   = document.getElementById('aim_qty').value.trim() || '1';
   const wt    = document.getElementById('aim_weight').value.trim();
   const prc   = document.getElementById('aim_price').value.trim();
+  const pc    = getAimCurrency();
   const desc  = document.getElementById('aim_desc')?.value.trim() || '';
   const ac    = AC_BONUS_TAGS.has(tag) ? (document.getElementById('aim_ac').value.trim()) : '';
   const armorType = ARMOR_PROF_TAGS.has(tag)
@@ -3114,7 +3173,7 @@ function confirmAddItem() {
   const rows=tableData[tableId];
   let idx=rows.findIndex(r=>!r.name);
   if(idx===-1){ rows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); idx=rows.length-1; }
-  rows[idx]={name, tag, q:qty, w:wt, p:prc, a:ac, armorType, desc, resistances, vulnerabilities, condition};
+  rows[idx]={name, tag, q:qty, w:wt, p:prc, pc, a:ac, armorType, desc, resistances, vulnerabilities, condition};
   sortTableByTag(tableId);
   buildAllTables();
   document.getElementById('addItemModal').style.display='none';
@@ -3209,12 +3268,12 @@ function equipItemFromSlot(slotId, srcTable, rowIdx, modalId) {
     const returnRows = tableData['st_items'];
     let ri = returnRows.findIndex(r => !r.name);
     if (ri === -1) { returnRows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = returnRows.length - 1; }
-    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'', ammo: Array.isArray(existing.ammo) ? existing.ammo : [], desc: existing.desc||'', resistances: Array.isArray(existing.resistances) ? existing.resistances : [], vulnerabilities: Array.isArray(existing.vulnerabilities) ? existing.vulnerabilities : [], condition: existing.condition||'decent' };
+    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'', ammo: Array.isArray(existing.ammo) ? existing.ammo : [], desc: existing.desc||'', resistances: Array.isArray(existing.resistances) ? existing.resistances : [], vulnerabilities: Array.isArray(existing.vulnerabilities) ? existing.vulnerabilities : [], condition: existing.condition||'decent', pc: existing.pc||'g' };
     sortTableByTag('st_items');
   }
 
   // Equip item into slotData — preserve ammo array for Ammunition items
-  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'', armorType: item.armorType||'', ammo: Array.isArray(item.ammo) ? item.ammo : [], desc: item.desc||'', resistances: Array.isArray(item.resistances) ? item.resistances : [], vulnerabilities: Array.isArray(item.vulnerabilities) ? item.vulnerabilities : [], condition: item.condition||'decent' };
+  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'', armorType: item.armorType||'', ammo: Array.isArray(item.ammo) ? item.ammo : [], desc: item.desc||'', resistances: Array.isArray(item.resistances) ? item.resistances : [], vulnerabilities: Array.isArray(item.vulnerabilities) ? item.vulnerabilities : [], condition: item.condition||'decent', pc: item.pc||'g' };
 
   // Remove from source table
   tableData[srcTable][rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
