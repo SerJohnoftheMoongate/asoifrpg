@@ -1023,48 +1023,47 @@ function doRest(type){
     return;
   }
 
+  // Long rest: show confirmation modal first — effects run only on confirmLongRest()
   if(!isShort){
-    // Long rest: full HP, temp HP cleared, regain floor(level/2) HD, reset SR count
-    const mx=document.getElementById('hp_max'),cr=document.getElementById('hp_current'),tmp=document.getElementById('hp_temp');
-    if(mx&&cr&&mx.value) cr.value=mx.value;
-    if(tmp) tmp.value='0';
-    resetInspiration();
     const regain=Math.max(1,Math.floor(_cachedLevel/2));
-    setHD(Math.min(_cachedLevel, _currentHD+regain));
-    _shortRestCount=0;
-    updateShortRestBtn();
-    // Reset Hedge Knight daily oath on long rest
-    _hedgeKnightOath='';
-    saveHedgeKnightOath();
-    // Reset Septon daily aspect on long rest
-    _applyAspectProficiency(''); // removes prof from old aspect skill
-    _septonAspect='';
-    saveSeptonAspect();
-    // Reset Maester Stellar Points on long rest
-    if(_maesterLink === 'bronze'){ _stellarPoints = 3; saveStellarPoints(); }
-    applySpecFeatures();
-    save();
-  } else {
-    // Short rest: increment counter
-    _shortRestCount++;
-    updateShortRestBtn();
+    const mx=document.getElementById('hp_max');
+    const hpLine=mx&&mx.value
+      ?`Full HP restored to <strong style="color:var(--text-gold);">${mx.value}</strong>. Temporary HP cleared.`
+      :`HP fully restored. Temporary HP cleared.`;
+    const o=document.createElement('div');o.className='modal-overlay';o.id='restModal';
+    o.innerHTML=`<div class="modal" style="max-width:560px;padding:30px 48px;">
+      <h2 style="font-size:22px;margin-bottom:8px;">🌙 Long Rest</h2>
+      <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:15px;color:var(--text-gold);line-height:1.6;margin:0 auto 12px;max-width:340px;text-align:center;">
+        <em>"I think mothers and fathers made up the Gods because they wanted their children to sleep through the night."</em><br>
+        <span style="font-size:13px;opacity:.85">— Davos Seaworth</span>
+      </p>
+      <div style="margin:14px 0 20px;padding:12px 18px;background:rgba(0,0,0,.3);border:1px solid rgba(139,106,0,.3);border-radius:4px;font-family:'IM Fell English',serif;font-size:13px;color:#aaa;line-height:1.8;text-align:left;">
+        <p style="margin:0 0 3px;">• ${hpLine}</p>
+        <p style="margin:0 0 3px;">• Regain <strong style="color:var(--text-gold);">${regain}</strong> hit ${regain===1?'die':'dice'} (half level, rounded down).</p>
+        <p style="margin:0;">• Short rests reset. Daily abilities refreshed.</p>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button onclick="confirmLongRest()" style="min-width:150px;">🌙 Confirm &amp; Rest</button>
+        <button onclick="document.getElementById('restModal').remove()" style="background:rgba(80,50,4,.4);color:#888;border:1px solid rgba(139,106,0,.3);">← Go Back</button>
+      </div>
+    </div>`;
+    document.body.appendChild(o);o.onclick=e=>{if(e.target===o)o.remove()};
+    return;
   }
 
-  resetRestDots(isShort?'SR':'LR');
+  // Short rest: increment counter then show result modal
+  _shortRestCount++;
+  updateShortRestBtn();
+
+  resetRestDots('SR');
 
   const dieName=document.getElementById('hd_1').value||'HD';
   const maxHD=_cachedLevel;
   const curHD=_currentHD;
-
-  const title=isShort?'⚔ Short Rest':'🌙 Long Rest';
-  const quote=isShort
-    ?`<em>"Sleep is good. And books are better."</em><br><span style="font-size:13px;opacity:.85">~ Tyrion Lannister</span>`
-    :`<em>"I think mothers and fathers made up the Gods because they wanted their children to sleep through the night."</em><br><span style="font-size:13px;opacity:.85">— Davos Seaworth</span>`;
-
   const srRemaining=MAX_SHORT_RESTS-_shortRestCount;
-  const srNote=isShort?`<p style="font-family:var(--got);font-size:9px;color:${srRemaining===0?'#ff4444':'rgba(232,200,74,.5)'};letter-spacing:.5px;margin-bottom:6px;">${srRemaining===0?'⚠ No short rests remaining today':'Short rests remaining today: '+srRemaining}</p>`:'';
+  const srNote=`<p style="font-family:var(--got);font-size:9px;color:${srRemaining===0?'#ff4444':'rgba(232,200,74,.5)'};letter-spacing:.5px;margin-bottom:6px;">${srRemaining===0?'⚠ No short rests remaining today':'Short rests remaining today: '+srRemaining}</p>`;
 
-  const hdSection=isShort&&maxHD>0?`
+  const hdSection=maxHD>0?`
     <div style="margin:12px 0;padding:12px;background:rgba(0,0,0,.35);border:1px solid rgba(139,106,0,.4);border-radius:4px;">
       <p style="font-family:var(--got);font-size:11px;color:var(--gold-lt);margin-bottom:10px;letter-spacing:.5px;">SPEND HIT DICE <span style="opacity:1;color:var(--text-gold);font-size:12px;">(${curHD}/${maxHD} available · ${dieName} each)</span></p>
       <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
@@ -1076,24 +1075,54 @@ function doRest(type){
         <button onclick="adjustHDSpend(+1)" style="width:32px;height:32px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.5);border:none;color:var(--text-gold);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
       </div>
     </div>
-    <button onclick="confirmShortRest()" style="margin-right:8px;">Confirm & Rest</button>`:
-    (isShort?`<p style="color:#888;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:16px;">No hit dice available.</p><button onclick="this.closest('.modal-overlay').remove()" style="margin-right:8px;">Close</button>`
-    :`<p style="font-family:'IM Fell English',serif;font-size:13px;color:#aaa;margin-bottom:16px;">Regained <strong style="color:var(--text-gold)">${Math.max(1,Math.floor(_cachedLevel/2))}</strong> hit ${Math.max(1,Math.floor(_cachedLevel/2))===1?'die':'dice'} (half level, rounded down).</p>
-    <button onclick="this.closest('.modal-overlay').remove()">Close</button>`);
+    <button onclick="confirmShortRest()" style="margin-right:8px;">Confirm &amp; Rest</button>`
+    :`<p style="color:#888;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:16px;">No hit dice available.</p><button onclick="this.closest('.modal-overlay').remove()" style="margin-right:8px;">Close</button>`;
 
   const o=document.createElement('div');o.className='modal-overlay';
   o.id='restModal';
   o.innerHTML=`<div class="modal" style="max-width:560px;padding:30px 48px;">
-    <h2 style="font-size:22px;margin-bottom:8px;">${title}</h2>
-    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:15px;color:var(--text-gold);line-height:1.6;margin:0 auto 10px;max-width:300px;text-align:center;">${quote}</p>
+    <h2 style="font-size:22px;margin-bottom:8px;">⚔ Short Rest</h2>
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:15px;color:var(--text-gold);line-height:1.6;margin:0 auto 10px;max-width:300px;text-align:center;"><em>"Sleep is good. And books are better."</em><br><span style="font-size:13px;opacity:.85">~ Tyrion Lannister</span></p>
     ${srNote}
     ${hdSection}
-    ${isShort&&maxHD>0?`<button onclick="document.getElementById('restModal').remove()" style="background:rgba(80,50,4,.4);color:#888;border:1px solid rgba(139,106,0,.3);margin-top:6px;">Cancel</button>`:''}
+    ${maxHD>0?`<button onclick="document.getElementById('restModal').remove()" style="background:rgba(80,50,4,.4);color:#888;border:1px solid rgba(139,106,0,.3);margin-top:6px;">Cancel</button>`:''}
   </div>`;
   document.body.appendChild(o);
   o.onclick=e=>{if(e.target===o)o.remove()};
   window._hdSpend=0;
   window._hdMax=curHD;
+}
+
+function confirmLongRest(){
+  document.getElementById('restModal')?.remove();
+  // Execute all long rest effects
+  const mx=document.getElementById('hp_max'),cr=document.getElementById('hp_current'),tmp=document.getElementById('hp_temp');
+  if(mx&&cr&&mx.value) cr.value=mx.value;
+  if(tmp) tmp.value='0';
+  resetInspiration();
+  const regain=Math.max(1,Math.floor(_cachedLevel/2));
+  setHD(Math.min(_cachedLevel, _currentHD+regain));
+  _shortRestCount=0;
+  updateShortRestBtn();
+  _hedgeKnightOath=''; saveHedgeKnightOath();
+  _applyAspectProficiency(''); _septonAspect=''; saveSeptonAspect();
+  if(_maesterLink==='bronze'){ _stellarPoints=3; saveStellarPoints(); }
+  applySpecFeatures();
+  resetRestDots('LR');
+  save();
+  // Show result modal
+  const dieName=document.getElementById('hd_1').value||'HD';
+  const o=document.createElement('div');o.className='modal-overlay';o.id='restModal';
+  o.innerHTML=`<div class="modal" style="max-width:560px;padding:30px 48px;">
+    <h2 style="font-size:22px;margin-bottom:8px;">🌙 Long Rest</h2>
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:15px;color:var(--text-gold);line-height:1.6;margin:0 auto 10px;max-width:300px;text-align:center;">
+      <em>"I think mothers and fathers made up the Gods because they wanted their children to sleep through the night."</em><br>
+      <span style="font-size:13px;opacity:.85">— Davos Seaworth</span>
+    </p>
+    <p style="font-family:'IM Fell English',serif;font-size:13px;color:#aaa;margin-bottom:16px;">Regained <strong style="color:var(--text-gold);">${regain}</strong> hit ${regain===1?'die':'dice'} (half level, rounded down).</p>
+    <button onclick="this.closest('.modal-overlay').remove()">Close</button>
+  </div>`;
+  document.body.appendChild(o);o.onclick=e=>{if(e.target===o)o.remove()};
 }
 
 function adjustHDSpend(delta){
