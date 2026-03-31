@@ -1570,6 +1570,7 @@ function _collectSheetData() {
   try { d._cs_fighting_styles     = typeof _chosenStyles           !== 'undefined' ? _chosenStyles           : {}; } catch(e) {}
   try { d._cs_home_turf           = typeof _chosenTerrains         !== 'undefined' ? _chosenTerrains         : []; } catch(e) {}
   try { d._cs_cultural_ambassador = typeof _chosenCultures         !== 'undefined' ? _chosenCultures         : []; } catch(e) {}
+  try { d._cs_applied_culture_bonus = _appliedCultureBonus; } catch(e) {}
   try { d._cs_maester_link        = typeof _maesterLink            !== 'undefined' ? _maesterLink            : ''; } catch(e) {}
   try { d._cs_stellar_points      = typeof _stellarPoints          !== 'undefined' ? _stellarPoints          : 3;  } catch(e) {}
   try { d._cs_war_chest           = typeof _warChest               !== 'undefined' ? _warChest               : 0;  } catch(e) {}
@@ -1650,6 +1651,9 @@ function load(){
   // applyOriginProfs() repopulates the culture dropdown, wiping any value set by the generic
   // loop above — so we save it first and restore it afterwards.
   const _savedCulture = d.culture || '';
+  // Restore the previously applied bonus state so applyCultureBonus can correctly undo it
+  // before re-applying — without this the bonus stacks on every load.
+  if (d._cs_applied_culture_bonus) _appliedCultureBonus = d._cs_applied_culture_bonus;
   applyOriginProfs();
   if (_savedCulture) {
     const cSel = document.getElementById('culture');
