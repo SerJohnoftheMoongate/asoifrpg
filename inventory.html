@@ -2140,17 +2140,25 @@ function sortTableByTag(tableId) {
 }
 
 /* ── Move item between tables ── */
+function _getTableFor(tableId) {
+  return tableId === 'st2_items' ? tableData2 : tableData;
+}
+
 function moveItemTo(fromTable, fromIdx, toTable) {
-  const item = tableData[fromTable][fromIdx];
+  const fromData = _getTableFor(fromTable);
+  const toData   = _getTableFor(toTable);
+  const item = fromData[fromTable][fromIdx];
   if (!item || !item.name) return;
-  const toRows = tableData[toTable];
+  const toRows = toData[toTable];
   let ti = toRows.findIndex(r => !r.name);
   if (ti === -1) { toRows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); ti = toRows.length - 1; }
   toRows[ti] = {...item, q: item.q || '1'};
-  tableData[fromTable][fromIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
+  fromData[fromTable][fromIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
   // Sort destination
-  if (toTable === 'bp_items' || toTable === 'st_items') sortTableByTag(toTable);
+  if (toTable === 'st2_items') sortTableByTag2(toTable);
+  else sortTableByTag(toTable);
   buildAllTables();
+  if (extraSteedActive) buildTable2('st2_items', ['name','q','w','p']);
   calcWeights();
   calcDC();
   document.getElementById('itemMgmtModal')?.remove();
@@ -2192,16 +2200,23 @@ function openItemModal(tableId, rowIdx) {
 
   const tagLabel = item.tag ? `<span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);margin-left:8px;">${item.tag}</span>` : '';
 
-  const moveToBpBtn = isSteed
-    ? `<button class="rest-btn" onclick="moveItemTo('st_items',${rowIdx},'bp_items')"
+  const isExtra     = tableId === 'st2_items';
+  const moveToBpBtn = (isSteed || isExtra)
+    ? `<button class="rest-btn" onclick="moveItemTo('${tableId}',${rowIdx},'bp_items')"
          style="flex:1;background:rgba(30,40,60,.4);border-color:rgba(80,100,180,.45);color:rgba(180,200,255,.8);">
          🎒 → Backpack
        </button>` : '';
 
-  const moveToStBtn = isBackpack
-    ? `<button class="rest-btn" onclick="moveItemTo('bp_items',${rowIdx},'st_items')"
+  const moveToStBtn = (isBackpack || isExtra)
+    ? `<button class="rest-btn" onclick="moveItemTo('${tableId}',${rowIdx},'st_items')"
          style="flex:1;background:rgba(30,20,60,.4);border-color:rgba(100,80,180,.45);color:rgba(200,180,255,.8);">
          🐴 → Steed
+       </button>` : '';
+
+  const moveToSt2Btn = extraSteedActive && !isExtra
+    ? `<button class="rest-btn" onclick="moveItemTo('${tableId}',${rowIdx},'st2_items')"
+         style="flex:1;background:rgba(20,30,60,.4);border-color:rgba(80,60,200,.45);color:rgba(160,150,255,.8);">
+         🐴 → Extra Steed
        </button>` : '';
 
   const o = document.createElement('div');
@@ -2297,9 +2312,9 @@ function openItemModal(tableId, rowIdx) {
       })() : ''}
     </div>
 
-    ${(moveToBpBtn || moveToStBtn) ? `
+    ${(moveToBpBtn || moveToStBtn || moveToSt2Btn) ? `
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-      ${moveToBpBtn}${moveToStBtn}
+      ${moveToBpBtn}${moveToStBtn}${moveToSt2Btn}
     </div>` : ''}
 
     <div style="display:flex;gap:8px;margin-top:10px;">
@@ -3662,6 +3677,20 @@ function applySpecFeatures() {}
 /* ══════════════════════════════════════════════════════════
    BOOK MODAL  — large paged text editor per book item
 ══════════════════════════════════════════════════════════ */
+function _bookMoveButtons(tableId) {
+  const isBp = tableId === 'bp_items';
+  const isSt = tableId === 'st_items';
+  const isEx = tableId === 'st2_items';
+  const stl = 'flex:1;background:rgba(30,40,60,.4);border-color:rgba(80,100,180,.45);color:rgba(180,200,255,.8);';
+  const stl2 = 'flex:1;background:rgba(30,20,60,.4);border-color:rgba(100,80,180,.45);color:rgba(200,180,255,.8);';
+  const stl3 = 'flex:1;background:rgba(20,30,60,.4);border-color:rgba(80,60,200,.45);color:rgba(160,150,255,.8);';
+  const btns = [];
+  if (isSt || isEx) btns.push('<button class="rest-btn" onclick="bookMoveTo(&quot;bp_items&quot;)" style="' + stl + '">🎒 → Backpack</button>');
+  if (isBp || isEx) btns.push('<button class="rest-btn" onclick="bookMoveTo(&quot;st_items&quot;)" style="' + stl2 + '">🐴 → Steed</button>');
+  if (extraSteedActive && !isEx) btns.push('<button class="rest-btn" onclick="bookMoveTo(&quot;st2_items&quot;)" style="' + stl3 + '">🐴 → Extra Steed</button>');
+  return btns.length ? '<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">' + btns.join('') + '</div>' : '';
+}
+
 function openBookModal(tableId, rowIdx) {
   document.getElementById('bookModal')?.remove();
   const item = tableData[tableId][rowIdx];
@@ -3744,6 +3773,7 @@ function openBookModal(tableId, rowIdx) {
               style="width:100%;height:28px;font-size:13px;text-align:center;">
           </div>
         </div>
+        ${_bookMoveButtons(tableId)}
         <div style="display:flex;gap:8px;">
           <button class="rest-btn" onclick="bookSave()" style="flex:2;">Save & Close</button>
           <button class="rest-btn" onclick="bookDelete()"
@@ -3830,6 +3860,33 @@ function bookDelete() {
   _saveData();
 }
 
+function bookMoveTo(toTable) {
+  const modal = document.getElementById('bookModal');
+  if (!modal) return;
+  const { _tableId, _rowIdx } = modal;
+  const fromData = _getTableFor(_tableId);
+  const toData   = _getTableFor(toTable);
+  const item = fromData[_tableId][_rowIdx];
+  if (!item) return;
+  // Save current page text first
+  const ta = document.getElementById('book_page_text');
+  if (ta && item.pages) item.pages[window._bookGetPage?.() || 0] = ta.value;
+  item.w = document.getElementById('bookMgmt_w')?.value.trim() || item.w;
+  item.p = document.getElementById('bookMgmt_p')?.value.trim() || item.p;
+  const toRows = toData[toTable];
+  let ti = toRows.findIndex(r => !r.name);
+  if (ti === -1) { toRows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); ti = toRows.length - 1; }
+  toRows[ti] = {...item};
+  fromData[_tableId][_rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
+  if (toTable === 'st2_items') sortTableByTag2(toTable);
+  else sortTableByTag(toTable);
+  buildAllTables();
+  if (extraSteedActive) buildTable2('st2_items', ['name','q','w','p']);
+  calcWeights();
+  _saveData();
+  modal.remove();
+}
+
 /* ══════════════════════════════════════════════════════════
    AMMO MODAL  — manage contents of an Ammunition item (inventory)
    and equipped Quiver slot
@@ -3843,15 +3900,21 @@ function openAmmoModal(tableId, rowIdx) {
   const isBackpack = tableId === 'bp_items';
   const isSteed    = tableId === 'st_items';
 
-  const ammoMoveToBpBtn = isSteed
-    ? `<button class="rest-btn" onclick="ammoMoveTo('st_items','bp_items')"
+  const isExtra     = tableId === 'st2_items';
+  const ammoMoveToBpBtn = (isSteed || isExtra)
+    ? `<button class="rest-btn" onclick="ammoMoveTo('${tableId}','bp_items')"
          style="flex:1;background:rgba(30,40,60,.4);border-color:rgba(80,100,180,.45);color:rgba(180,200,255,.8);">
          🎒 → Backpack
        </button>` : '';
-  const ammoMoveToStBtn = isBackpack
-    ? `<button class="rest-btn" onclick="ammoMoveTo('bp_items','st_items')"
+  const ammoMoveToStBtn = (isBackpack || isExtra)
+    ? `<button class="rest-btn" onclick="ammoMoveTo('${tableId}','st_items')"
          style="flex:1;background:rgba(30,20,60,.4);border-color:rgba(100,80,180,.45);color:rgba(200,180,255,.8);">
          🐴 → Steed
+       </button>` : '';
+  const ammoMoveToSt2Btn = extraSteedActive && !isExtra
+    ? `<button class="rest-btn" onclick="ammoMoveTo('${tableId}','st2_items')"
+         style="flex:1;background:rgba(20,30,60,.4);border-color:rgba(80,60,200,.45);color:rgba(160,150,255,.8);">
+         🐴 → Extra Steed
        </button>` : '';
 
   const renderAmmoRows = () => {
@@ -3916,9 +3979,9 @@ function openAmmoModal(tableId, rowIdx) {
         </div>
       </div>
 
-      ${(ammoMoveToBpBtn || ammoMoveToStBtn) ? `
+      ${(ammoMoveToBpBtn || ammoMoveToStBtn || ammoMoveToSt2Btn) ? `
       <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-        ${ammoMoveToBpBtn}${ammoMoveToStBtn}
+        ${ammoMoveToBpBtn}${ammoMoveToStBtn}${ammoMoveToSt2Btn}
       </div>` : ''}
 
       <div style="display:flex;gap:8px;">
@@ -4168,17 +4231,21 @@ function ammoMoveTo(fromTable, toTable) {
   const modal = document.getElementById('ammoModal');
   if (!modal) return;
   const { _tableId, _rowIdx } = modal;
-  const item = tableData[_tableId][_rowIdx];
+  const fromData = _getTableFor(fromTable);
+  const toData   = _getTableFor(toTable);
+  const item = fromData[_tableId][_rowIdx];
   if (!item) return;
   item.w = document.getElementById('ammoMgmt_w')?.value.trim() || item.w;
   item.p = document.getElementById('ammoMgmt_p')?.value.trim() || item.p;
-  const toRows = tableData[toTable];
+  const toRows = toData[toTable];
   let ti = toRows.findIndex(r => !r.name);
   if (ti === -1) { toRows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); ti = toRows.length - 1; }
   toRows[ti] = {...item};
-  tableData[fromTable][_rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
-  if (toTable === 'bp_items' || toTable === 'st_items') sortTableByTag(toTable);
+  fromData[fromTable][_rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
+  if (toTable === 'st2_items') sortTableByTag2(toTable);
+  else sortTableByTag(toTable);
   buildAllTables();
+  if (extraSteedActive) buildTable2('st2_items', ['name','q','w','p']);
   calcWeights();
   calcDC();
   _saveData();
@@ -4223,16 +4290,23 @@ function openToolkitModal(tableId, rowIdx) {
   const isBackpack = tableId === 'bp_items';
   const isSteed    = tableId === 'st_items';
 
-  const tkMoveToBpBtn = isSteed
-    ? `<button class="rest-btn" onclick="toolkitMoveTo('st_items','bp_items')"
+  const isExtra     = tableId === 'st2_items';
+  const tkMoveToBpBtn = (isSteed || isExtra)
+    ? `<button class="rest-btn" onclick="toolkitMoveTo('${tableId}','bp_items')"
          style="flex:1;background:rgba(30,40,60,.4);border-color:rgba(80,100,180,.45);color:rgba(180,200,255,.8);">
          🎒 → Backpack
        </button>` : '';
 
-  const tkMoveToStBtn = isBackpack
-    ? `<button class="rest-btn" onclick="toolkitMoveTo('bp_items','st_items')"
+  const tkMoveToStBtn = (isBackpack || isExtra)
+    ? `<button class="rest-btn" onclick="toolkitMoveTo('${tableId}','st_items')"
          style="flex:1;background:rgba(30,20,60,.4);border-color:rgba(100,80,180,.45);color:rgba(200,180,255,.8);">
          🐴 → Steed
+       </button>` : '';
+
+  const tkMoveToSt2Btn = extraSteedActive && !isExtra
+    ? `<button class="rest-btn" onclick="toolkitMoveTo('${tableId}','st2_items')"
+         style="flex:1;background:rgba(20,30,60,.4);border-color:rgba(80,60,200,.45);color:rgba(160,150,255,.8);">
+         🐴 → Extra Steed
        </button>` : '';
 
   const o = document.createElement('div');
@@ -4278,9 +4352,9 @@ function openToolkitModal(tableId, rowIdx) {
         </div>
       </div>
 
-      ${(tkMoveToBpBtn || tkMoveToStBtn) ? `
+      ${(tkMoveToBpBtn || tkMoveToStBtn || tkMoveToSt2Btn) ? `
       <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-        ${tkMoveToBpBtn}${tkMoveToStBtn}
+        ${tkMoveToBpBtn}${tkMoveToStBtn}${tkMoveToSt2Btn}
       </div>` : ''}
 
       <div style="display:flex;gap:8px;">
@@ -4304,18 +4378,21 @@ function toolkitMoveTo(fromTable, toTable) {
   const modal = document.getElementById('toolkitModal');
   if (!modal) return;
   const { _tableId, _rowIdx } = modal;
-  // Save current weight/price edits before moving
-  const item = tableData[_tableId][_rowIdx];
+  const fromData = _getTableFor(fromTable);
+  const toData   = _getTableFor(toTable);
+  const item = fromData[_tableId][_rowIdx];
   if (!item) return;
   item.w = document.getElementById('toolkitMgmt_w')?.value.trim() || item.w;
   item.p = document.getElementById('toolkitMgmt_p')?.value.trim() || item.p;
-  const toRows = tableData[toTable];
+  const toRows = toData[toTable];
   let ti = toRows.findIndex(r => !r.name);
   if (ti === -1) { toRows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); ti = toRows.length - 1; }
   toRows[ti] = {...item};
-  tableData[fromTable][_rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
-  if (toTable === 'bp_items' || toTable === 'st_items') sortTableByTag(toTable);
+  fromData[fromTable][_rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
+  if (toTable === 'st2_items') sortTableByTag2(toTable);
+  else sortTableByTag(toTable);
   buildAllTables();
+  if (extraSteedActive) buildTable2('st2_items', ['name','q','w','p']);
   calcWeights();
   calcDC();
   _saveData();
