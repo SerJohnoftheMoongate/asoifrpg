@@ -3758,7 +3758,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Loyalty is Bought',
       action_type: null, recovery: 'SR',
       uses_fn: () => 1,
-      desc_fn: () => `You can impose disadvantage upon the opponent in a negotiation combat roll. Once per short rest.\n\nWhen contracted by a new organisation you may improve two pieces of gear for free, or order one piece of new gear with +2 damage bonus.`,
+      desc_fn: () => `You can impose disadvantage upon the opponent in a negotiation combat roll. Once per short rest.\n\nWhen you are contracted by a new organisation or entity, you can make use of their blacksmithing facilities if available. You can improve two pieces of your current gear for free up to the Good condition or order one piece of new gear with a Decent quality. \n\nIn addition, while you are acting under contract you deal 1d4 additional damage per attack. This increases to 2d4 at level 9.`,
       level_required: 3
     },
     {
@@ -3809,7 +3809,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'A Good Horse Never Dies',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `Proficiency in mounted combat. Mounting or dismounting costs only 5 feet of movement and you have advantage on saving throws to avoid falling off your mount. You also gain +2 on combat rolls during jousting tournaments.`,
+      desc_fn: () => `Proficiency in mounted combat. Mounting or dismounting costs only 5 feet of movement and you have advantage on saving throws to avoid falling off your mount. While being mounted in combat your damage output increases significantly since the impact of your blows are that much harder through the forwards motion of your steed. If you land a blow on a creature while you are mounted you can roll the damage dice of your weapon twice. You also gain +2 on combat rolls during jousting tournaments.`,
       level_required: 3
     },
     {
@@ -3853,7 +3853,7 @@ const SPEC_LEVEL_FEATURES = {
       uses_fn: () => 0,
       desc_fn: (lvl) => {
         const die = lvl >= 15 ? '3d8' : lvl >= 9 ? '2d8' : '1d8';
-        return `When you hit a creature while hidden or during the first round of combat, deal an extra ${die} damage${lvl < 9 ? ' (scales to 2d8 at Lvl 9, 3d8 at Lvl 15)' : lvl < 15 ? ' (scales to 3d8 at Lvl 15)' : ''}.\n\nAfter dealing this damage, you can immediately use a Bonus Action to Hide, melting back into cover.`;
+        return `You've learned to strike from hiding like a hunter taking down prey. When you hit a creature with an attack while hidden during combat, you can deal an extra ${die} damage${lvl < 9 ? ' (scales to 2d8 at Lvl 9, 3d8 at Lvl 15)' : lvl < 15 ? ' (scales to 3d8 at Lvl 15)' : ''}.\n\nAdditionally, after dealing this damage, you can immediately use a bonus action to hide, melting back into cover like a ghost. Only if you haven’t used your bonus action yet.`;
       },
       level_required: 3
     },
@@ -3861,7 +3861,7 @@ const SPEC_LEVEL_FEATURES = {
       name: "Mother Nature's Medicine",
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `You gain proficiency with herbalism kits and healer's kits.\n\nDuring a short rest, you can tend to a number of creatures equal to your Learning modifier — each regains 1d10 + your Learning modifier in additional hit points.\n\nYou can craft antitoxins, antidotes, and healing salves from foraged materials (1 hour of work produces items worth 10 gold).\n\nWhen you stabilize a dying creature, they regain 1 hit point instead of staying at 0.`,
+      desc_fn: () => `You gain proficiency with herbalism kits and healer's kits.\n\nDuring a short rest, you can tend to a number of creatures equal to your Learning modifier — each regains 1d10 + your Learning modifier in additional hit points.\n\nYou can craft antitoxins, antidotes, and healing salves from foraged materials (1 hour of work produces items worth 1 silver).\n\nWhen you stabilize a dying creature, they regain 1 hit point instead of staying at 0.`,
       level_required: 7
     },
     {
@@ -3982,7 +3982,7 @@ const SPEC_LEVEL_FEATURES = {
       special: 'oath_picker',
       desc_fn: (lvl) => {
         const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
-        return `It is said that Hedge Knights are the truest of knights — they protect the weak and bring justice to the wicked. Once per long rest, choose one Oath to fulfil:\n\n⚔ OATH OF SHELTER\nWhen an ally within 5 ft. of you is being attacked, you may use your reaction to deflect half the damage they receive — either to another target within 5 ft. of the original target, or to yourself. Usable up to ${prof} times (equal to your proficiency modifier) before the Oath is fulfilled.\n\n💰 OATH OF COIN\nWhen negotiating a contract or offering your services, you gain advantage on Haggling skill rolls. Once the contract is sealed, the Oath is fulfilled and the advantage ends.\n\n🗡 OATH OF VENGEANCE\nSwear vengeance against a target you can see. You deal an extra 1d4 damage against that target until they perish. When they fall, the Oath is fulfilled.`;
+        return `It is said that Hedge Knights are the truest of knights — they protect the weak and bring justice to the wicked. Once per long rest, choose one Oath to fulfil:\n\n⚔ OATH OF SHELTER\nWhen an ally within 5 ft. of you is being attacked, you may use your reaction to deflect half the damage they receive — either to another target within 5 ft. of the original target, or to yourself. Usable up to ${prof} times (equal to your proficiency modifier) before the Oath is fulfilled.\n\n💰 OATH OF COIN\nWhen negotiating a contract or offering your services, you gain advantage on Haggling and Negotiation skill rolls. Once the contract is sealed, the Oath is fulfilled and the advantage ends.\n\n🗡 OATH OF VENGEANCE\nSwear vengeance against a target you can see. You deal an extra 1d10 damage against that target until they perish. When they fall, the Oath is fulfilled.`;
       },
       level_required: 3
     },
@@ -4000,7 +4000,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Lone Wolf',
       action_type: 'A', recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `Once when taking the weapon attack action on your turn, you can make another attack with the same weapon against a different creature that is within 5 feet of the original target and within range of your weapon.`,
+      desc_fn: () => `Once when taking the weapon attack action on your turn, you can make another attack with the same weapon against a different creature that is within 5 feet of the original target and within range of your weapon. That second attack deals an additional 1d6 damage.`,
       level_required: 10
     },
     {
