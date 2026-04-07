@@ -2172,7 +2172,7 @@ function unequipItem(slotId) {
   const rows = tableData['st_items'];
   let ri = rows.findIndex(r => !r.name);
   if (ri === -1) { rows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = rows.length - 1; }
-  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'', ammo: Array.isArray(d.ammo) ? d.ammo : [], desc: d.desc||'', resistances: Array.isArray(d.resistances) ? d.resistances : [], vulnerabilities: Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [], condition: d.condition||'decent', pc: d.pc||'g' };
+  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'', armorType: d.armorType||'', ammo: Array.isArray(d.ammo) ? d.ammo : [], desc: d.desc||'', resistances: Array.isArray(d.resistances) ? d.resistances : [], vulnerabilities: Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [], condition: d.condition||'decent', pc: d.pc||'g' };
   sortTableByTag('st_items');
   delete slotData[slotId];
   updateSlotUI(slotId);
@@ -3563,7 +3563,7 @@ function equipItemFromSlot(slotId, srcTable, rowIdx, modalId) {
     const returnRows = tableData['st_items'];
     let ri = returnRows.findIndex(r => !r.name);
     if (ri === -1) { returnRows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = returnRows.length - 1; }
-    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'', ammo: Array.isArray(existing.ammo) ? existing.ammo : [], desc: existing.desc||'', resistances: Array.isArray(existing.resistances) ? existing.resistances : [], vulnerabilities: Array.isArray(existing.vulnerabilities) ? existing.vulnerabilities : [], condition: existing.condition||'decent', pc: existing.pc||'g' };
+    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'', armorType: existing.armorType||'', ammo: Array.isArray(existing.ammo) ? existing.ammo : [], desc: existing.desc||'', resistances: Array.isArray(existing.resistances) ? existing.resistances : [], vulnerabilities: Array.isArray(existing.vulnerabilities) ? existing.vulnerabilities : [], condition: existing.condition||'decent', pc: existing.pc||'g' };
     sortTableByTag('st_items');
   }
 
