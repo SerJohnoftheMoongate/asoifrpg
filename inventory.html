@@ -3147,14 +3147,30 @@ function buildResVulnDisplay() {
     }
   });
 
-  if (allRes.size === 0 && allVuln.size === 0) {
+  // Movement speed penalty for wearing 3+ pieces of the same armor type
+  const MOVEMENT_PENALTIES = {
+    'Heavy':  { ft: -10, label: '−10 ft Movement Speed' },
+    'Medium': { ft:  -5, label: '−5 ft Movement Speed'  },
+    'Light':  { ft:   0, label: null },
+  };
+  const movePenalty = MOVEMENT_PENALTIES[activeType] || null;
+
+  // Show the block as long as there's either a penalty or res/vuln to display
+  const hasMoveEffect = movePenalty && movePenalty.ft !== 0;
+  if (allRes.size === 0 && allVuln.size === 0 && !hasMoveEffect) {
     block.style.display = 'none';
     return;
   }
 
   block.style.display = 'block';
-  let html = `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:4px;">${activeType.toUpperCase()} ARMOR SET</div>`;
+  let html = `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:4px;">${activeType.toUpperCase()} ARMOR SET (${Object.values(typeCounts).reduce((a,b)=>a+b,0)} / 4 pieces)</div>`;
 
+  if (hasMoveEffect) {
+    html += `<div style="margin-bottom:3px;">
+      <span style="font-family:var(--got);font-size:9px;color:#d4a040;letter-spacing:.4px;">⚠ Penalty: </span>
+      <span style="font-family:'IM Fell English',serif;font-size:12px;color:#e8c07a;">${movePenalty.label}</span>
+    </div>`;
+  }
   if (allRes.size > 0) {
     html += `<div style="margin-bottom:3px;">
       <span style="font-family:var(--got);font-size:9px;color:#5abf5a;letter-spacing:.4px;">✦ Resistant: </span>
