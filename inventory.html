@@ -538,26 +538,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .inv-tbl-row input{text-align:center;}
 .inv-tbl-row .cell-name input{text-align:left;padding-left:3px;height:24px;}
 
-.inv-total-row{
-  display:flex;gap:2px;margin-top:3px;border-top:1px solid rgba(139,106,0,.4);padding-top:3px;
-}
-.inv-total-lbl{
-  flex:1;height:20px;
-  display:flex;align-items:center;
-  font-family:var(--got);font-size:8.5px;
-  background:var(--gold-bg);color:var(--near-black);
-  border:1px solid var(--gold);padding:0 4px;letter-spacing:.3px;font-size:10px;
-}
-.inv-total-val{
-  height:22px;
-  font-family:var(--got);font-size:8.5px;
-  background:var(--input-bg);border:1px solid var(--gold);
-  display:flex;align-items:center;justify-content:center;
-  color:var(--near-black);
-}
-.inv-total-val.tv-q{width:28px;}
-.inv-total-val.tv-w{width:38px;}
-.inv-total-val.tv-p{width:32px;}
+
 
 .inv-section-sep{
   height:1px;
@@ -866,13 +847,6 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <div class="sec">Accessories</div>
     <div id="eq_acc_section" style="flex:1;"></div>
 
-    <div style="flex:1;"></div>
-    <!-- Total -->
-    <div class="inv-total-row">
-      <div class="inv-total-lbl">Total</div>
-      <div class="inv-total-val tv-w" id="eq_total_w">0</div>
-      <div class="inv-total-val tv-p" id="eq_total_p">0</div>
-    </div>
     <div class="sec" style="font-size:8.5px;text-transform:uppercase;letter-spacing:2px;">Equipped</div>
   </div><!-- /Equipped column -->
 
@@ -918,13 +892,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
         <div class="inv-tbl-hdr-cell itc-p">P</div>
       </div>
       <div id="bp_items"></div>
-      <div style="flex:1;"></div>
-      <!-- Total -->
-      <div class="inv-total-row">
-        <div class="inv-total-lbl">Total</div>
-        <div class="inv-total-val tv-w" id="bp_total_w">0</div>
-        <div class="inv-total-val tv-p" id="bp_total_p">0</div>
-      </div>
+
     </div>
     <div class="sec" style="font-size:8.5px;text-transform:uppercase;letter-spacing:2px;">Back Pack</div>
   </div><!-- /Backpack column -->
@@ -971,13 +939,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
         </label>
       </div>
       <div id="st_items"></div>
-      <div style="flex:1;"></div>
-      <!-- Total -->
-      <div class="inv-total-row">
-        <div class="inv-total-lbl">Total</div>
-        <div class="inv-total-val tv-w" id="st_total_w">0</div>
-        <div class="inv-total-val tv-p" id="st_total_p">0</div>
-      </div>
+
     </div>
     <div class="sec" style="font-size:8.5px;text-transform:uppercase;letter-spacing:2px;">Steed</div>
   </div><!-- /Steed column -->
@@ -1566,12 +1528,15 @@ function _collectInvData() {
   const elBg = document.getElementById('headerBg'); if (elBg)  d._img_bg = elBg.style.backgroundImage  || '';
   const stYourselfEl = document.getElementById('st_yourself');
   d._invMeta = {
-    bp_size:     document.getElementById('bp_size')   ? document.getElementById('bp_size').value   : '25',
-    st_animal:   document.getElementById('st_animal') ? document.getElementById('st_animal').value : '0',
-    st_yourself: stYourselfEl ? stYourselfEl.checked : false,
+    bp_size:        document.getElementById('bp_size')   ? document.getElementById('bp_size').value   : '25',
+    st_animal:      document.getElementById('st_animal') ? document.getElementById('st_animal').value : '0',
+    st_yourself:    stYourselfEl ? stYourselfEl.checked : false,
+    extraSteedActive: extraSteedActive,
+    st2_animal:     document.getElementById('st2_animal') ? document.getElementById('st2_animal').value : '0',
   };
   d._slotData         = slotData;
   d._tableData        = tableData;
+  d._tableData2       = tableData2;
   d._ingredientPouch  = ingredientPouch;
   return d;
 }
@@ -1689,6 +1654,22 @@ function load() {
     }
     const stY = document.getElementById('st_yourself');
     if (stY) stY.checked = !!d._invMeta.st_yourself;
+    // Restore extra steed
+    if (d._invMeta.extraSteedActive) {
+      extraSteedActive = true;
+      if (d._tableData2?.st2_items) {
+        tableData2.st2_items = d._tableData2.st2_items;
+      }
+      buildExtraSteedColumn();
+      // Restore extra steed animal selection
+      const st2A = document.getElementById('st2_animal');
+      if (st2A && d._invMeta.st2_animal !== undefined) {
+        st2A.value = d._invMeta.st2_animal;
+        const st2Info = STEED_ANIMALS ? STEED_ANIMALS.find(a => a.kg === +d._invMeta.st2_animal) : null;
+        const st2Btn  = document.getElementById('st2_animal_btn');
+        if (st2Btn && st2Info) st2Btn.textContent = `${st2Info.emoji} Steed: ${st2Info.label}${st2Info.kg > 0 ? ' (' + st2Info.kg + ' kg)' : ''}`;
+      }
+    }
   }
 
   updateLevel();
@@ -2575,23 +2556,29 @@ function selectBagSize(kg) {
    STEED MODAL  (warg-style purple-tinted button → modal)
 ═══════════════════════════════════════════════════════════ */
 const STEED_ANIMALS = [
-  {label:'None',      emoji:'—',  kg:0},
-  {label:'Warhorse',  emoji:'🐴', kg:220},
-  {label:'Packhorse', emoji:'🐎', kg:115},
-  {label:'Pony',      emoji:'🐴', kg:80},
-  {label:'Donkey',    emoji:'🫏', kg:58},
-  {label:'Goat',      emoji:'🐐', kg:27},
-  {label:'Auroch',    emoji:'🐂', kg:225},
-  {label:'Cow',       emoji:'🐄', kg:135},
-  {label:'Dog',       emoji:'🐕', kg:8},
+  {label:'None',              emoji:'—',  kg:0},
+  {label:'Warhorse',          emoji:'🐴', kg:220},
+  {label:'Packhorse',         emoji:'🐎', kg:115},
+  {label:'Pony',              emoji:'🐴', kg:80},
+  {label:'Donkey',            emoji:'🫏', kg:58},
+  {label:'Goat',              emoji:'🐐', kg:27},
+  {label:'Auroch',            emoji:'🐂', kg:225},
+  {label:'Cow',               emoji:'🐄', kg:135},
+  {label:'Dog',               emoji:'🐕', kg:8},
+  {label:'Two Wheeled Cart',  emoji:'🛞', kg:450},
+  {label:'Four Wheeled Cart', emoji:'🛞', kg:850},
 ];
 
-function openSteedModal() {
-  const existing = document.getElementById('steedModal'); if(existing) existing.remove();
-  const current  = parseInt(document.getElementById('st_animal').value) || 0;
-  const optHTML  = STEED_ANIMALS.map(a => {
+/* ── Extra steed state ── */
+let extraSteedActive = false;
+const tableData2 = {
+  st2_items: Array(12).fill(null).map(()=>({name:'',tag:'',q:'',w:'',p:'',a:''}))
+};
+
+function _buildSteedOptHTML(current, slotNum) {
+  return STEED_ANIMALS.map(a => {
     const active = a.kg === current;
-    return `<div onclick="selectSteed(${a.kg},'${a.label}','${a.emoji}')"
+    return `<div onclick="selectSteed(${a.kg},'${a.label}','${a.emoji}',${slotNum})"
       style="display:flex;align-items:center;gap:10px;padding:9px 14px;
              margin-bottom:5px;border:1.5px solid ${active ? 'rgba(100,80,200,.8)' : 'rgba(100,80,180,.3)'};
              background:${active ? 'rgba(30,20,60,.55)' : 'rgba(0,0,0,.25)'};cursor:pointer;border-radius:3px;
@@ -2603,16 +2590,42 @@ function openSteedModal() {
       ${active ? '<span style="font-family:var(--got);font-size:9px;color:rgba(180,160,255,.5);">▶ selected</span>' : ''}
     </div>`;
   }).join('');
+}
+
+function openSteedModal(slot) {
+  const slotNum = slot || 1;
+  const animalId = slotNum === 2 ? 'st2_animal' : 'st_animal';
+  const existing = document.getElementById('steedModal'); if(existing) existing.remove();
+  const current  = parseInt(document.getElementById(animalId)?.value || '0') || 0;
+  const optHTML  = _buildSteedOptHTML(current, slotNum);
+
+  const addExtraBtn = (slotNum === 1 && !extraSteedActive)
+    ? `<button class="rest-btn" onclick="addExtraSteed()"
+        style="width:100%;margin-top:8px;margin-bottom:4px;
+               background:rgba(20,50,20,.5);border-color:rgba(60,160,60,.45);color:rgba(160,220,140,.85);
+               font-size:11px;padding:8px;">
+        🐴 + Add Extra Steed
+      </button>` : '';
+
+  const removeExtraBtn = (slotNum === 2)
+    ? `<button class="rest-btn" onclick="removeExtraSteed()"
+        style="width:100%;margin-top:8px;margin-bottom:4px;
+               background:rgba(60,10,10,.5);border-color:rgba(180,30,30,.45);color:rgba(255,120,120,.85);
+               font-size:11px;padding:8px;">
+        ✕ Remove Extra Steed
+      </button>` : '';
 
   const o = document.createElement('div'); o.className = 'modal-overlay'; o.id = 'steedModal';
   o.innerHTML = `<div class="modal" style="max-width:500px;padding:36px 44px;max-height:88vh;overflow-y:auto;">
-    <h2 style="font-size:20px;margin-bottom:10px;text-align:center;">🐴 Choose Steed</h2>
+    <h2 style="font-size:20px;margin-bottom:10px;text-align:center;">🐴 Choose Steed${slotNum===2?' (Extra)':''}</h2>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:var(--text-gold);
        line-height:1.7;text-align:center;margin-bottom:6px;opacity:.85;">
       "It had been long years since he had named any of his horses; he had seen too many die in battle, and that was harder when you named them."
     </p>
     <p style="font-family:var(--got);font-size:10px;color:rgba(232,200,74,.5);letter-spacing:.8px;
        text-align:center;margin-bottom:22px;">~ Jaime Lannister</p>
+    ${addExtraBtn}
+    ${removeExtraBtn}
     ${optHTML}
     <button class="rest-btn" onclick="document.getElementById('steedModal').remove()"
       style="width:100%;margin-top:14px;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">
@@ -2623,12 +2636,190 @@ function openSteedModal() {
   o.addEventListener('click', e => { if(e.target === o) o.remove(); });
 }
 
-function selectSteed(kg, label, emoji) {
-  document.getElementById('st_animal').value = kg;
-  const btn = document.getElementById('st_animal_btn');
-  if(btn) btn.textContent = `${emoji} Steed: ${label}${kg > 0 ? ' (' + kg + ' kg)' : ''}`;
+function selectSteed(kg, label, emoji, slot) {
+  const slotNum = slot || 1;
+  if (slotNum === 2) {
+    const hid = document.getElementById('st2_animal');
+    if (hid) hid.value = kg;
+    const btn = document.getElementById('st2_animal_btn');
+    if (btn) btn.textContent = `${emoji} Steed: ${label}${kg > 0 ? ' (' + kg + ' kg)' : ''}`;
+  } else {
+    document.getElementById('st_animal').value = kg;
+    const btn = document.getElementById('st_animal_btn');
+    if(btn) btn.textContent = `${emoji} Steed: ${label}${kg > 0 ? ' (' + kg + ' kg)' : ''}`;
+  }
   document.getElementById('steedModal')?.remove();
   calcWeights();
+}
+
+function addExtraSteed() {
+  document.getElementById('steedModal')?.remove();
+  extraSteedActive = true;
+  buildExtraSteedColumn();
+  _saveData();
+}
+
+function removeExtraSteed() {
+  document.getElementById('steedModal')?.remove();
+  extraSteedActive = false;
+  tableData2.st2_items = Array(12).fill(null).map(()=>({name:'',tag:'',q:'',w:'',p:'',a:''}));
+  document.getElementById('extraSteedSection')?.remove();
+  calcWeights();
+  _saveData();
+}
+
+/* Build (or rebuild) the extra steed column in the DOM */
+function buildExtraSteedColumn() {
+  document.getElementById('extraSteedSection')?.remove();
+  if (!extraSteedActive) return;
+
+  // Find the primary steed column (last .inv-col in .inv-body)
+  const steedCol = document.querySelector('.inv-body .inv-col:last-of-type');
+  if (!steedCol) return;
+
+  const sec = document.createElement('div');
+  sec.id = 'extraSteedSection';
+  sec.innerHTML = `
+    <div style="border-top:3px solid var(--gold);margin-top:4px;"></div>
+    <div class="inv-cw-row">
+      <div style="display:flex;align-items:center;gap:5px;">
+        <div class="inv-cw-lbl" style="flex-shrink:0;">Carrying Weight</div>
+        <div class="inv-cw-inp" style="display:flex;gap:2px;align-items:center;flex:1;">
+          <input type="text" id="st2_cw_cur" readonly placeholder="0" style="flex:1;height:24px;font-size:12px;font-weight:700;text-align:center;">
+          <span style="color:var(--text-gold);font-family:var(--got);font-size:10px;flex-shrink:0;">/</span>
+          <input type="text" id="st2_cw_max" readonly placeholder="—" style="flex:1;height:24px;font-size:12px;font-weight:700;text-align:center;background:#1a1400;color:var(--text-gold);border-color:rgba(139,106,0,.5);">
+        </div>
+      </div>
+    </div>
+    <div style="padding:3px 4px 4px;">
+      <button id="st2_animal_btn" onclick="openSteedModal(2)"
+        class="rest-btn"
+        style="width:100%;padding:6px 8px;font-size:11px;background:rgba(30,20,60,.45);border-color:rgba(100,80,180,.4);color:rgba(200,180,255,.85);">
+        🐴 Steed: None
+      </button>
+      <input type="hidden" id="st2_animal" value="0">
+    </div>
+    <div class="sec" style="font-size:8.5px;letter-spacing:.5px;">Extra Steed — Items</div>
+    <div class="inv-table" style="flex:none;">
+      <div class="inv-tbl-hdr">
+        <div class="inv-tbl-hdr-cell itc-name">Items</div>
+        <div class="inv-tbl-hdr-cell itc-q">Q</div>
+        <div class="inv-tbl-hdr-cell itc-w">W</div>
+        <div class="inv-tbl-hdr-cell itc-p">P</div>
+      </div>
+      <div id="st2_items"></div>
+
+    </div>
+  `;
+
+  // Append inside the steed column, before the "Steed" footer label
+  const footer = steedCol.querySelector('.sec:last-of-type');
+  if (footer) {
+    steedCol.insertBefore(sec, footer);
+  } else {
+    steedCol.appendChild(sec);
+  }
+
+  buildTable2('st2_items', ['name','q','w','p']);
+  calcWeights();
+}
+
+/* Render table for extra steed (mirrors buildTable but uses tableData2) */
+function buildTable2(containerId, cols) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const rows = tableData2[containerId];
+  const visibleRows = rows.filter(r => r.name);
+  container.innerHTML = visibleRows.map((r, displayIdx) => {
+    const realIdx = rows.indexOf(r);
+    const tag = r.tag || '';
+    const badge = tag ? `<span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.55);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">${tag}</span>` : '';
+    const colsHTML = cols.map(c => {
+      if (c === 'name') return `<div class="cell-name" style="display:flex;align-items:center;gap:2px;overflow:hidden;"><span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${r.name||''}</span>${badge}</div>`;
+      return `<div class="cell-${c}" style="display:flex;align-items:center;justify-content:center;"><span style="font-size:13px;">${r[c]||''}</span></div>`;
+    }).join('');
+    return `<div class="inv-tbl-row inv-item-row" onclick="openItemModal2('${containerId}',${realIdx})"
+      title="Click to manage item"
+      style="cursor:pointer;transition:background .12s;"
+      onmouseover="this.style.background='rgba(139,106,0,.15)'"
+      onmouseout="this.style.background=''">
+      ${colsHTML}
+    </div>`;
+  }).join('') || `<div style="padding:8px 6px;font-family:'IM Fell English',serif;font-size:11px;color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No items — use Add Item</div>`;
+}
+
+/* Thin wrapper: openItemModal for extra steed items */
+function openItemModal2(tableId, rowIdx) {
+  // Temporarily swap tableData and tableData2 so the shared modal logic works
+  const orig = tableData[tableId];
+  tableData[tableId] = tableData2[tableId];
+  openItemModal(tableId, rowIdx);
+  tableData[tableId] = orig;
+  // Patch save/delete callbacks to write to tableData2
+  const modal = document.getElementById('itemMgmtModal');
+  if (!modal) return;
+  modal._useTableData2 = true;
+  // Override save so it commits to tableData2
+  const origSave = window.itemModalSave;
+  modal._patchedSave = function() {
+    const {_tableId, _rowIdx, _hasAC, _currentQty} = modal;
+    const item2 = tableData2[_tableId][_rowIdx];
+    if (!item2) return;
+    item2.q = String(_currentQty);
+    const wEl = document.getElementById('itemMgmt_w');
+    const pEl = document.getElementById('itemMgmt_p');
+    if (wEl) item2.w = wEl.value.trim() || item2.w;
+    if (pEl) item2.p = pEl.value.trim() || item2.p;
+    item2.pc = getItemMgmtCurrency();
+    const editVisible = document.getElementById('itemDesc_edit')?.style.display !== 'none';
+    if (editVisible) itemDescConfirm();
+    item2.desc = document.getElementById('itemMgmt_desc')?.value.trim() ?? (item2.desc || '');
+    if (_hasAC) item2.a = document.getElementById('itemMgmt_ac')?.value.trim() || '';
+    if (_hasAC) {
+      const condBtns = document.getElementById('itemMgmt_cond_btns');
+      if (condBtns) {
+        const selBtn = [...condBtns.querySelectorAll('[data-cond]')].find(b => b.style.boxShadow && b.style.boxShadow !== 'none');
+        item2.condition = selBtn ? selBtn.dataset.cond : (item2.condition || 'decent');
+      }
+    }
+    modal.remove();
+    sortTableByTag2(_tableId);
+    buildTable2(_tableId, ['name','q','w','p']);
+    calcWeights();
+    _saveData();
+  };
+  // Patch the Save & Close button
+  const saveBtn = modal.querySelector('.rest-btn');
+  if (saveBtn && saveBtn.textContent.includes('Save')) {
+    saveBtn.onclick = () => modal._patchedSave();
+  }
+  // Patch Delete button
+  const deleteBtn = [...modal.querySelectorAll('.rest-btn')].find(b => b.textContent.includes('Delete'));
+  if (deleteBtn) {
+    deleteBtn.onclick = () => {
+      tableData2[modal._tableId][modal._rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
+      modal.remove();
+      buildTable2(modal._tableId, ['name','q','w','p']);
+      calcWeights();
+      _saveData();
+    };
+  }
+}
+
+function sortTableByTag2(tableId) {
+  const rows = tableData2[tableId];
+  const filled = rows.filter(r => r.name);
+  const empty  = rows.filter(r => !r.name);
+  filled.sort((a, b) => {
+    const ai = TAG_SORT_ORDER.indexOf(a.tag || '');
+    const bi = TAG_SORT_ORDER.indexOf(b.tag || '');
+    const aIdx = ai === -1 ? TAG_SORT_ORDER.length : ai;
+    const bIdx = bi === -1 ? TAG_SORT_ORDER.length : bi;
+    if (aIdx !== bIdx) return aIdx - bIdx;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+  const sorted = [...filled, ...empty];
+  for (let i = 0; i < sorted.length; i++) tableData2[tableId][i] = sorted[i];
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2825,8 +3016,6 @@ function calcWeights() {
     ep += parseFloat(d.p) || 0;
   });
   setCarryDisplay('eq_cw_cur', 'eq_cw_max', ew, getEquippedMax());
-  const eqWEl=document.getElementById('eq_total_w'); if(eqWEl) eqWEl.textContent=ew>0?ew.toFixed(1):'0';
-  const eqPEl=document.getElementById('eq_total_p'); if(eqPEl) eqPEl.textContent=ep>0?ep.toFixed(1):'0';
 
   // ─────────────────────────────────────────
   // BACKPACK  — sum W*Q and P
@@ -2840,8 +3029,6 @@ function calcWeights() {
   const bpSizeEl = document.getElementById('bp_size');
   const bpMax    = bpSizeEl ? parseFloat(bpSizeEl.value) : null;
   setCarryDisplay('bp_cw_cur', 'bp_cw_max', bw, bpMax);
-  const bpWEl=document.getElementById('bp_total_w'); if(bpWEl) bpWEl.textContent=bw>0?bw.toFixed(1):'0';
-  const bpPEl=document.getElementById('bp_total_p'); if(bpPEl) bpPEl.textContent=bp_>0?bp_.toFixed(1):'0';
 
   // ─────────────────────────────────────────
   // STEED  — own items W*Q and P, plus Yourself toggle
@@ -2862,8 +3049,21 @@ function calcWeights() {
   const stAnimalEl = document.getElementById('st_animal');
   const stMax      = stAnimalEl ? (parseFloat(stAnimalEl.value) || null) : null;
   setCarryDisplay('st_cw_cur', 'st_cw_max', steedCurW, stMax);
-  const stWEl=document.getElementById('st_total_w'); if(stWEl) stWEl.textContent=steedCurW>0?steedCurW.toFixed(1):'0';
-  const stPEl=document.getElementById('st_total_p'); if(stPEl) stPEl.textContent=sp_>0?sp_.toFixed(1):'0';
+
+  // ─────────────────────────────────────────
+  // EXTRA STEED  — if active
+  // ─────────────────────────────────────────
+  if (extraSteedActive) {
+    let s2w=0, s2p=0;
+    tableData2.st2_items.forEach(r => {
+      const q = parseFloat(r.q) || 1;
+      s2w += (parseFloat(r.w) || 0) * q;
+      s2p += parseFloat(r.p) || 0;
+    });
+    const st2AnimalEl = document.getElementById('st2_animal');
+    const st2Max      = st2AnimalEl ? (parseFloat(st2AnimalEl.value) || null) : null;
+    setCarryDisplay('st2_cw_cur', 'st2_cw_max', s2w, st2Max);
+  }
 }
 
 
@@ -2996,6 +3196,27 @@ function openAddItemModal() {
   aimArmorTypeChanged();
   const bpRadio=document.getElementById('aim_dest_bp');
   if(bpRadio) bpRadio.checked=true;
+  // Inject or remove Extra Steed destination radio
+  const existingSt2 = document.getElementById('aim_dest_st2_label');
+  if (existingSt2) existingSt2.remove();
+  if (destRow && extraSteedActive) {
+    const st2lbl = document.createElement('label');
+    st2lbl.id = 'aim_dest_st2_label';
+    st2lbl.style.cssText = `flex:1;display:flex;align-items:center;gap:8px;padding:11px 14px;
+      border:1.5px solid var(--gold);cursor:pointer;background:rgba(0,0,0,.3);
+      font-family:var(--got);font-size:11px;color:var(--text-gold);letter-spacing:.5px;
+      transition:background .15s;border-radius:2px;`;
+    st2lbl.onmouseover = () => st2lbl.style.background='rgba(139,106,0,.2)';
+    st2lbl.onmouseout  = () => st2lbl.style.background='rgba(0,0,0,.3)';
+    const radio = document.createElement('input');
+    radio.type = 'radio'; radio.name = 'aim_dest'; radio.value = 'steed2';
+    radio.id = 'aim_dest_st2';
+    radio.style.cssText = 'accent-color:var(--gold);width:16px;height:16px;';
+    st2lbl.appendChild(radio);
+    st2lbl.appendChild(document.createTextNode('🐴 Extra Steed'));
+    const flexRow = destRow.querySelector('div[style*="display:flex"]') || destRow;
+    flexRow.appendChild(st2lbl);
+  }
   document.getElementById('addItemModal').style.display='flex';
 }
 
@@ -3216,13 +3437,25 @@ function confirmAddItem() {
     return;
   }
 
-  const tableId = dest==='steed' ? 'st_items' : 'bp_items';
-  const rows=tableData[tableId];
+  let tableId, rows;
+  if (dest === 'steed2') {
+    tableId = 'st2_items';
+    rows = tableData2[tableId];
+  } else {
+    tableId = dest==='steed' ? 'st_items' : 'bp_items';
+    rows = tableData[tableId];
+  }
   let idx=rows.findIndex(r=>!r.name);
   if(idx===-1){ rows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); idx=rows.length-1; }
   rows[idx]={name, tag, q:qty, w:wt, p:prc, pc, a:ac, armorType, desc, resistances, vulnerabilities, condition};
-  sortTableByTag(tableId);
+  if (dest === 'steed2') {
+    sortTableByTag2(tableId);
+    buildTable2(tableId, ['name','q','w','p']);
+  } else {
+    sortTableByTag(tableId);
+  }
   buildAllTables();
+  calcWeights();
   document.getElementById('addItemModal').style.display='none';
 }
 
