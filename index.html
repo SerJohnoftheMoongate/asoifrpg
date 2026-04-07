@@ -184,7 +184,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .feat-inp{height:24px;margin-bottom:3px}
 .feat-inp input{height:100%;font-size:13px}
 .feat-inp input[readonly]{cursor:pointer!important;color:var(--text-gold);}
-.feat-inp input[readonly]::placeholder{color:rgba(232,200,74,.35);font-style:italic;}
+.feat-inp input[readonly]::placeholder{color:#e8c84a;font-style:italic;font-weight:700;}
 .feat-desc{font-family:'IM Fell English',serif;font-size:11px;color:#bbb;line-height:1.45;
            padding:4px 6px 5px;border-left:2px solid rgba(139,106,0,.4);
            margin:0 0 5px 2px;display:none;}
@@ -315,6 +315,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div style="display:flex;gap:8px;">
       <button class="rest-btn" onclick="showMenuWarning()"><img src="Images/Menu Icon.webp" class="ri"> MENU</button>
       <button class="rest-btn" id="editBtn" onclick="openEditModal()"><img src="Images/Edit Icon.webp" class="ri"> EDIT</button>
+      <button class="rest-btn" onclick="window.open('Images/Handbook.pdf','_blank')"><img src="Images/Book Icon.webp" class="ri"> HANDBOOK</button>
     </div>
   </div>
   <input type="file" accept="image/*" id="fBg" style="display:none">
@@ -464,9 +465,9 @@ textarea{resize:none;font-weight:400;font-size:12px}
         <div class="skill-score"><input type="text" id="scr_sense" readonly></div>
       </div>
       <div class="skill-row">
-        <input type="checkbox" class="skill-check" id="chk_Animal Bond" onchange="recalc()">
-        <label class="skill-label" for="chk_Animal Bond">Animal Bond</label>
-        <div class="skill-score"><input type="text" id="scr_Animal Bond" readonly></div>
+        <input type="checkbox" class="skill-check" id="chk_animal_bond" onchange="recalc()">
+        <label class="skill-label" for="chk_animal_bond">Animal Bond</label>
+        <div class="skill-score"><input type="text" id="scr_animal_bond" readonly></div>
       </div>
       <div class="skill-row">
         <input type="checkbox" class="skill-check" id="chk_religion" onchange="recalc()">
@@ -561,6 +562,21 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div>
       <div class="prof-field"><div class="prof-field-lbl">Tools:</div><textarea id="tools" rows="2"></textarea></div>
       <div class="prof-field"><div class="prof-field-lbl">Languages:</div><textarea id="languages" rows="2"></textarea></div>
+      <div class="prof-field">
+        <div class="prof-field-lbl">Other:</div>
+        <div id="other_prof_display" onclick="openOtherProfModal()" title="Click to edit other proficiencies"
+          style="min-height:30px;border:1px solid var(--gold);padding:4px 6px;cursor:pointer;
+                 background:rgba(10,8,0,.55);display:flex;align-items:center;flex-wrap:wrap;gap:4px;
+                 transition:background .15s;"
+          onmouseover="this.style.background='rgba(139,106,0,.2)'"
+          onmouseout="this.style.background='rgba(10,8,0,.55)'">
+          <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;
+                       color:rgba(232,200,74,.35);">None selected</span>
+        </div>
+        <input type="checkbox" id="prof_other_reading"  style="display:none">
+        <input type="checkbox" id="prof_other_writing"  style="display:none">
+        <input type="checkbox" id="prof_other_swimming" style="display:none">
+      </div>
     </div>
   </div>
   <!-- Hidden weapon category inputs (auto-saved) -->
@@ -854,7 +870,7 @@ function uploadBg(e){
 
 // RECALC
 const ABILITY_SAVE={charisma:'sv_dip',subtlety:'sv_int',wisdom:'sv_ste',strength:'sv_mar',knowledge:'sv_lea',spirit:'sv_att'};
-const ABILITY_SKILLS={charisma:['persuasion','negotiation','intimidation'],subtlety:['deception','forgery','stealth'],wisdom:['haggling','looting','management'],strength:['prowess','strategy','dexterity'],knowledge:['history','medicine','perception'],spirit:['sense','Animal Bond','religion']};
+const ABILITY_SKILLS={charisma:['persuasion','negotiation','intimidation'],subtlety:['deception','forgery','stealth'],wisdom:['haggling','looting','management'],strength:['prowess','strategy','dexterity'],knowledge:['history','medicine','perception'],spirit:['sense','animal_bond','religion']};
 const fmt=n=>n>=0?'+'+n:String(n);
 function scoreToMod(score) {
   const s = parseInt(score);
@@ -1392,7 +1408,7 @@ function applyClassSkills(skills){
   });
   _classSkills=[];
   skills.forEach(name=>{
-    const id='chk_'+name.toLowerCase();
+    const id='chk_'+name.toLowerCase().replace(/\s+/g,'_');
     const el=document.getElementById(id);
     if(el){el.checked=true;el.dataset.byClass='1';_classSkills.push(id);}
   });
@@ -1717,6 +1733,7 @@ function load(){
   // Restore feat applied-bonus tracking (no re-application needed — values already in saved stats)
   try { if(d._cs_feat_bonuses !== undefined) _appliedFeatBonuses = d._cs_feat_bonuses; } catch(e){}
   updateWpnProfDisplay();
+  updateOtherProfDisplay();
   refreshWeaponProfColors();
   refreshAllWeaponTags();
   refreshAllWeaponConditionDots();
@@ -1750,52 +1767,56 @@ const FEAT_ABILITY_DISPLAY = {
 const FEATS_DATA = [
   { name:'Actor',               desc:'+1 in Intrigue, advantage on Deception checks, mimic the speech of a person or the sounds made by an animal.',                                                             bonus:{ability:'subtlety',  amount:1} },
   { name:'Alert',               desc:'+5 to initiative, can\'t be surprised and enemies you don\'t see don\'t gain advantage on attack rolls against you.',                                                       bonus:null },
+  { name:'Armor Piercer',       desc:'+1 in Martial, you can ignore Piercing resistances on armor while wielding a weapon that deals Piercing damage.',                                                          bonus:{ability:'strength',  amount:1} },
   { name:'Athlete',             desc:'+1 in Martial. You stand up and climb more quickly, and you can jump with only a 5-ft run.',                                                                               bonus:{ability:'strength',  amount:1} },
-  { name:'Blacksmiths Apprentice', desc:'+1 on Stewardship, proficiency with Blacksmith\'s Tools, and you gain the ability to repair armor and arms up to the \'Decent\' condition.',                           bonus:{ability:'wisdom',    amount:1} },
+  { name:'Blacksmiths Apprentice', desc:'+1 on Stewardship, proficiency with Blacksmith\'s Tools, and you gain the ability to repair armor and arms up to the \'Good\' condition.',                             bonus:{ability:'wisdom',    amount:1} },
+  { name:'Cave Dweller',        desc:'Advantage to Perception and Investigation checks, to saving throws vs traps, and search for traps at normal pace.',                                                        bonus:null },
   { name:'Charger',             desc:'As part of the Dash action you can make a melee attack with a +5 bonus if you move at least 10 ft before.',                                                                bonus:null },
+  { name:'Courtly Presence',    desc:'+1 in Diplomacy, gain advantage on persuasion when speaking in court.',                                                                                                    bonus:{ability:'charisma',  amount:1} },
   { name:'Crossbow Expert',     desc:'You ignore the loading property of crossbows and don\'t have disadvantage for being in contact with a creature when you shoot.',                                            bonus:null },
   { name:'Crusher',             desc:'+1 in Martial. 5 ft extra move when you hit (bludgeoning) and attacks with advantage after a critical hit.',                                                               bonus:{ability:'strength',  amount:1} },
-  { name:'Courtly Presence',    desc:'+1 in Diplomacy, gain advantage on persuasion when speaking in court.',                                                                                                    bonus:{ability:'charisma',  amount:1} },
   { name:'Defensive Duelist',   desc:'You can add your proficiency bonus to your AC if you are wielding a finesse weapon, in reaction to a melee attack.',                                                       bonus:null },
   { name:'Dual Wielder',        desc:'+1 to AC if you\'re wielding a melee weapon in each hand, two-weapon fighting with non-light weapons, draw two weapons.',                                                  bonus:null },
-  { name:'Cave Dweller',        desc:'Advantage to Perception and Investigation checks, to saving throws vs traps, and search for traps at normal pace.',                                                        bonus:null },
+  { name:'Durable',             desc:'Every level you can add a standard +2 on top of your hit die and Constitution modifier when adding hit points.',                                                              bonus:null },
   { name:'Fighting Initiate',   desc:'You learn one Fighting Style option from the warrior class.',                                                                                                              bonus:null },
   { name:'Grappler',            desc:'You have advantage on attack rolls when grappling, and can try to restrain an enemy grappled by you.',                                                                     bonus:null },
   { name:'Great Weapon Master', desc:'Extra attack after a melee critical hit and you can choose to take -5 to attack roll to add +10 to damage with a heavy weapon.',                                           bonus:null },
-  { name:'Healer',              desc:'You can use medical herbs or remedies to stabilize a creature and restore it to 1 hp.',                                                                                    bonus:null },
+  { name:'Groveler',            desc:'Sacrifice 1 reputation (swing 1 towards Notorious) to instantly succeed any diplomacy combat roll.',                                                                           bonus:null },
+  { name:'Healer',              desc:'+1 Attunement and you can use medical herbs or remedies to stabilize a creature and restore it to 1 hp.',                                                                  bonus:{ability:'spirit',     amount:1} },
   { name:'Heavily Armored',     desc:'+1 in Martial and you gain proficiency with heavy armor.',                                                                                                                 bonus:{ability:'strength',  amount:1} },
-  { name:'Heavy Armor Master',  desc:'Heavy Armor grants Bludgeoning resistance.',                                                                                                                               bonus:null },
+  { name:'Heavy Armor Master',  desc:'Heavy Armor does not have a Bludgeoning vulnerability.',                                                                                                                   bonus:null },
+  { name:'Homeschooled',        desc:'+1 in Learning, you have the ability to write, read and you know one extra language.',                                                                                     bonus:{ability:'knowledge', amount:1} },
+  { name:'Horseback Archer',    desc:'+1 in Martial and you are able to wield ranged weapons from horseback without disadvantage.',                                                                                 bonus:{ability:'strength',  amount:1} },
   { name:'Keen Mind',           desc:'+1 in Learning, you know which way is north, when is the next sunrise/sunset, and recall any events within the past month.',                                               bonus:{ability:'knowledge', amount:1} },
   { name:'Lightly Armored',     desc:'+1 in Martial and you gain proficiency with light armor.',                                                                                                                 bonus:{ability:'strength',  amount:1} },
-  { name:'Homeschooled',        desc:'+1 in Learning, you have the ability to write, read and you know one extra language.',                                                                                     bonus:{ability:'knowledge', amount:1} },
   { name:'Martial Adept',       desc:'You learn two maneuvers from the Knight Subclass and gain one Valor die (d6).',                                                                                            bonus:null },
-  { name:'Squire',              desc:'+1 in Martial, proficiency with one type of martial weapon, shields and can mount horses.',                                                                                bonus:{ability:'strength',  amount:1} },
   { name:'Medium Armor Master', desc:'No disadvantage to Stealth checks and medium armor grants piercing resistance.',                                                                                           bonus:null },
   { name:'Mobile',              desc:'Your speed increases by 10 ft, you can Dash on difficult terrain without malus, and don\'t provoke opportunity attacks in melee.',                                         bonus:null },
   { name:'Moderately Armored',  desc:'+1 in Martial and you gain proficiency with medium armor and shields.',                                                                                                    bonus:{ability:'strength',  amount:1} },
   { name:'Mounted Combatant',   desc:'Advantage on melee attacks against unmounted creatures and force an attack to target you instead of your mount.',                                                          bonus:null },
   { name:'Mummer',              desc:'+1 in Intrigue, proficient with a disguise kit.',                                                                                                                          bonus:{ability:'subtlety',  amount:1} },
   { name:'Observant',           desc:'+1 in Learning, you can read on lips, and you have a +5 bonus in passive Perception.',                                                                                     bonus:{ability:'knowledge', amount:1} },
-  { name:'Armor Piercer',       desc:'+1 in Martial, you negate armor resistances.',                                                                                                                             bonus:{ability:'strength',  amount:1} },
   { name:'Poisoner',            desc:'Proficiency with poisoner\'s kit, apply as a bonus action and your attacks ignore resistance to poison damage.',                                                            bonus:null },
   { name:'Polearm Master',      desc:'You can make an extra attack with a polearm weapon, and make an opportunity attack if a creature enters your reach.',                                                      bonus:null },
   { name:'Prodigy',             desc:'You gain proficiency with one skill, one tool or one language, and you gain expertise with one skill.',                                                                    bonus:null },
-  { name:'Resilient',           desc:'+1 in one ability of your choice and you gain proficiency in saving throws using that ability. (Apply +1 to the chosen ability manually.)',                                bonus:null },
   { name:'Renowned',            desc:'The amount of renown you gain for your deeds will increase by 1.5 times your level.',                                                                                      bonus:null },
+  { name:'Resilient',           desc:'+1 in one ability of your choice and you gain proficiency in saving throws using that ability. (Apply +1 to the chosen ability manually.)',                                bonus:null },
   { name:'Savage Attacker',     desc:'You can reroll melee weapon attack damage once per turn.',                                                                                                                  bonus:null },
-  { name:'Wounding Attacker',   desc:'When attempting to wound an enemy, you may always use a Dice level lower than the standard penalty when rolling a wounding attack.',                                       bonus:null },
+  { name:'Scrap Lord',          desc:'You are able to upgrade Tragic armor directly to Decent armor for the same price and time as upgrading from Tragic to Poor.',                                               bonus:null },
   { name:'Sentinel',            desc:'A successful attack of opportunity reduces enemy speed to 0 for this turn and possibility to make an opportunity attack even if enemy disengages.',                        bonus:null },
-  { name:'Siege Expert',        desc:'You may add your proficiency bonus when operating siege weapons and when attempting to break doors.',                                                                       bonus:null },
   { name:'Sharpshooter',        desc:'Your ranged attacks ignore some cover, no disadvantage at long range, and possibility to take -5 to hit for +10 on ranged damage.',                                       bonus:null },
   { name:'Shield Master',       desc:'You may add an additional +1 to your AC when wearing a shield. You can Shield Bash as a bonus action. If you succeed in a prowess combat roll you knock your opponent prone.', bonus:null },
+  { name:'Siege Expert',        desc:'You may add your proficiency bonus when operating siege weapons and when attempting to break doors. You have advantage on strategy checks when trying to break a siege.',   bonus:null },
   { name:'Skill Expert',        desc:'+1 in one ability of your choice, proficiency in one skill and expertise in one other in which you have proficiency. (Apply +1 to the chosen ability manually.)',          bonus:null },
   { name:'Skilled',             desc:'You gain proficiency with three skills or tools.',                                                                                                                          bonus:null },
   { name:'Skulker',             desc:'Ranged weapon attack doesn\'t reveal your position and possibility to hide in a lightly obscured area.',                                                                    bonus:null },
   { name:'Slasher',             desc:'+1 in Martial. Reduce target\'s speed by 10 ft when you hit (slashing) and target has disadvantage on attack rolls.',                                                     bonus:{ability:'strength',  amount:1} },
+  { name:'Squire',              desc:'+1 in Martial, proficiency with one type of martial weapon, shields and has advantage on martial saving throws to stay seated on steed.',                                  bonus:{ability:'strength',  amount:1} },
   { name:'Swimmer',             desc:'You gain the ability to Swim and Dive.',                                                                                                                                    bonus:null },
   { name:'Tavern Brawler',      desc:'+1 in Martial, proficiency with improvised weapons, d4 for unarmed strike, and grapple with a bonus action.',                                                              bonus:{ability:'strength',  amount:1} },
   { name:'Tough',               desc:'Your hit point maximum increases by an amount equal to twice your level then by +2 at each level.',                                                                        bonus:null },
   { name:'Weapon Master',       desc:'+1 in Martial and you gain proficiency with four weapons.',                                                                                                                 bonus:{ability:'strength',  amount:1} },
+  { name:'Wounding Attacker',   desc:'When attempting to wound an enemy, you may always use a Dice level lower than the standard penalty when rolling a targeted attack. (D12 becomes D10 etc).',               bonus:null },
 ];
 
 // Tracks which stat bonus was applied per slot: { 1: {ability:'strength', amount:1}, ... }
@@ -1915,6 +1936,72 @@ const WPN_PROF_DEFS = [
   { id: 'prof_wpn_martial_ranged', label: 'Martial Ranged', color: 'rgba(200,130,80,.9)'  },
   { id: 'prof_wpn_unique',         label: 'Unique',         color: 'rgba(180,120,220,.9)' },
 ];
+
+// -- OTHER PROFICIENCIES --
+const OTHER_PROF_DEFS = [
+  { id: 'prof_other_reading',  label: 'Reading',  color: 'rgba(100,180,220,.9)' },
+  { id: 'prof_other_writing',  label: 'Writing',  color: 'rgba(100,180,220,.9)' },
+  { id: 'prof_other_swimming', label: 'Swimming', color: 'rgba(80,160,200,.9)'  },
+];
+
+function updateOtherProfDisplay() {
+  const disp = document.getElementById('other_prof_display');
+  if (!disp) return;
+  const active = OTHER_PROF_DEFS.filter(p => document.getElementById(p.id)?.checked);
+  if (active.length === 0) {
+    disp.innerHTML = '<span style="font-family:\'IM Fell English\',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.35);">None selected</span>';
+  } else {
+    disp.innerHTML = active.map(p =>
+      '<span style="font-family:var(--got);font-size:9px;letter-spacing:.4px;padding:2px 7px;border:1px solid ' + p.color + ';color:' + p.color + ';background:rgba(0,0,0,.3);border-radius:2px;">' + p.label + '</span>'
+    ).join('');
+  }
+}
+
+function openOtherProfModal() {
+  document.getElementById('otherProfModal')?.remove();
+  const o = document.createElement('div');
+  o.id = 'otherProfModal';
+  o.className = 'modal-overlay';
+  const btns = OTHER_PROF_DEFS.map(p => {
+    const checked = document.getElementById(p.id)?.checked;
+    const borderCol = checked ? p.color : 'rgba(139,106,0,.3)';
+    const bgCol     = checked ? 'rgba(80,140,180,.2)' : 'rgba(0,0,0,.25)';
+    const textCol   = checked ? p.color : 'rgba(232,200,74,.45)';
+    return '<button id="otherprofbtn_' + p.id + '" onclick="toggleOtherProf(\'' + p.id + '\')" ' +
+           'style="flex:1;padding:11px 6px;font-family:var(--got);font-size:10px;letter-spacing:.4px;' +
+           'border:1.5px solid ' + borderCol + ';' +
+           'background:' + bgCol + ';' +
+           'color:' + textCol + ';' +
+           'cursor:pointer;border-radius:2px;transition:all .15s;min-width:0;" ' +
+           'onmouseover="this.style.filter=\'brightness(1.25)\'" onmouseout="this.style.filter=\'\'">' +
+           (checked ? '\u2713 ' : '') + p.label + '</button>';
+  }).join('');
+  o.innerHTML = '<div class="modal" style="max-width:400px;padding:28px 36px;text-align:center;">' +
+    '<h2 style="font-size:17px;margin-bottom:6px;">Other Proficiencies</h2>' +
+    '<p style="font-family:\'IM Fell English\',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.45);margin-bottom:20px;">Select all other proficiencies your character has.</p>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">' + btns + '</div>' +
+    '<button class="rest-btn" onclick="document.getElementById(\'otherProfModal\').remove()" style="width:100%;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Done</button>' +
+    '</div>';
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function toggleOtherProf(checkboxId) {
+  const cb = document.getElementById(checkboxId);
+  if (!cb) return;
+  cb.checked = !cb.checked;
+  const def = OTHER_PROF_DEFS.find(p => p.id === checkboxId);
+  const btn = document.getElementById('otherprofbtn_' + checkboxId);
+  if (btn && def) {
+    const on = cb.checked;
+    btn.style.border     = '1.5px solid ' + (on ? def.color : 'rgba(139,106,0,.3)');
+    btn.style.background = on ? 'rgba(80,140,180,.2)' : 'rgba(0,0,0,.25)';
+    btn.style.color      = on ? def.color : 'rgba(232,200,74,.45)';
+    btn.textContent      = (on ? '\u2713 ' : '') + def.label;
+  }
+  updateOtherProfDisplay();
+  save();
+}
 
 // Cat string from weapon modal → proficiency checkbox id
 const WPN_CAT_TO_PROF = {
@@ -2941,6 +3028,8 @@ const MANEUVERS = [
     desc:'Bonus Action: Expend one Valor die and make a ranged attack with a thrown weapon (you can draw it as part of this attack). If it hits, add the Valor die to the damage roll.' },
   { name:'Rally', action_type:'BA',
     desc:'Bonus Action: Expend one Valor die to bolster a companion who can see or hear you. That creature gains temporary HP equal to the Valor die roll + your Management modifier.' },
+  { name:'Redirect Critical', action_type:null,
+    desc:'Reaction: When an opponent makes a successful wounding attack on you, expend one Valor die to slightly alter the direction of the blow, negating some of its damage. Roll your Valor die and subtract the rolled amount from the total damage.' },
   { name:'Riposte', action_type:null,
     desc:'Reaction: When a creature misses you with a melee attack, expend one Valor die to make a melee weapon attack against it. If it hits, add the Valor die to the damage roll.' },
   { name:'Sweeping Attack', action_type:'A',
@@ -2964,7 +3053,7 @@ const OATHS = [
   { key:'coin', name:'💰 Oath of Coin',
     desc:()=>`When negotiating a contract or offering your services, you gain advantage on Haggling skill rolls. Once the contract is sealed, the Oath is fulfilled and the advantage ends.` },
   { key:'vengeance', name:'🗡 Oath of Vengeance',
-    desc:()=>`Swear vengeance against a target you can see. You deal an extra 1d4 damage against that target until they perish. When they fall, the Oath is fulfilled.` }
+    desc:()=>`Swear vengeance against a target you can see. You deal an extra 1d10 damage against that target until they perish. When they fall, the Oath is fulfilled.` }
 ];
 let _hedgeKnightOath='';
 (function(){ try{ _hedgeKnightOath=localStorage.getItem('cs_hk_oath')||''; }catch(e){ _hedgeKnightOath=''; } })();
@@ -3758,7 +3847,10 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Loyalty is Bought',
       action_type: null, recovery: 'SR',
       uses_fn: () => 1,
-      desc_fn: () => `You can impose disadvantage upon the opponent in a negotiation combat roll. Once per short rest.\n\nWhen you are contracted by a new organisation or entity, you can make use of their blacksmithing facilities if available. You can improve two pieces of your current gear for free up to the Good condition or order one piece of new gear with a Decent quality. \n\nIn addition, while you are acting under contract you deal 1d4 additional damage per attack. This increases to 2d4 at level 9.`,
+      desc_fn: (lvl) => {
+        const dice = lvl >= 9 ? '2d4' : '1d4';
+        return `You can impose disadvantage upon the opponent in a negotiation combat roll. Once per short rest.\n\nWhen you are contracted by a new organisation or entity, you can make use of their blacksmithing facilities if available. You can improve two pieces of your current gear for free up to the Good condition or order one piece of new gear with a Decent quality.\n\nIn addition, while you are acting under contract you deal ${dice} additional damage per attack. (Scales: 1d4 → 2d4 at Lvl 9.)`;
+      },
       level_required: 3
     },
     {
@@ -3809,7 +3901,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'A Good Horse Never Dies',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `Proficiency in mounted combat. Mounting or dismounting costs only 5 feet of movement and you have advantage on saving throws to avoid falling off your mount. While being mounted in combat your damage output increases significantly since the impact of your blows are that much harder through the forwards motion of your steed. If you land a blow on a creature while you are mounted you can roll the damage dice of your weapon twice. You also gain +2 on combat rolls during jousting tournaments.`,
+      desc_fn: () => `Proficiency in mounted combat. Mounting or dismounting a horse costs you a bonus action and you have advantage on saving throws made to avoid falling off your mount. While being mounted in combat your damage output increases significantly since the impact of your blows are that much harder through the forwards motion of your steed. If you land a blow on a creature while you are mounted you can roll the damage dice of your weapon twice. You also gain +2 on combat rolls during jousting tournaments.`,
       level_required: 3
     },
     {
@@ -3892,15 +3984,11 @@ const SPEC_LEVEL_FEATURES = {
     },
     {
       name: 'Guerrilla Fighter',
-      action_type: 'A', recovery: 'SR+LR',
-      uses_fn: (lvl) => {
-        const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
-        return Math.min(1 + prof, 6);
-      },
+      action_type: null, recovery: null,
+      uses_fn: () => null,
       desc_fn: (lvl) => {
-        const prof = (LEVEL_TABLE.find(r => r.lvl === lvl) || {prof:2}).prof;
-        const dice = Math.min(1 + prof, 6);
-        return `You gain ${dice} Strategy Dice (d10s), regained on a short or long rest. Add a die to any Strategy check or combat roll to:\n\n• Spot a weakness in a heavily armoured target — on success, gain advantage on your next attack against them.\n• Set an ambush to gain a surprise round.\n• Set traps to harm or catch enemies who trigger them.`;
+        const dice = lvl >= 9 ? '2d6' : '1d6';
+        return `You've learned to fight dirty and know how to exploit weaknesses in armored knights who aren't used to your style of combat. While wearing light armor or no armor, you exploit gaps in heavy defenses.\n\nWhen you hit a creature wearing heavy armor, you deal an additional ${dice} damage. (Scales: 1d6 → 2d6 at Lvl 9.)\n\nIn addition, you have advantage on your attacks on targets that haven't taken their attack action in combat yet. If you hit an attack with advantage, the target also suffers -2 AC until the start of your next turn.`;
       },
       level_required: 3
     },
