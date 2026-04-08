@@ -1619,6 +1619,7 @@ function _collectSheetData() {
   try { d._cs_maester_link        = typeof _maesterLink            !== 'undefined' ? _maesterLink            : ''; } catch(e) {}
   try { d._cs_stellar_points      = typeof _stellarPoints          !== 'undefined' ? _stellarPoints          : 3;  } catch(e) {}
   try { d._cs_war_chest           = typeof _warChest               !== 'undefined' ? _warChest               : 0;  } catch(e) {}
+  try { d._cs_merchant_trade_good = typeof _merchantTradeGood      !== 'undefined' ? _merchantTradeGood      : ''; } catch(e) {}
   try { d._cs_warg_bond           = typeof _wargBondAnimals        !== 'undefined' ? _wargBondAnimals        : []; } catch(e) {}
   try { d._cs_greater_warg_bond   = typeof _greaterWargBondAnimals !== 'undefined' ? _greaterWargBondAnimals : []; } catch(e) {}
   try { d._cs_feat_bonuses        = _appliedFeatBonuses; } catch(e) {}
@@ -1726,6 +1727,7 @@ function load(){
   try{ if(d._cs_maester_link!==undefined){        _maesterLink=d._cs_maester_link;                 try{localStorage.setItem('cs_maester_link',_maesterLink);}catch(e){} } }catch(e){}
   try{ if(d._cs_stellar_points!==undefined){      _stellarPoints=parseInt(d._cs_stellar_points);   try{localStorage.setItem('cs_stellar_points',String(_stellarPoints));}catch(e){} } }catch(e){}
   try{ if(d._cs_war_chest!==undefined){           _warChest=parseInt(d._cs_war_chest);             try{localStorage.setItem('cs_war_chest',String(_warChest));}catch(e){} } }catch(e){}
+  try{ if(d._cs_merchant_trade_good!==undefined){ _merchantTradeGood=d._cs_merchant_trade_good;   try{localStorage.setItem('cs_merchant_trade_good',_merchantTradeGood);}catch(e){} } }catch(e){}
   try{ if(d._cs_warg_bond!==undefined){      _wargBondAnimals=d._cs_warg_bond;                   try{localStorage.setItem('cs_warg_bond',JSON.stringify(_wargBondAnimals));}catch(e){} } }catch(e){}
   try{ if(d._cs_greater_warg_bond!==undefined){ _greaterWargBondAnimals=d._cs_greater_warg_bond; try{localStorage.setItem('cs_greater_warg_bond',JSON.stringify(_greaterWargBondAnimals));}catch(e){} } }catch(e){}
   recalc();
@@ -3388,7 +3390,44 @@ const CULTURAL_AMBASSADOR_CULTURES = [
 ];
 let _chosenCultures = [];
 (function(){ try{ _chosenCultures=JSON.parse(localStorage.getItem('cs_cultural_ambassador')||'[]'); }catch(e){ _chosenCultures=[]; } })();
-function saveChosenCultures(){ try{ localStorage.setItem('cs_cultural_ambassador',JSON.stringify(_chosenCultures)); }catch(e){} }
+
+// ── MERCHANT: TRADE GOOD SPECIALISATION ──
+let _merchantTradeGood = '';
+(function(){ try{ _merchantTradeGood = localStorage.getItem('cs_merchant_trade_good') || ''; }catch(e){ _merchantTradeGood = ''; } })();
+function saveMerchantTradeGood(){ try{ localStorage.setItem('cs_merchant_trade_good', _merchantTradeGood); }catch(e){} }
+
+function openMerchantTradeGoodModal(){
+  const old = document.getElementById('merchantTradeGoodOverlay');
+  if(old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'merchantTradeGoodOverlay';
+  overlay.className = 'modal-overlay';
+  const safeVal = _merchantTradeGood.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:480px;padding:30px 40px;text-align:center;">
+      <h2 style="font-size:18px;letter-spacing:1.5px;margin-bottom:6px;color:var(--text-gold);">&#x1FA99; Specialized Trade Good</h2>
+      <p style="font-family:'IM Fell English',serif;font-size:13px;color:#bbb;margin-bottom:20px;line-height:1.6;">
+        Enter the category of goods you specialize in &mdash; e.g. <em>Arms &amp; Armor</em>, <em>Horses</em>, <em>Grain</em>, <em>Luxury Items</em>, <em>Raw Materials</em>.
+      </p>
+      <input id="merchantTradeGoodInput" type="text" placeholder="e.g. Spices &amp; Luxury Goods"
+        style="width:100%;height:36px;font-family:'IM Fell English',serif;font-size:15px;text-align:center;
+               background:var(--input-bg);border:2px solid var(--gold);color:#1a1000;padding:0 10px;box-sizing:border-box;margin-bottom:18px;"
+        value="${safeVal}">
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button class="rest-btn" style="min-width:130px;" onclick="
+          const v = document.getElementById('merchantTradeGoodInput').value.trim();
+          _merchantTradeGood = v;
+          saveMerchantTradeGood();
+          document.getElementById('merchantTradeGoodOverlay').remove();
+          renderSpecFeatures();
+        ">&#x2714; Confirm</button>
+        <button class="rest-btn" style="min-width:130px;" onclick="document.getElementById('merchantTradeGoodOverlay').remove()">&#x2716; Cancel</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+  setTimeout(() => { const inp = document.getElementById('merchantTradeGoodInput'); if(inp){ inp.focus(); inp.select(); } }, 50);
+}
 
 // ── MAESTER: CHAIN LINK SPECIALISATION ──
 const MAESTER_LINKS = [
@@ -4306,34 +4345,41 @@ const SPEC_LEVEL_FEATURES = {
     {
       name: 'Corporate Certainty',
       action_type: null, recovery: 'LR',
-      uses_fn: () => 0,
+      uses_fn: (lvl) => {
+        const dipEl = document.getElementById('mod_charisma');
+        return Math.max(1, parseInt((dipEl||{}).value) || 1);
+      },
       desc_fn: (lvl) => {
         const die = lvl >= 15 ? '1d12' : lvl >= 10 ? '1d10' : lvl >= 5 ? '1d8' : '1d6';
         const baseCost = lvl >= 15 ? '4 Gold Dragons' : lvl >= 10 ? '3 Gold Dragons' : lvl >= 5 ? '2 Gold Dragons' : '1 Gold Dragon';
-        return `You have learned that uncertainty is for those without coins. When you would roll an Envoy Die, you may instead choose to treat the result as the maximum value of the die. To do so, you must pay a number of coins based on your current Envoy Die size and how many times you have used this feature since your last long rest. Payment must be made immediately in coin (gold, silver, or copper). If you cannot pay the full cost, the feature fails. You declare your usage before knowing the results of your roll.\n\nCurrent Envoy Die: ${die}.\n\nBase cost:\n• 1d6 → 1 Gold Dragon\n• 1d8 → 2 Gold Dragons\n• 1d10 → 3 Gold Dragons\n• 1d12 → 4 Gold Dragons\n\nCurrently: ${baseCost}.\n\nEach additional time you use this feature in the same day, the cost doubles cumulatively (1×, 2×, 4×, 8×…). Resets on a long rest.`;
+        const dipEl = document.getElementById('mod_charisma');
+        const dip = Math.max(1, parseInt((dipEl||{}).value) || 1);
+        return `You have learned that uncertainty is for those without coins. When you would roll an Envoy Die, you may instead choose to treat the result as the maximum value of the die. To do so, you must pay a number of coins based on your current Envoy Die size and how many times you have used this feature since your last long rest. Payment must be made immediately in coin (gold, silver, or copper). If you cannot pay the full cost, the feature fails. You declare your usage before knowing the results of your roll.\n\nUsable ${dip} time${dip>1?'s':''} per long rest (equal to your Diplomacy modifier).\n\nCurrent Envoy Die: ${die}.\n\nBase cost:\n• 1d6 → 1 Gold Dragon\n• 1d8 → 2 Gold Dragons\n• 1d10 → 3 Gold Dragons\n• 1d12 → 4 Gold Dragons\n\nCurrently: ${baseCost}.\n\nEach additional time you use this feature in the same day, the cost doubles cumulatively (1×, 2×, 4×, 8×…). Resets on a long rest.`;
       },
       level_required: 1
     },
     {
       name: 'Respectable Reputation',
       action_type: null, recovery: null,
+      special: 'merchant_trade_good',
       uses_fn: () => 0,
       desc_fn: (lvl) => {
         const rep = repVal;
         const die = lvl >= 15 ? '1d12' : lvl >= 10 ? '1d10' : lvl >= 5 ? '1d8' : '1d6';
+        const goodName = _merchantTradeGood ? `"${_merchantTradeGood}"` : 'your chosen category';
         let repLine = '';
         if(rep > 0){
           const steps = rep;
           const pct = steps * 5;
-          repLine = `\n\nCurrent Reputation: Famed +${rep}. You buy your specialized goods for ${pct}% less and sell them for ${pct}% more.`;
+          repLine = `\n\nCurrent Reputation: Famed +${rep}. You buy ${goodName} for ${pct}% less and sell them for ${pct}% more.`;
         } else if(rep < 0){
           const steps = Math.abs(rep);
           const pct = steps * 5;
-          repLine = `\n\nCurrent Reputation: Notorious ${rep}. You pay ${pct}% more for your specialized goods and sell them for ${pct}% less.`;
+          repLine = `\n\nCurrent Reputation: Notorious ${rep}. You pay ${pct}% more for ${goodName} and sell them for ${pct}% less.`;
         } else {
           repLine = `\n\nCurrent Reputation: Neutral. No buy/sell modifier yet.`;
         }
-        return `At 3rd level, you establish yourself as a recognized dealer in a specific category of goods — such as arms and armor, horses, grain, luxury items, or raw materials. This reflects not only your knowledge of the trade but also your network of contacts, suppliers, and buyers.\n\nWhen buying or selling goods within your chosen category, you secure more favorable terms tied to your reputation. For each step towards a famed reputation you buy your specialized goods for 5% less and sell them for 5% more. For each step towards a notorious reputation you pay 5% more and sell for 5% less.${repLine}\n\nYou can now also use your Envoy Die (${die}) for the Haggling ability.`;
+        return `At 3rd level, you establish yourself as a recognized dealer in a specific category of goods — such as arms and armor, horses, grain, luxury items, or raw materials. Specialized goods: ${goodName}.\n\nWhen buying or selling goods within your chosen category, you secure more favorable terms tied to your reputation. For each step towards a famed reputation you buy your specialized goods for 5% less and sell them for 5% more. For each step towards a notorious reputation you pay 5% more and sell for 5% less.${repLine}\n\nYou can now also use your Envoy Die (${die}) for the Haggling ability.`;
       },
       level_required: 3
     },
@@ -4341,7 +4387,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Bulk Trader',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `At level 7 your trade has grown into a sizable enterprise and you have learned to move goods in bulk across long distances. You can organize and manage caravans, transporting significantly larger quantities of goods than most merchants. The carrying capacity of your backpacks and steeds under your control is increased by 50%.\n\nIn addition, since you are a constant target for bandits and opportunists, you have learned to stay close to your protectors.\n\n• You gain +2 to your Armor Class.\n• You deal an additional 1d6 damage when you are within 5 ft. of an ally.`,
+      desc_fn: () => `At level 7 your trade has grown into a sizable enterprise and you have learned to move goods in bulk across long distances. You can organize and manage caravans, transporting significantly larger quantities of goods than most merchants. The carrying capacity of your backpacks and steeds under your control is increased by 50%.\n\nIn addition, since you are a constant target for bandits and opportunists, you have learned to stay close to your protectors. While you are within 5 ft. of an ally:\n\n• You gain +2 to your Armor Class.\n• You deal an additional 1d6 damage on your attacks.\n\nThese bonuses are lost the moment you are no longer adjacent to an ally.`,
       level_required: 7
     },
     {
@@ -4642,6 +4688,22 @@ function _applyFeatureToSlot(slot, f){
         wbLgBtn.onclick = openGreaterWargBondModal;
         wbLgBtn.style.pointerEvents = 'auto'; wbLgBtn.style.cursor = 'pointer';
       } else if(wbLgBtn){ wbLgBtn.remove(); }
+      // Merchant: Trade Good picker
+      let tgBtn = block.querySelector('.merchant-tg-btn');
+      if(f.special === 'merchant_trade_good'){
+        if(!tgBtn){
+          tgBtn = document.createElement('button');
+          tgBtn.className = 'merchant-tg-btn rest-btn';
+          tgBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;';
+          block.appendChild(tgBtn);
+        }
+        tgBtn.textContent = _merchantTradeGood ? `🪙 ${_merchantTradeGood} (change)` : '🪙 Set Specialized Good…';
+        tgBtn.style.cssText = _merchantTradeGood
+          ? 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(80,50,0,.55);border-color:rgba(212,160,23,.6);color:#f0d060;'
+          : 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(140,0,0,.55);border-color:rgba(220,40,40,.7);color:#ffaaaa;';
+        tgBtn.onclick = openMerchantTradeGoodModal;
+        tgBtn.style.pointerEvents = 'auto'; tgBtn.style.cursor = 'pointer';
+      } else if(tgBtn){ tgBtn.remove(); }
     }
     if(aBtn)  aBtn.classList.remove('active');
     if(baBtn) baBtn.classList.remove('active');
