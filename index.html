@@ -4302,6 +4302,64 @@ const SPEC_LEVEL_FEATURES = {
       level_required: 15
     }
   ]
+  ,'Merchant': [
+    {
+      name: 'Corporate Certainty',
+      action_type: null, recovery: 'LR',
+      uses_fn: () => 0,
+      desc_fn: (lvl) => {
+        const die = lvl >= 15 ? '1d12' : lvl >= 10 ? '1d10' : lvl >= 5 ? '1d8' : '1d6';
+        const baseCost = lvl >= 15 ? '4 Gold Dragons' : lvl >= 10 ? '3 Gold Dragons' : lvl >= 5 ? '2 Gold Dragons' : '1 Gold Dragon';
+        return `You have learned that uncertainty is for those without coins. When you would roll an Envoy Die, you may instead choose to treat the result as the maximum value of the die. To do so, you must pay a number of coins based on your current Envoy Die size and how many times you have used this feature since your last long rest. Payment must be made immediately in coin (gold, silver, or copper). If you cannot pay the full cost, the feature fails. You declare your usage before knowing the results of your roll.\n\nCurrent Envoy Die: ${die}.\n\nBase cost:\n• 1d6 → 1 Gold Dragon\n• 1d8 → 2 Gold Dragons\n• 1d10 → 3 Gold Dragons\n• 1d12 → 4 Gold Dragons\n\nCurrently: ${baseCost}.\n\nEach additional time you use this feature in the same day, the cost doubles cumulatively (1×, 2×, 4×, 8×…). Resets on a long rest.`;
+      },
+      level_required: 1
+    },
+    {
+      name: 'Respectable Reputation',
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      desc_fn: (lvl) => {
+        const rep = repVal;
+        const die = lvl >= 15 ? '1d12' : lvl >= 10 ? '1d10' : lvl >= 5 ? '1d8' : '1d6';
+        let repLine = '';
+        if(rep > 0){
+          const steps = rep;
+          const pct = steps * 5;
+          repLine = `\n\nCurrent Reputation: Famed +${rep}. You buy your specialized goods for ${pct}% less and sell them for ${pct}% more.`;
+        } else if(rep < 0){
+          const steps = Math.abs(rep);
+          const pct = steps * 5;
+          repLine = `\n\nCurrent Reputation: Notorious ${rep}. You pay ${pct}% more for your specialized goods and sell them for ${pct}% less.`;
+        } else {
+          repLine = `\n\nCurrent Reputation: Neutral. No buy/sell modifier yet.`;
+        }
+        return `At 3rd level, you establish yourself as a recognized dealer in a specific category of goods — such as arms and armor, horses, grain, luxury items, or raw materials. This reflects not only your knowledge of the trade but also your network of contacts, suppliers, and buyers.\n\nWhen buying or selling goods within your chosen category, you secure more favorable terms tied to your reputation. For each step towards a famed reputation you buy your specialized goods for 5% less and sell them for 5% more. For each step towards a notorious reputation you pay 5% more and sell for 5% less.${repLine}\n\nYou can now also use your Envoy Die (${die}) for the Haggling ability.`;
+      },
+      level_required: 3
+    },
+    {
+      name: 'Bulk Trader',
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      desc_fn: () => `At level 7 your trade has grown into a sizable enterprise and you have learned to move goods in bulk across long distances. You can organize and manage caravans, transporting significantly larger quantities of goods than most merchants. The carrying capacity of your backpacks and steeds under your control is increased by 50%.\n\nIn addition, since you are a constant target for bandits and opportunists, you have learned to stay close to your protectors.\n\n• You gain +2 to your Armor Class.\n• You deal an additional 1d6 damage when you are within 5 ft. of an ally.`,
+      level_required: 7
+    },
+    {
+      name: "The King's Route",
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      desc_fn: () => `You have established your trading route. In every village, city, and capital you can purchase a trading commission from the local authorities and store or collect your money at these locations.\n\nEach location added to your network increases the interest rate on your deposited money:\n• Village = 1%\n• City = 2.5%\n• Capital = 5%\n\nYour total interest rate is the sum of all locations in your trade route. At the end of each week (7 long rests), your stored money generates interest based on your full network.\n\nIn addition, when traveling between locations in your network your movement speed is increased by 50%, and you can secure safe lodging and basic supplies at reduced cost.`,
+      level_required: 10
+    },
+    {
+      name: 'Master of the Masses',
+      action_type: 'A', recovery: 'LR',
+      uses_fn: () => 1,
+      desc_fn: () => `You have mastered the art of diplomacy to an exceptional degree.\n\nYou may suggest a course of activity to up to twelve persons of your choice that you can see within range and that can hear and understand you. The suggestion must be worded in such a manner as to make the course of action sound reasonable.\n\nEach target must make a Diplomacy saving throw. On a failed save, it pursues the course of action you described to the best of its ability.\n\nUsable once per long rest.`,
+      level_required: 15
+    }
+  ]
+
   ,'Maester': [
     {
       name: "Maester's Chain — Tin",
