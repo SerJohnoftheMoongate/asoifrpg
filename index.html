@@ -700,6 +700,22 @@ textarea{resize:none;font-weight:400;font-size:12px}
       <div id="feat_desc_3" class="feat-desc"></div>
     </div>
 
+  <!-- ORIGIN FEAT SECTION -->
+  <div id="origin_feat_block" style="display:none;flex-shrink:0;background:var(--panel);border-top:2px solid var(--gold);">
+    <div class="sec">Origin Feat</div>
+    <div style="padding:5px 9px 7px;">
+      <div style="height:24px;margin-bottom:4px;">
+        <input type="text" id="origin_feat_name" readonly
+          style="height:100%;font-size:13px;font-family:'Cinzel',serif;font-weight:700;
+                 color:var(--text-gold);background:transparent;border:none;width:100%;cursor:default;">
+      </div>
+      <div id="origin_feat_desc" class="feat-desc has-feat"
+        style="display:block;font-family:'IM Fell English',serif;font-size:11px;color:#bbb;
+               line-height:1.45;padding:4px 6px 5px;border-left:2px solid rgba(139,106,0,.4);
+               margin:0 0 0 2px;"></div>
+    </div>
+  </div>
+
   <!-- CONSTITUTION SECTION -->
   <div class="sec" style="margin-top:6px">Constitution</div>
   <div style="display:flex;align-items:stretch;border-top:1px solid var(--gold)">
@@ -1267,6 +1283,36 @@ const ORIGIN_PROFS = {
 };
 // Track which skills were set by the origin so we can clear them on change
 let _originSkills=[];
+
+const ORIGIN_FEATS = {
+  'The North':        { name:'Winter is Coming',    desc:'You gain +2 to attack rolls when fighting in the snow.' },
+  'The Riverlands':   { name:'The Blackfish',       desc:'You gain the ability to swim.' },
+  'The Iron Islands': { name:'From Salt and Sea',   desc:'You are able to captain a ship, you are proficient.' },
+  'The Vale':         { name:'The High Ground',     desc:'When you are in combat in a mountain environment you gain +2 on your Armor Class.' },
+  'The Westerlands':  { name:'Rains of Castamere',  desc:'You have advantage on persuasion combat rolls against people with a lower renown.' },
+  'The Crownlands':   { name:'A Pit of Snakes',     desc:'You cannot be Surprised.' },
+  'The Stormlands':   { name:'Stubborn Defenders',  desc:'You gain a +2 on Attack Rolls when you have less than half your Hit Points.' },
+  'The Reach':        { name:'Tourney Knights',     desc:'You gain a +2 on Attack Rolls when in mounted combat.' },
+  'Dorne':            { name:'The Viper',           desc:"You are proficient with a poisoner's kit." },
+};
+
+function updateOriginFeat() {
+  const origin = document.getElementById('origin')?.value || '';
+  const block  = document.getElementById('origin_feat_block');
+  const nameEl = document.getElementById('origin_feat_name');
+  const descEl = document.getElementById('origin_feat_desc');
+  if (!block || !nameEl || !descEl) return;
+  const feat = ORIGIN_FEATS[origin];
+  if (feat) {
+    nameEl.value   = feat.name;
+    descEl.textContent = feat.desc;
+    block.style.display = '';
+  } else {
+    nameEl.value   = '';
+    descEl.textContent = '';
+    block.style.display = 'none';
+  }
+}
 function applyOriginProfs(){
   // Clear previous origin-granted profs
   _originSkills.forEach(sk=>{
@@ -1281,6 +1327,7 @@ function applyOriginProfs(){
     if(el){el.checked=true;el.dataset.byOrigin='1';_originSkills.push(sk);}
   });
   updateCultureDropdown(origin);
+  updateOriginFeat();
   // Reset culture bonus since culture dropdown resets
   applyCultureBonus();
   recalc();
