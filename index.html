@@ -2200,7 +2200,7 @@ function openWeaponModal(prefix, idx){
     <div class="wpn-radio${existingDR.startsWith(d)?' selected':''}" data-die="${d}" onclick="selectWpnDie(this)">${d}</div>`).join('');
 
   const WPN_CATS = ['Simple Melee','Simple Ranged','Martial Melee','Martial Ranged','Unique'];
-  const WPN_PROPS = ['Ammunition','Finesse','Heavy','Light','Loading','Range','Reach','Special','Thrown','Two-Handed','Versatile'];
+  const WPN_PROPS = ['Ammunition','Armor Piercing','Finesse','Heavy','Light','Loading','Range','Reach','Special','Thrown','Two-Handed','Versatile'];
   const dmgEl = document.getElementById(`${prefix}_wdmg_${idx}`);
   const propEl = document.getElementById(`${prefix}_wprop_${idx}`);
   const condEl = document.getElementById(`${prefix}_wcond_${idx}`);
@@ -2270,6 +2270,7 @@ function openWeaponModal(prefix, idx){
         </button>`;
       }).join('')}
     </div>
+
 
     <!-- Row 4: Range + Attack Stat side by side -->
     <div style="display:grid;grid-template-columns:120px 1fr;gap:12px;margin-bottom:10px;">
@@ -3031,7 +3032,7 @@ const MANEUVERS = [
   { name:'Rally', action_type:'BA',
     desc:'Bonus Action: Expend one Valor die to bolster a companion who can see or hear you. That creature gains temporary HP equal to the Valor die roll + your Management modifier.' },
   { name:'Redirect Critical', action_type:null,
-    desc:'Reaction: When an opponent makes a successful wounding attack on you, expend one Valor die to slightly alter the direction of the blow, negating some of its damage. Roll your Valor die and subtract the rolled amount from the total damage.' },
+    desc:'Reaction: When an opponent makes a successful targeted attack on you, expend one Valor die to slightly alter the direction of the blow, negating some of its damage. Roll your Valor die and subtract the rolled amount from the total damage.' },
   { name:'Riposte', action_type:null,
     desc:'Reaction: When a creature misses you with a melee attack, expend one Valor die to make a melee weapon attack against it. If it hits, add the Valor die to the damage roll.' },
   { name:'Sweeping Attack', action_type:'A',
@@ -4083,7 +4084,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Adrenaline Fuelled',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `Reaction: When you are hit by a targeted wounding strike, you may negate the severity of the wound by one level — critical becomes medium, medium becomes mild, and a mild wound is shaken off entirely (you still take the hit's damage).`,
+      desc_fn: () => `Reaction: When you are hit by a targeted strike, you may negate the severity of the wound by one level — critical becomes medium, medium becomes mild, and a mild wound is shaken off entirely (you still take the hit's damage).`,
       level_required: 10
     },
     {
@@ -4271,7 +4272,7 @@ const SPEC_LEVEL_FEATURES = {
       name: 'Muscle Memory',
       action_type: null, recovery: null,
       uses_fn: () => 0,
-      desc_fn: () => `Your archery muscles are formidable. The range of all your ranged weapons increases by 50% (e.g. 100 m becomes 150 m). No bowstring is too tough for you to draw. In addition, you deal additional damage when making a wounding attack. The additional damage is based on the body part you are targeting.\n\n• Head = 1d6 additional damage\n• Leg = 1d8 additional damage\n• Arm = 1d10 additional damage\n• Torso = 1d12 additional damage`,
+      desc_fn: () => `Your archery muscles are formidable. The range of all your ranged weapons increases by 50% (e.g. 100 m becomes 150 m). No bowstring is too tough for you to draw. In addition, you deal additional damage when making a targeted attack. The additional damage is based on the body part you are targeting.\n\n• Head = 1d6 additional damage\n• Leg = 1d8 additional damage\n• Arm = 1d10 additional damage\n• Torso = 1d12 additional damage`,
       level_required: 10
     },
     {
