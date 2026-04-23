@@ -67,10 +67,22 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .name-bar input::placeholder{color:rgba(232,200,74,.3)}
 
 /* dropdowns — GoT font */
+/* Dropdown row layout: Origin + Class (+ optional Class-2) on top; Culture + Spec (+ optional Spec-2) below. */
 .header-drops{position:absolute;left:166px;top:80px;width:460px;height:28px;display:flex;gap:5px}
-.header-drops select{flex:1;height:100%;font-family:var(--got);font-size:10px;font-weight:400;text-align:center;border:2px solid var(--gold);background:var(--input-bg);color:#1a1000}
+.header-drops select{flex:1;min-width:0;height:100%;font-family:var(--got);font-size:10px;font-weight:400;text-align:center;border:2px solid var(--gold);background:var(--input-bg);color:#1a1000}
 .header-drops2{position:absolute;left:166px;top:114px;width:460px;height:28px;display:flex;gap:5px}
-.header-drops2 select{width:100%;height:100%;font-family:var(--got);font-size:10px;font-weight:400;text-align:center;border:2px solid var(--gold);background:var(--input-bg);color:#1a1000}
+.header-drops2 select{flex:1;min-width:0;height:100%;font-family:var(--got);font-size:10px;font-weight:400;text-align:center;border:2px solid var(--gold);background:var(--input-bg);color:#1a1000}
+/* When multiclass is active, secondary dropdowns become visible and the row expands to hold three columns */
+.header-drops.multiclass-on,.header-drops2.multiclass-on{width:690px}
+.header-drops.multiclass-on #origin{flex:1.5}  /* origin stays wider as it's a solo in col 1 */
+.header-drops.multiclass-on #class_2,.header-drops2.multiclass-on #spec_2{display:block !important}
+.header-drops2.multiclass-on #culture{flex:1.5}
+
+/* Multiclass toggle — sits just below the dropdowns, subtle until hovered */
+.multiclass-toggle{position:absolute;left:166px;top:148px;display:flex;align-items:center;gap:6px;font-family:var(--got);font-size:9.5px;letter-spacing:1px;color:var(--gold-lt);cursor:pointer;user-select:none;padding:3px 8px;border:1px solid rgba(139,106,0,.35);background:rgba(10,5,0,.3);transition:all .18s}
+.multiclass-toggle:hover{border-color:var(--gold);color:var(--text-gold);background:rgba(30,20,0,.5)}
+.multiclass-toggle input{margin:0;cursor:pointer;accent-color:var(--gold)}
+.multiclass-toggle span{text-transform:uppercase}
 
 /* rest buttons */
 .rest-buttons{position:absolute;right:166px;top:80px;display:flex;flex-direction:column;gap:6px;align-items:stretch}
@@ -335,12 +347,19 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="header-drops" onclick="event.stopPropagation()">
     <select id="origin" onchange="applyOriginProfs()"><option value="">— Origin —</option><option>The Vale</option><option>The Westerlands</option><option>Dorne</option><option>The Crownlands</option><option>The North</option><option>The Iron Islands</option><option>The Riverlands</option><option>The Reach</option><option>The Stormlands</option></select>
-    <select id="class_" onchange="updateSpecOptions(true)"><option value="">— Class —</option><option>Warrior</option><option>Survivalist</option><option>Priest</option><option>Envoy</option></select>
-    <select id="spec" onchange="applySpecFeatures()"><option value="">— Specialisation —</option></select>
+    <select id="class_" onchange="updateSpecOptions(true)"><option value="">— Class —</option></select>
+    <!-- Secondary class+spec dropdowns — hidden unless multiclass is toggled on -->
+    <select id="class_2" onchange="updateSpecOptions2(true)" style="display:none"><option value="">— 2nd Class —</option></select>
   </div>
   <div class="header-drops2" onclick="event.stopPropagation()">
     <select id="culture" onchange="applyCultureBonus()"><option value="">— Culture —</option></select>
+    <select id="spec" onchange="applySpecFeatures()"><option value="">— Specialisation —</option></select>
+    <select id="spec_2" onchange="applySpecFeatures()" style="display:none"><option value="">— 2nd Specialisation —</option></select>
   </div>
+  <label class="multiclass-toggle" onclick="event.stopPropagation()" title="Enable a secondary class & specialisation. Grants features only — no extra proficiencies or saves.">
+    <input type="checkbox" id="multiclass_toggle" onchange="toggleMulticlass()">
+    <span>⚔ Multiclass</span>
+  </label>
 <div class="rest-buttons" onclick="event.stopPropagation()">
   <div style="display:flex;gap:8px;">
     <button id="shortRestBtn" class="rest-btn" onclick="doRest('short')"><img class="ri" src="Images/Short Rest Icon.webp" alt="">SHORT REST</button>
@@ -518,7 +537,25 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div class="meta-icons-row">
     <div class="meta-icon-cell">
       <img class="meta-icon" src="Images/Renown Icon.webp" alt="Renown">
-      <div style="flex:1"><span class="meta-lbl">Renown</span><div style="display:flex;gap:3px;height:22px;"><input type="hidden" id="renown" value="51"><button onclick="openRenownModal()" style="flex:3;height:100%;font-size:13px;text-align:center;min-width:0;font-family:'IM Fell English',serif;background:var(--panel);border:1px solid var(--gold);color:var(--text-gold);cursor:pointer;letter-spacing:.3px;" id="renown_btn">51 RP</button><div id="char_level_box" style="flex:2;height:100%;background:#1a0a2e;border:1.5px solid #9b4dca;display:flex;align-items:center;justify-content:center;flex-shrink:0;min-width:0"><span id="char_level" style="font-family:var(--got);font-size:10px;color:#d4a0ff;letter-spacing:.5px;white-space:nowrap">Lvl —</span></div></div></div>
+      <div style="flex:1;min-width:0;">
+        <span class="meta-lbl">Renown</span>
+        <!-- Primary renown row -->
+        <div style="display:flex;gap:3px;height:22px;">
+          <input type="hidden" id="renown" value="51">
+          <button onclick="openRenownModal()" style="flex:3;height:100%;font-size:13px;text-align:center;min-width:0;font-family:'IM Fell English',serif;background:var(--panel);border:1px solid var(--gold);color:var(--text-gold);cursor:pointer;letter-spacing:.3px;" id="renown_btn">51 RP</button>
+          <div id="char_level_box" style="flex:2;height:100%;background:#1a0a2e;border:1.5px solid #9b4dca;display:flex;align-items:center;justify-content:center;flex-shrink:0;min-width:0">
+            <span id="char_level" style="font-family:var(--got);font-size:10px;color:#d4a0ff;letter-spacing:.5px;white-space:nowrap">Lvl —</span>
+          </div>
+        </div>
+        <!-- Secondary renown row (hidden unless multiclass is toggled on) -->
+        <div id="renown2_row" style="display:none;gap:3px;height:22px;margin-top:3px;">
+          <input type="hidden" id="renown2" value="0">
+          <button onclick="openRenownModal2()" style="flex:3;height:100%;font-size:13px;text-align:center;min-width:0;font-family:'IM Fell English',serif;background:var(--panel);border:1px solid var(--gold);color:var(--text-gold);cursor:pointer;letter-spacing:.3px;" id="renown2_btn" title="Secondary-class renown — drives features of the secondary class only">0 RP</button>
+          <div id="char_level_box2" style="flex:2;height:100%;background:#2e0a1a;border:1.5px solid #ca4d9b;display:flex;align-items:center;justify-content:center;flex-shrink:0;min-width:0">
+            <span id="char_level2" style="font-family:var(--got);font-size:10px;color:#ffa0d4;letter-spacing:.5px;white-space:nowrap">Lvl —</span>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="meta-icon-cell">
       <img class="meta-icon" src="Images/Initiative Icon.webp" alt="Initiative">
@@ -1378,7 +1415,17 @@ const LEVEL_TABLE=[
   {lvl:17,rp:3135,prof:6},{lvl:18,rp:3555,prof:6},{lvl:19,rp:4015,prof:6}
 ];
 let _currentHD=0; // tracks spent hit dice
-let _cachedLevel=0;
+let _cachedLevel=0;      // COMBINED level (primary + secondary) — drives HP, prof bonus, feats-at-4/8/12/16/19 etc.
+let _cachedPrimaryLevel=0;   // primary-class level only — used when scaling primary-class/spec feature descriptions
+let _cachedSecondaryLevel=0; // secondary-class level only — used when scaling secondary-class/spec feature descriptions
+let _isMulticlass=false;
+// Helper: RP → level (searches LEVEL_TABLE from highest down)
+function _rpToLevel(rp){
+  const pts = parseInt(rp, 10);
+  if(isNaN(pts) || pts < 0) return 0;
+  for(let i=LEVEL_TABLE.length-1; i>=0; i--) if(pts >= LEVEL_TABLE[i].rp) return LEVEL_TABLE[i].lvl;
+  return 0;
+}
 function getMaxHD(){ return _cachedLevel; }
 function getCurrentHD(){ return _currentHD; }
 function setHD(cur){
@@ -1392,41 +1439,52 @@ function updateLevel(){
   const renownBtn=document.getElementById('renown_btn');
   if(renownBtn) renownBtn.textContent=(parseInt(raw)||0)+' RP';
   const pts=parseInt(raw,10);
-  const lvlEl=document.getElementById('char_level');
   const profEl=document.getElementById('proficiency');
   const prevLevel=_cachedLevel;
-  if(isNaN(pts)||pts<0){
-    _cachedLevel=0;
-    if(lvlEl) lvlEl.textContent='Lvl —';
-    if(profEl) profEl.value='';
+
+  // Primary class level (from primary renown)
+  _cachedPrimaryLevel = _rpToLevel(pts);
+  // Update the primary level pill
+  const lvlEl=document.getElementById('char_level');
+  if(lvlEl) lvlEl.textContent = _cachedPrimaryLevel ? ('Lvl '+_cachedPrimaryLevel) : 'Lvl —';
+
+  // Combined level (primary + secondary) drives HP, prof-bonus, feats at 4/8/12/16/19, extra attacks, etc.
+  _cachedLevel = Math.min(19, _cachedPrimaryLevel + (_isMulticlass ? _cachedSecondaryLevel : 0));
+
+  // Proficiency bonus: from combined level if valid, else from primary fallback
+  const profRow = _cachedLevel > 0
+    ? (LEVEL_TABLE.find(r => r.lvl === _cachedLevel) || null)
+    : null;
+  if(profEl) profEl.value = profRow ? ('+'+profRow.prof) : '';
+
+  // Hit dice: total equals combined level; grant new HD on level-up, clamp otherwise
+  if(_cachedLevel === 0){
     setHD(0);
-    recalc(); return;
-  }
-  let row=null;
-  for(let i=LEVEL_TABLE.length-1;i>=0;i--){
-    if(pts>=LEVEL_TABLE[i].rp){row=LEVEL_TABLE[i];break;}
-  }
-  if(row){
-    const levelChanged=row.lvl!==prevLevel;
-    _cachedLevel=row.lvl;
-    if(lvlEl) lvlEl.textContent='Lvl '+row.lvl;
-    if(profEl) profEl.value='+'+row.prof;
-    // If level went up, grant the extra HD immediately; if first time, set to max
-    if(levelChanged){
-      const gain=row.lvl-prevLevel;
-      setHD(Math.min(row.lvl, _currentHD+Math.max(0,gain)));
-    } else {
-      setHD(_currentHD); // just refresh display
-    }
+  } else if(_cachedLevel !== prevLevel){
+    const gain = _cachedLevel - prevLevel;
+    setHD(Math.min(_cachedLevel, _currentHD + Math.max(0, gain)));
   } else {
-    _cachedLevel=0;
-    if(lvlEl) lvlEl.textContent='Lvl —';
-    if(profEl) profEl.value='';
-    setHD(0);
+    setHD(_currentHD);
   }
+
   recalc();
   applySpecFeatures();
   updateAttackBar();
+}
+
+// Secondary-class renown — only updates the secondary level pill and re-runs updateLevel()
+// (which recomputes the combined level + re-applies features).
+function updateLevel2(){
+  const renownEl=document.getElementById('renown2');
+  const raw=renownEl ? renownEl.value.replace(/\./g,'').replace(/,/g,'') : '0';
+  const renownBtn=document.getElementById('renown2_btn');
+  if(renownBtn) renownBtn.textContent=(parseInt(raw)||0)+' RP';
+  const pts=parseInt(raw,10);
+  _cachedSecondaryLevel = _rpToLevel(pts);
+  const lvlEl=document.getElementById('char_level2');
+  if(lvlEl) lvlEl.textContent = _cachedSecondaryLevel ? ('Lvl '+_cachedSecondaryLevel) : 'Lvl —';
+  // Defer to updateLevel() to recompute combined level and re-render everything
+  updateLevel();
 }
 
 function updateAttackBar(){
@@ -1549,7 +1607,96 @@ function confirmClassSkills(cls){
   save();
 }
 
+// ── SECONDARY CLASS (MULTICLASS) ──
+// Mirror of updateSpecOptions but INTENTIONALLY skips applyClassSaves, applyClassSkills,
+// hit-die auto-fill, and the skill-choice modal — a secondary class only grants its features.
+
+// Rebuild both class dropdowns each time either changes, so each dropdown only offers
+// classes that aren't already selected in the OTHER one. Derived from CLASS_SPECS (the
+// single source of truth) rather than hardcoded <option> tags, which also means adding
+// a new class to CLASS_SPECS automatically propagates to both dropdowns.
+function _rebuildClassDropdowns(){
+  const allClasses = Object.keys(CLASS_SPECS);
+  const primaryEl   = document.getElementById('class_');
+  const secondaryEl = document.getElementById('class_2');
+  if(!primaryEl || !secondaryEl) return;
+  // If the two somehow ended up equal (e.g. stale saved state), clear the secondary
+  if(primaryEl.value && primaryEl.value === secondaryEl.value) secondaryEl.value = '';
+  const rebuild = (el, placeholder, excludeVal) => {
+    const keep = el.value; // remember current selection
+    el.innerHTML = `<option value="">${placeholder}</option>`;
+    allClasses.forEach(c => {
+      if(c === excludeVal) return;
+      const o = document.createElement('option');
+      o.textContent = c;
+      el.appendChild(o);
+    });
+    // Restore selection if still valid
+    if(keep && keep !== excludeVal) el.value = keep;
+  };
+  rebuild(primaryEl,   '— Class —',     secondaryEl.value);
+  rebuild(secondaryEl, '— 2nd Class —', primaryEl.value);
+}
+
+function updateSpecOptions2(showModal){
+  // Rebuild class dropdowns so the primary's list excludes whatever the secondary just became
+  _rebuildClassDropdowns();
+  const cls=document.getElementById('class_2').value;
+  const sel=document.getElementById('spec_2');
+  if(!sel) return;
+  const prev=sel.value;
+  sel.innerHTML='<option value="">— 2nd Specialisation —</option>';
+  const opts=CLASS_SPECS[cls]||[];
+  opts.forEach(s=>{
+    const o=document.createElement('option');
+    o.textContent=s;
+    sel.appendChild(o);
+  });
+  if(prev && opts.includes(prev)) sel.value=prev;
+  sel.disabled=opts.length===0;
+  applySpecFeatures();
+}
+
+// Toggle multiclass on/off. When turning off, wipe the secondary class/spec/renown data
+// so there are no orphaned features, and hide the secondary UI.
+function toggleMulticlass(){
+  const chk = document.getElementById('multiclass_toggle');
+  _isMulticlass = !!(chk && chk.checked);
+  // Show/hide the secondary dropdowns by adding a CSS class to the row containers
+  document.querySelector('.header-drops') ?.classList.toggle('multiclass-on', _isMulticlass);
+  document.querySelector('.header-drops2')?.classList.toggle('multiclass-on', _isMulticlass);
+  // Show/hide the secondary renown row
+  const r2row = document.getElementById('renown2_row');
+  if(r2row) r2row.style.display = _isMulticlass ? 'flex' : 'none';
+  if(!_isMulticlass){
+    // Clear secondary selections when turning multiclass off
+    const c2 = document.getElementById('class_2'); if(c2) c2.value='';
+    const s2 = document.getElementById('spec_2');  if(s2){ s2.value=''; s2.innerHTML='<option value="">— 2nd Specialisation —</option>'; s2.disabled=true; }
+    const r2 = document.getElementById('renown2'); if(r2) r2.value='0';
+    _cachedSecondaryLevel = 0;
+    const lvlEl=document.getElementById('char_level2'); if(lvlEl) lvlEl.textContent='Lvl —';
+    const btn=document.getElementById('renown2_btn'); if(btn) btn.textContent='0 RP';
+  } else if(document.getElementById('class_2').value){
+    // Rebuild spec options if a class was already selected
+    updateSpecOptions2(false);
+  }
+  // Rebuild class dropdowns so the exclusion rule reflects the new state
+  // (e.g. turning multiclass off clears secondary → primary can offer all classes again)
+  _rebuildClassDropdowns();
+  updateLevel();
+  save();
+}
+
 function updateSpecOptions(showModal){
+  // Rebuild class dropdowns so the secondary's list excludes whatever the primary just became
+  _rebuildClassDropdowns();
+  // If the rebuild wiped the secondary (because primary was changed to match it),
+  // also clear the secondary spec so no orphan features linger
+  const cls2=document.getElementById('class_2');
+  if(cls2 && !cls2.value){
+    const spec2=document.getElementById('spec_2');
+    if(spec2){ spec2.value=''; spec2.innerHTML='<option value="">— 2nd Specialisation —</option>'; spec2.disabled=true; }
+  }
   const cls=document.getElementById('class_').value;
   const sel=document.getElementById('spec');
   const prev=sel.value;
@@ -1575,8 +1722,14 @@ function updateSpecOptions(showModal){
 }
 // Init spec options on load based on saved class
 document.addEventListener('DOMContentLoaded',()=>{
+  // Populate class dropdowns first — they start with just a placeholder, and the
+  // full list is derived from CLASS_SPECS here. After this runs, even a user with
+  // no saved class will see a fully populated "— Class —" dropdown.
+  _rebuildClassDropdowns();
   const cls=document.getElementById('class_').value;
   if(cls) updateSpecOptions(false);
+  const cls2=document.getElementById('class_2')?.value;
+  if(cls2) updateSpecOptions2(false);
 });
 
 let repVal=0;
@@ -1690,6 +1843,7 @@ function _collectSheetData() {
   d._cs_insp        = _inspirationActive ? '1' : '0';
   try { d._cs_accent = document.documentElement.style.getPropertyValue('--text-gold') || localStorage.getItem('cs_accent') || ''; } catch(e) { d._cs_accent = ''; }
   try { d._cs_spec_features       = typeof _specFeatures           !== 'undefined' ? _specFeatures           : []; } catch(e) {}
+  try { d._cs_multiclass           = !!_isMulticlass; } catch(e) {}
   try { d._cs_knight_mnvr         = typeof _knightManeuvers        !== 'undefined' ? _knightManeuvers        : []; } catch(e) {}
   try { d._cs_hk_oath             = typeof _hedgeKnightOath        !== 'undefined' ? _hedgeKnightOath        : ''; } catch(e) {}
   try { d._cs_septon_aspect       = typeof _septonAspect           !== 'undefined' ? _septonAspect           : ''; } catch(e) {}
@@ -1812,6 +1966,34 @@ function load(){
   try{ if(d._cs_merchant_trade_good!==undefined){ _merchantTradeGood=d._cs_merchant_trade_good;   try{localStorage.setItem('cs_merchant_trade_good',_merchantTradeGood);}catch(e){} } }catch(e){}
   try{ if(d._cs_warg_bond!==undefined){      _wargBondAnimals=d._cs_warg_bond;                   try{localStorage.setItem('cs_warg_bond',JSON.stringify(_wargBondAnimals));}catch(e){} } }catch(e){}
   try{ if(d._cs_greater_warg_bond!==undefined){ _greaterWargBondAnimals=d._cs_greater_warg_bond; try{localStorage.setItem('cs_greater_warg_bond',JSON.stringify(_greaterWargBondAnimals));}catch(e){} } }catch(e){}
+  // ── MULTICLASS RESTORATION ──
+  // The multiclass_toggle checkbox, class_2, spec_2, and renown2 inputs were all
+  // restored by the generic input loop above. Now sync the _isMulticlass JS flag,
+  // rebuild the spec_2 option list from the restored class_2, run the toggle to
+  // show/hide UI, and compute the secondary level. All before the later
+  // applySpecFeatures() / updateLevel() runs downstream.
+  try {
+    _isMulticlass = !!d._cs_multiclass;
+    const chk = document.getElementById('multiclass_toggle');
+    if(chk) chk.checked = _isMulticlass;
+    // Visibility only — avoid calling toggleMulticlass() here because it wipes data when off
+    document.querySelector('.header-drops') ?.classList.toggle('multiclass-on', _isMulticlass);
+    document.querySelector('.header-drops2')?.classList.toggle('multiclass-on', _isMulticlass);
+    const r2row = document.getElementById('renown2_row');
+    if(r2row) r2row.style.display = _isMulticlass ? 'flex' : 'none';
+    // Rebuild spec_2 dropdown if a secondary class was saved
+    const cls2 = document.getElementById('class_2')?.value;
+    if(cls2) updateSpecOptions2(false);
+    // Restore the saved spec_2 value AFTER the dropdown has been rebuilt
+    // (updateSpecOptions2 preserves prev value so this mostly just re-affirms)
+    const savedSpec2 = d.spec_2;
+    if(savedSpec2){
+      const spec2El = document.getElementById('spec_2');
+      if(spec2El) spec2El.value = savedSpec2;
+    }
+    // Compute secondary level from restored renown2 (updates UI + will cascade updateLevel)
+    if(_isMulticlass) updateLevel2();
+  } catch(e){}
   recalc();
   if(_septonAspect) _applyAspectProficiency(_septonAspect);
   // Restore feat applied-bonus tracking (no re-application needed — values already in saved stats)
@@ -4544,7 +4726,12 @@ const PASSIVE_FEAT_SLOTS= [1,2,3,4,5,6,7,8,9].map(n=>({
   btnPfx:`${n}`, dotPfx:`df${n-1}`
 }));
 
-function _applyFeatureToSlot(slot, f){
+function _applyFeatureToSlot(slot, f, forLevel){
+  // forLevel = the class level that governs this feature's unlock-gate & scaling.
+  //   For primary-class/spec features → _cachedPrimaryLevel
+  //   For secondary-class/spec features → _cachedSecondaryLevel
+  //   Falls back to _cachedLevel (combined) for any legacy callers or edge cases.
+  if(forLevel === undefined) forLevel = _cachedLevel;
   const nameEl = document.getElementById(slot.nameId);
   const textEl = document.getElementById(slot.taId);
   const aBtn   = document.getElementById('A_'  + slot.btnPfx);
@@ -4613,7 +4800,7 @@ function _applyFeatureToSlot(slot, f){
     return;
   }
 
-  const unlocked = _cachedLevel >= f.level_required;
+  const unlocked = forLevel >= f.level_required;
   if(block){
     block.classList.toggle('spec-locked', !unlocked);
     block.dataset.specSlot='1';
@@ -4623,7 +4810,7 @@ function _applyFeatureToSlot(slot, f){
   if(unlocked){
     nameEl.value = `Lvl ${f.level_required} · ${f.name}`;
     nameEl.title = 'Specialisation feature (auto-filled)'; nameEl.readOnly = true;
-    if(textEl){ textEl.value = f.desc_fn(_cachedLevel); textEl.readOnly = false; }
+    if(textEl){ textEl.value = f.desc_fn(forLevel); textEl.readOnly = false; }
     // Maneuver picker button for Commanding Presence
     if(block){
       let mpBtn = block.querySelector('.mnvr-pick-btn');
@@ -4704,7 +4891,7 @@ function _applyFeatureToSlot(slot, f){
           htBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;';
           block.appendChild(htBtn);
         }
-        const maxPicks = _cachedLevel >= 19 ? 3 : _cachedLevel >= 13 ? 2 : 1;
+        const maxPicks = forLevel >= 19 ? 3 : forLevel >= 13 ? 2 : 1;
         const validTerrains = _chosenTerrains.slice(0, maxPicks);
         const names = validTerrains.map(k=>{ const e=HOME_TURF_ENVIRONMENTS.find(x=>x.key===k); return e?e.name:''; }).filter(Boolean);
         htBtn.textContent = names.length > 0 ? `Terrain: ${names.join(', ')} (change)` : 'Choose Terrain…';
@@ -4720,7 +4907,7 @@ function _applyFeatureToSlot(slot, f){
           caBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;';
           block.appendChild(caBtn);
         }
-        const maxPicks = _cachedLevel >= 17 ? 2 : 1;
+        const maxPicks = forLevel >= 17 ? 2 : 1;
         const validCultures = _chosenCultures.slice(0, maxPicks);
         const names = validCultures.map(k=>{ const c=CULTURAL_AMBASSADOR_CULTURES.find(x=>x.key===k); return c?c.name:''; }).filter(Boolean);
         caBtn.textContent = names.length > 0 ? `🌍 ${names.join(' & ')} (change)` : '🌍 Choose Culture…';
@@ -4821,7 +5008,7 @@ function _applyFeatureToSlot(slot, f){
       // bx column: aBtn labeled "BA", baBtn labeled "R"
       if(f.action_type==='BA' && aBtn) aBtn.classList.add('active');
       if(f.action_type===null){
-        const _desc = f.desc_fn ? f.desc_fn(_cachedLevel) : '';
+        const _desc = f.desc_fn ? f.desc_fn(forLevel) : '';
         if(_desc.startsWith('Reaction:') && baBtn) baBtn.classList.add('active');
         else if(aBtn) aBtn.classList.add('active');
       }
@@ -4829,15 +5016,15 @@ function _applyFeatureToSlot(slot, f){
       if(f.action_type==='A'  && aBtn)  aBtn.classList.add('active');
       if(f.action_type==='BA' && baBtn) baBtn.classList.add('active');
       if(f.action_type===null){
-        const _desc = f.desc_fn ? f.desc_fn(_cachedLevel) : '';
+        const _desc = f.desc_fn ? f.desc_fn(forLevel) : '';
         if(_desc.startsWith('Reaction:') && baBtn) baBtn.classList.add('active');
         else if(aBtn) aBtn.classList.add('active');
       }
     }
     if(srBtn) srBtn.classList.remove('active');
     if(lrBtn) lrBtn.classList.remove('active');
-    let _recovery = f.recovery_fn ? f.recovery_fn(_cachedLevel) : f.recovery;
-    let _uses = f.uses_fn(_cachedLevel);
+    let _recovery = f.recovery_fn ? f.recovery_fn(forLevel) : f.recovery;
+    let _uses = f.uses_fn(forLevel);
     // Maester link: Valyrian Steel gets 1× LR dot; Bronze gets no dot (stellar points tracked separately)
     if(f.special === 'maester_link'){
       if(_maesterLink === 'valyrian'){ _recovery = 'LR'; _uses = 1; }
@@ -4911,38 +5098,51 @@ function renderFeatBlocks(containerId, namePfx, dotBasePfx, btnPfx, count){
 }
 
 function applySpecFeatures(){
-  const classEl = document.getElementById('class_');
-  const specEl  = document.getElementById('spec');
-  const className = classEl ? classEl.value : '';
-  const specName  = specEl  ? specEl.value  : '';
+  const className  = document.getElementById('class_') ?.value || '';
+  const specName   = document.getElementById('spec')   ?.value || '';
+  // Secondary class+spec only matter when multiclass is toggled on
+  const className2 = _isMulticlass ? (document.getElementById('class_2')?.value || '') : '';
+  const specName2  = _isMulticlass ? (document.getElementById('spec_2') ?.value || '') : '';
 
-  // Gather class features (fill first in each column)
-  const classFeats = CLASS_LEVEL_FEATURES[className] || [];
-  // Gather spec features (fill after class features in each column)
-  const specFeats  = SPEC_LEVEL_FEATURES[specName]  || [];
+  // Helper: build a list of {feat, lvl} tuples from one class+spec combo, scoped
+  // to the level that governs them. Knight maneuvers are included when that combo
+  // has Knight selected at lvl 7+ for its own class level.
+  const gather = (cls, spec, lvl) => {
+    const classFeats = CLASS_LEVEL_FEATURES[cls] || [];
+    const specFeats  = SPEC_LEVEL_FEATURES[spec]  || [];
+    let maneuverFeats = [];
+    // Knight maneuvers: attach when THIS combo has Knight spec, using its own level.
+    // Safe because the player can never pick Knight in both primary and secondary — since
+    // Knight is a Warrior specialisation and classes can't duplicate, Warrior appears only once.
+    if(spec === 'Knight' && lvl >= 7){
+      maneuverFeats = _knightManeuvers.map(name => {
+        const m = MANEUVERS.find(x => x.name === name);
+        if(!m) return null;
+        return { name: m.name, action_type: m.action_type, recovery: null, uses_fn: () => 0, desc_fn: () => m.desc, level_required: 7 };
+      }).filter(Boolean);
+    }
+    return [...classFeats, ...specFeats, ...maneuverFeats].map(f => ({ feat: f, lvl }));
+  };
 
-  // Merge: class features first, then spec features, split by column
-  // If Knight at lvl 7+, inject chosen battle maneuvers into the feature pool
-  let maneuverFeats = [];
-  if(specName === 'Knight' && _cachedLevel >= 7){
-    maneuverFeats = _knightManeuvers.map(name => {
-      const m = MANEUVERS.find(x => x.name === name);
-      if(!m) return null;
-      return { name: m.name, action_type: m.action_type, recovery: null, uses_fn: () => 0, desc_fn: () => m.desc, level_required: 7 };
-    }).filter(Boolean);
-  }
-  const allFeats   = [...classFeats, ...specFeats, ...maneuverFeats];
-  // Only show features the character has actually unlocked at their current level.
-  // Features below unlocked level are hidden entirely; they'll appear automatically
-  // the next time applySpecFeatures() runs after hitting the required level.
-  const unlockedFeats = allFeats.filter(f => _cachedLevel >= f.level_required);
-  const sort = arr => arr.slice().sort((a,b) => a.level_required - b.level_required);
-  const actionFeats  = sort(unlockedFeats.filter(f => f.action_type === 'A'));
-  const isReaction   = f => f.action_type === null && f.desc_fn && f.desc_fn(_cachedLevel).startsWith('Reaction:');
-  const baFeats      = sort(unlockedFeats.filter(f => f.action_type === 'BA' || isReaction(f)));
-  const passiveFeats = sort(unlockedFeats.filter(f => f.action_type === null && !isReaction(f)));
+  // Build the combined pool: every tuple carries the level that governs its feature.
+  const pool = [
+    ...gather(className,  specName,  _cachedPrimaryLevel),
+    ...gather(className2, specName2, _cachedSecondaryLevel),
+  ];
 
-  // Dynamically size action & bonus-action columns (0 if no features unlocked yet)
+  // Only include features the character has actually unlocked at their governing level.
+  const unlocked = pool.filter(({feat, lvl}) => lvl >= feat.level_required);
+
+  // Reaction detection: a passive whose desc (at its own governing level) starts with "Reaction:"
+  const isReaction = ({feat, lvl}) =>
+    feat.action_type === null && feat.desc_fn && feat.desc_fn(lvl).startsWith('Reaction:');
+
+  // Sort ascending by level_required; primary-then-secondary order is preserved for ties
+  const sortByLvl = arr => arr.slice().sort((a,b) => a.feat.level_required - b.feat.level_required);
+  const actionFeats  = sortByLvl(unlocked.filter(p => p.feat.action_type === 'A'));
+  const baFeats      = sortByLvl(unlocked.filter(p => p.feat.action_type === 'BA' || isReaction(p)));
+  const passiveFeats = sortByLvl(unlocked.filter(p => p.feat.action_type === null && !isReaction(p)));
+
   const axCount = actionFeats.length;
   const bxCount = baFeats.length;
   renderFeatBlocks('ax_feat_container','ax_name','dax','ax', axCount);
@@ -4957,9 +5157,11 @@ function applySpecFeatures(){
     btnPfx:`bx${i+1}`, dotPfx:`dbx${i}`
   }));
 
-  ACTION_FEAT_SLOTS.forEach( (slot,i) => _applyFeatureToSlot(slot, actionFeats[i]  || null));
-  BONUS_FEAT_SLOTS.forEach(  (slot,i) => _applyFeatureToSlot(slot, baFeats[i]      || null));
-  PASSIVE_FEAT_SLOTS.forEach((slot,i) => _applyFeatureToSlot(slot, passiveFeats[i] || null));
+  // Apply each feature with its own governing level so desc_fn / uses_fn / unlock checks
+  // scale against the correct class's progression
+  ACTION_FEAT_SLOTS.forEach( (slot,i) => _applyFeatureToSlot(slot, actionFeats[i] ?.feat || null, actionFeats[i] ?.lvl));
+  BONUS_FEAT_SLOTS.forEach(  (slot,i) => _applyFeatureToSlot(slot, baFeats[i]     ?.feat || null, baFeats[i]     ?.lvl));
+  PASSIVE_FEAT_SLOTS.forEach((slot,i) => _applyFeatureToSlot(slot, passiveFeats[i]?.feat || null, passiveFeats[i]?.lvl));
 }
 
 
@@ -5000,6 +5202,46 @@ function confirmRenown(){
   const newVal=Math.max(0, current+delta);
   document.getElementById('renown').value=newVal;
   updateLevel();
+  save();
+  document.getElementById('renownModal').remove();
+}
+
+// ── SECONDARY RENOWN MODAL ── (mirrors the primary modal, drives renown2)
+function openRenownModal2(){
+  const existing=document.getElementById('renownModal');
+  if(existing) existing.remove();
+  const current=parseInt(document.getElementById('renown2').value)||0;
+  const o=document.createElement('div');
+  o.className='modal-overlay'; o.id='renownModal';
+  o.innerHTML=`<div class="modal" style="max-width:480px;padding:30px 38px;text-align:center;">
+    <div style="font-family:var(--got);font-size:22px;color:var(--text-gold);margin-bottom:10px;letter-spacing:.5px;">Renown — Secondary Class</div>
+    <div style="font-family:'IM Fell English',serif;font-size:13px;color:#c8b87a;font-style:italic;line-height:1.6;margin-bottom:18px;">
+      Renown earned in service of your secondary calling. Drives only the features of your secondary class and specialisation.
+    </div>
+    <div style="color:var(--text-gold);font-size:15px;margin-bottom:14px;">Current Renown: <strong style="font-size:20px;">${current}</strong></div>
+    <div style="display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:20px;">
+      <button onclick="adjustRenown2(-1)" style="width:34px;height:34px;font-size:18px;background:rgba(80,20,20,.5);border:1px solid #883;color:var(--text-gold);cursor:pointer;border-radius:2px;">−</button>
+      <input id="renown2_delta" type="number" value="0" style="width:90px;text-align:center;font-size:18px;padding:4px;background:#1a1200;border:1px solid var(--gold);color:var(--text-gold);font-family:'IM Fell English',serif;">
+      <button onclick="adjustRenown2(1)" style="width:34px;height:34px;font-size:18px;background:rgba(20,60,20,.5);border:1px solid #883;color:var(--text-gold);cursor:pointer;border-radius:2px;">+</button>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="rest-btn" style="flex:1;" onclick="confirmRenown2()">✓ Apply</button>
+      <button class="rest-btn" style="background:rgba(80,40,0,.4);" onclick="document.getElementById('renownModal').remove()">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
+}
+function adjustRenown2(dir){
+  const inp=document.getElementById('renown2_delta');
+  if(inp) inp.value=parseInt(inp.value||0)+dir;
+}
+function confirmRenown2(){
+  const delta=parseInt(document.getElementById('renown2_delta').value)||0;
+  const current=parseInt(document.getElementById('renown2').value)||0;
+  const newVal=Math.max(0, current+delta);
+  document.getElementById('renown2').value=newVal;
+  updateLevel2();
   save();
   document.getElementById('renownModal').remove();
 }
