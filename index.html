@@ -4871,11 +4871,15 @@ function applySpecFeatures(){
     }).filter(Boolean);
   }
   const allFeats   = [...classFeats, ...specFeats, ...maneuverFeats];
+  // Only show features the character has actually unlocked at their current level.
+  // Features below unlocked level are hidden entirely; they'll appear automatically
+  // the next time applySpecFeatures() runs after hitting the required level.
+  const unlockedFeats = allFeats.filter(f => _cachedLevel >= f.level_required);
   const sort = arr => arr.slice().sort((a,b) => a.level_required - b.level_required);
-  const actionFeats  = sort(allFeats.filter(f => f.action_type === 'A'));
+  const actionFeats  = sort(unlockedFeats.filter(f => f.action_type === 'A'));
   const isReaction   = f => f.action_type === null && f.desc_fn && f.desc_fn(_cachedLevel).startsWith('Reaction:');
-  const baFeats      = sort(allFeats.filter(f => f.action_type === 'BA' || isReaction(f)));
-  const passiveFeats = sort(allFeats.filter(f => f.action_type === null && !isReaction(f)));
+  const baFeats      = sort(unlockedFeats.filter(f => f.action_type === 'BA' || isReaction(f)));
+  const passiveFeats = sort(unlockedFeats.filter(f => f.action_type === null && !isReaction(f)));
 
   // Dynamically size action & bonus-action columns
   const axCount = Math.max(1, actionFeats.length);
