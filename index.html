@@ -272,6 +272,41 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .feat-textarea{padding:2px 5px 3px}
 .feat-textarea textarea{height:40px;font-size:11px;line-height:1.35;border-color:rgba(139,106,0,.3)}
 
+/* Auto-filled spec-feature blocks: title becomes a proper button, description lives in the click-popup only */
+.feat-block[data-spec-slot]{display:flex;flex-direction:column;margin:5px 0;border-bottom:none}
+.feat-block[data-spec-slot] .feat-dots-row{order:-1;border-bottom:none}
+.feat-block[data-spec-slot] .feat-top{border-bottom:none}
+.feat-block[data-spec-slot] .feat-short{height:auto}
+.feat-block[data-spec-slot] .feat-short input{
+  height:auto;
+  padding:7px 10px;
+  font-family:var(--got);
+  font-size:11px;
+  letter-spacing:.6px;
+  background:var(--near-black);
+  border:1.5px solid var(--gold);
+  color:var(--text-gold);
+  cursor:pointer;
+  text-align:left;
+  text-overflow:ellipsis;
+  transition:background .18s,box-shadow .18s,color .18s;
+}
+/* Alternating theme-tinted backgrounds — subtle on odd, a tone lighter on even.
+   Uses color-mix to blend the user's picked accent (--text-gold) into near-black,
+   so the alternation automatically re-tints when the user changes accent colour. */
+.feat-block[data-spec-slot]:nth-child(odd) .feat-short input{
+  background:color-mix(in srgb, var(--text-gold) 7%, var(--near-black));
+}
+.feat-block[data-spec-slot]:nth-child(even) .feat-short input{
+  background:color-mix(in srgb, var(--text-gold) 20%, var(--near-black));
+}
+.feat-block[data-spec-slot] .feat-short input:hover{
+  background:var(--gold-dk);
+  box-shadow:0 0 6px rgba(212,160,23,.4);
+  color:var(--text-gold);
+}
+.feat-block[data-spec-slot] .feat-textarea{display:none}
+
 /* modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998;display:flex;align-items:center;justify-content:center}
 .modal{background:#1a1000;border:3px solid var(--gold);color:var(--text-gold);font-family:var(--got);padding:40px 52px;text-align:center;border-radius:6px;max-width:660px;font-size:14px;box-shadow:0 0 40px rgba(0,0,0,.8)}
@@ -4520,10 +4555,18 @@ function _applyFeatureToSlot(slot, f){
   if(!nameEl) return;
 
   if(!f){
-    // If this slot was auto-managed, wipe everything cleanly
-    if(block && block.dataset.specSlot){
-      block.classList.remove('spec-locked');
-      delete block.dataset.specSlot;
+    // Expanded wipe-trigger: a slot should be cleared if ANY of these are true:
+    //  (1) it was auto-managed in this page-session (data-spec-slot is set)
+    //  (2) it holds stale "🔒 Feature (Lvl N)" text from older locked-preview
+    //      behaviour — data-* attributes aren't persisted to localStorage, so
+    //      after a reload we can't rely on (1) alone and must detect by content
+    //  (3) it's a passive-column slot (fs_N); passives are purely spec-driven
+    //      (user feats live elsewhere in feat_1/2/3), so on null we always clear
+    const isStaleLock   = nameEl.value && nameEl.value.charCodeAt(0) === 0xD83D && nameEl.value.charCodeAt(1) === 0xDD12;
+    const isPassiveSlot = slot.nameId.startsWith('fs_');
+    const shouldWipe    = (block && block.dataset.specSlot) || isStaleLock || isPassiveSlot;
+    if(shouldWipe){
+      if(block){ block.classList.remove('spec-locked'); delete block.dataset.specSlot; }
       nameEl.value = ''; nameEl.title = ''; nameEl.readOnly = false;
       if(textEl){ textEl.value = ''; textEl.readOnly = false; }
       [aBtn, baBtn, srBtn, lrBtn].forEach(b => { if(b) b.classList.remove('active'); });
@@ -4531,37 +4574,55 @@ function _applyFeatureToSlot(slot, f){
         const dot = document.getElementById(slot.dotPfx + '_' + d);
         if(dot){ dot.style.display = ''; dot.checked = false; }
       }
-      const oldOathBtn = block.querySelector('.oath-pick-btn');
-      if(oldOathBtn) oldOathBtn.remove();
-      const oldMpBtn = block.querySelector('.mnvr-pick-btn');
-      if(oldMpBtn) oldMpBtn.remove();
-      const oldAspBtn = block.querySelector('.asp-pick-btn');
-      if(oldAspBtn) oldAspBtn.remove();
-      const oldCodBtn = block.querySelector('.cod-popup-btn');
-      if(oldCodBtn) oldCodBtn.remove();
-      const oldFsBtn = block.querySelector('.fs-pick-btn');
-      if(oldFsBtn) oldFsBtn.remove();
-      const oldHtBtn = block.querySelector('.ht-pick-btn');
-      if(oldHtBtn) oldHtBtn.remove();
-      const oldCaBtn = block.querySelector('.ca-pick-btn');
-      if(oldCaBtn) oldCaBtn.remove();
-      const oldMlBtn = block.querySelector('.ml-pick-btn');
-      if(oldMlBtn) oldMlBtn.remove();
-      const oldMlCtr = block.querySelector('.ml-ctr-btn');
-      if(oldMlCtr) oldMlCtr.remove();
-      const oldWbSmBtn = block.querySelector('.wb-small-btn');
-      if(oldWbSmBtn) oldWbSmBtn.remove();
-      const oldWbLgBtn = block.querySelector('.wb-large-btn');
-      if(oldWbLgBtn) oldWbLgBtn.remove();
+      if(block){
+        const oldOathBtn = block.querySelector('.oath-pick-btn');
+        if(oldOathBtn) oldOathBtn.remove();
+        const oldMpBtn = block.querySelector('.mnvr-pick-btn');
+        if(oldMpBtn) oldMpBtn.remove();
+        const oldAspBtn = block.querySelector('.asp-pick-btn');
+        if(oldAspBtn) oldAspBtn.remove();
+        const oldCodBtn = block.querySelector('.cod-popup-btn');
+        if(oldCodBtn) oldCodBtn.remove();
+        const oldFsBtn = block.querySelector('.fs-pick-btn');
+        if(oldFsBtn) oldFsBtn.remove();
+        const oldHtBtn = block.querySelector('.ht-pick-btn');
+        if(oldHtBtn) oldHtBtn.remove();
+        const oldCaBtn = block.querySelector('.ca-pick-btn');
+        if(oldCaBtn) oldCaBtn.remove();
+        const oldMlBtn = block.querySelector('.ml-pick-btn');
+        if(oldMlBtn) oldMlBtn.remove();
+        const oldMlCtr = block.querySelector('.ml-ctr-btn');
+        if(oldMlCtr) oldMlCtr.remove();
+        const oldWbSmBtn = block.querySelector('.wb-small-btn');
+        if(oldWbSmBtn) oldWbSmBtn.remove();
+        const oldWbLgBtn = block.querySelector('.wb-large-btn');
+        if(oldWbLgBtn) oldWbLgBtn.remove();
+        const oldTgBtn = block.querySelector('.merchant-tg-btn');
+        if(oldTgBtn) oldTgBtn.remove();
+      }
+    }
+    // Hide the block if it's now truly empty (no name and no description).
+    // For Action / Bonus-Action columns the block wouldn't even have been rendered
+    // (count is 0 when empty), but for the fixed 9 passive slots this is what makes
+    // the empty ones disappear until a feature unlocks into them.
+    if(block){
+      const nameEmpty = !nameEl.value.trim();
+      const descEmpty = !textEl || !textEl.value.trim();
+      block.style.display = (nameEmpty && descEmpty) ? 'none' : '';
     }
     return;
   }
 
   const unlocked = _cachedLevel >= f.level_required;
-  if(block){ block.classList.toggle('spec-locked', !unlocked); block.dataset.specSlot='1'; }
+  if(block){
+    block.classList.toggle('spec-locked', !unlocked);
+    block.dataset.specSlot='1';
+    block.style.display = ''; // ensure visible — a previous run may have hidden it
+  }
 
   if(unlocked){
-    nameEl.value = f.name; nameEl.title = 'Specialisation feature (auto-filled)'; nameEl.readOnly = true;
+    nameEl.value = `Lvl ${f.level_required} · ${f.name}`;
+    nameEl.title = 'Specialisation feature (auto-filled)'; nameEl.readOnly = true;
     if(textEl){ textEl.value = f.desc_fn(_cachedLevel); textEl.readOnly = false; }
     // Maneuver picker button for Commanding Presence
     if(block){
@@ -4824,7 +4885,7 @@ function renderFeatBlocks(containerId, namePfx, dotBasePfx, btnPfx, count){
   const container = document.getElementById(containerId);
   if(!container) return;
   const isBonusCol = containerId === 'bx_feat_container';
-  const n = Math.max(1, count);
+  const n = Math.max(0, count);
   // Only preserve values from blocks NOT auto-managed by spec (no data-spec-slot)
   const saved={};
   container.querySelectorAll('.feat-block').forEach(block=>{
@@ -4881,9 +4942,9 @@ function applySpecFeatures(){
   const baFeats      = sort(unlockedFeats.filter(f => f.action_type === 'BA' || isReaction(f)));
   const passiveFeats = sort(unlockedFeats.filter(f => f.action_type === null && !isReaction(f)));
 
-  // Dynamically size action & bonus-action columns
-  const axCount = Math.max(1, actionFeats.length);
-  const bxCount = Math.max(1, baFeats.length);
+  // Dynamically size action & bonus-action columns (0 if no features unlocked yet)
+  const axCount = actionFeats.length;
+  const bxCount = baFeats.length;
   renderFeatBlocks('ax_feat_container','ax_name','dax','ax', axCount);
   renderFeatBlocks('bx_feat_container','bx_name','dbx','bx', bxCount);
 
