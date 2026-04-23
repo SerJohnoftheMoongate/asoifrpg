@@ -3655,6 +3655,18 @@ const CULTURAL_AMBASSADOR_CULTURES = [
 ];
 let _chosenCultures = [];
 (function(){ try{ _chosenCultures=JSON.parse(localStorage.getItem('cs_cultural_ambassador')||'[]'); }catch(e){ _chosenCultures=[]; } })();
+function saveChosenCultures(){ try{ localStorage.setItem('cs_cultural_ambassador',JSON.stringify(_chosenCultures)); }catch(e){} }
+
+// Helper: find the governing level for a feature whose owning class/spec can be either
+// primary or secondary. Accepts either a class name (e.g. 'Envoy') or a spec name (e.g.
+// 'Diplomat') and checks both slots. Falls back to _cachedLevel (combined) if nothing
+// matches. Used by modals that need to know "my own class's level" to decide unlocked
+// pick-slots (Cultural Ambassador, Home Turf, etc.).
+function _levelForClassOrSpec(name){
+  if(document.getElementById('class_')?.value === name || document.getElementById('spec')?.value === name) return _cachedPrimaryLevel;
+  if(_isMulticlass && (document.getElementById('class_2')?.value === name || document.getElementById('spec_2')?.value === name)) return _cachedSecondaryLevel;
+  return _cachedLevel;
+}
 
 // ── MERCHANT: TRADE GOOD SPECIALISATION ──
 let _merchantTradeGood = '';
@@ -3911,7 +3923,8 @@ function openGreaterWargBondModal(){
 function openHomeTurfModal(){
   const existing=document.getElementById('htModal');
   if(existing) existing.remove();
-  const maxPicks = _cachedLevel >= 19 ? 3 : _cachedLevel >= 13 ? 2 : 1;
+  const lvl = _levelForClassOrSpec('Survivalist'); // Home Turf is a Survivalist class feature
+  const maxPicks = lvl >= 19 ? 3 : lvl >= 13 ? 2 : 1;
   let _picked = _chosenTerrains.slice(0, maxPicks);
   const o=document.createElement('div');
   o.className='modal-overlay'; o.id='htModal';
@@ -4084,7 +4097,8 @@ function openWarChestModal(){
 function openCulturalAmbassadorModal(){
   const existing=document.getElementById('caModal');
   if(existing) existing.remove();
-  const maxPicks = _cachedLevel >= 17 ? 2 : 1;
+  const lvl = _levelForClassOrSpec('Envoy'); // Cultural Ambassador is an Envoy class feature
+  const maxPicks = lvl >= 17 ? 2 : 1;
   let _picked = _chosenCultures.slice(0, maxPicks);
   const o=document.createElement('div');
   o.className='modal-overlay'; o.id='caModal';
