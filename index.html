@@ -4237,11 +4237,18 @@ const SPEC_LEVEL_FEATURES = {
     },
     {
       name: 'Loyalty is Bought',
-      action_type: null, recovery: 'SR',
-      uses_fn: () => 1,
+      action_type: null, recovery: 'LR',
+      uses_fn: () => {
+        // Usable a number of times equal to the character's Diplomacy modifier per long rest (min 1).
+        // Same pattern used by Envoy Dice — read mod_charisma and clamp to ≥1.
+        const dipEl = document.getElementById('mod_charisma');
+        return Math.max(1, parseInt((dipEl||{}).value) || 1);
+      },
       desc_fn: (lvl) => {
         const dice = lvl >= 9 ? '2d4' : '1d4';
-        return `You can impose disadvantage upon the opponent in a negotiation combat roll. Once per short rest.\n\nWhen you are contracted by a new organisation or entity, you can make use of their blacksmithing facilities if available. You can improve two pieces of your current gear for free up to the Good condition or order one piece of new gear with a Decent quality.\n\nIn addition, while you are acting under contract you deal ${dice} additional damage per attack. (Scales: 1d4 → 2d4 at Lvl 9.)`;
+        const dipEl = document.getElementById('mod_charisma');
+        const dip = Math.max(1, parseInt((dipEl||{}).value) || 1);
+        return `You can impose disadvantage upon the opponent in a negotiation combat roll. Usable ${dip} time${dip>1?'s':''} per long rest (equal to your Diplomacy modifier).\n\nWhen you are contracted by a new organisation or entity, you can make use of their blacksmithing facilities if available. You can improve two pieces of your current gear for free up to the Good condition or order one piece of new gear with a Decent quality.\n\nIn addition, while you are acting under contract you deal ${dice} additional damage per attack. (Scales: 1d4 → 2d4 at Lvl 9.)`;
       },
       level_required: 3
     },
