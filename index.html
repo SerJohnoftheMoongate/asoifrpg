@@ -319,6 +319,52 @@ textarea{resize:none;font-weight:400;font-size:12px}
 }
 .feat-block[data-spec-slot] .feat-textarea{display:none}
 
+/* ── Feature-picker buttons (Fighting Style, Home Turf, Cultural Ambassador, Chain Link, etc.) ──
+   These small action buttons are appended to a feature block to let the player make a choice
+   tied to that feature. We restyle them to feel attached to the feature button above:
+   - Narrower than the parent (≈80%, centred) so they read as a sub-control, not a peer
+   - Pulled up flush with the parent button, with a small connector "tab" linking them
+   - Pill-rounded with a softer typography
+   - Set/unset colour cues preserved (they're applied via inline cssText in the JS, so we use
+     attribute selectors + :not() to override only the layout-related properties without
+     breaking the backgrounds the JS sets for cyan/red state). */
+.feat-block[data-spec-slot] > button.rest-btn{
+  width:80% !important;
+  margin:-2px auto 4px !important;       /* tuck up under the parent button, centre horizontally */
+  padding:4px 10px !important;
+  font-size:10px !important;
+  letter-spacing:.4px;
+  border-width:1px !important;
+  border-top:none !important;            /* shared edge with parent → "attached" feel */
+  border-radius:0 0 6px 6px;             /* curve only the bottom */
+  position:relative;
+  z-index:1;                             /* sits over alternating-tint background cleanly */
+  text-transform:none;                   /* the .rest-btn default is uppercase; sub-tabs read better mixed-case */
+  display:block;
+  box-shadow:0 2px 4px rgba(0,0,0,.4);
+}
+.feat-block[data-spec-slot] > button.rest-btn:hover{
+  filter:brightness(1.18);
+  box-shadow:0 2px 7px rgba(212,160,23,.35);
+}
+/* The neutral (gold-tinted) pickers — Fighting Style, Home Turf, Maneuvers, Oath, Aspect, Cause-of-Death, Trade Good, Warg Bond.
+   These don't get inline cssText overrides for background (only for set/unset on a few), so we
+   give them a gentle accent-tinted body that re-tints with the user's theme colour. */
+.feat-block[data-spec-slot] > button.fs-pick-btn,
+.feat-block[data-spec-slot] > button.ht-pick-btn,
+.feat-block[data-spec-slot] > button.mnvr-pick-btn,
+.feat-block[data-spec-slot] > button.oath-pick-btn,
+.feat-block[data-spec-slot] > button.asp-pick-btn,
+.feat-block[data-spec-slot] > button.cod-popup-btn,
+.feat-block[data-spec-slot] > button.merchant-tg-btn,
+.feat-block[data-spec-slot] > button.wb-small-btn,
+.feat-block[data-spec-slot] > button.wb-large-btn{
+  background:color-mix(in srgb, var(--text-gold) 15%, var(--near-black)) !important;
+  border-color:color-mix(in srgb, var(--text-gold) 50%, transparent) !important;
+  color:var(--text-gold) !important;
+}
+/* The set-state Maester counter (its own background is gold via inline) — keep its emphasised look. */
+
 /* modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998;display:flex;align-items:center;justify-content:center}
 .modal{background:#1a1000;border:3px solid var(--gold);color:var(--text-gold);font-family:var(--got);padding:40px 52px;text-align:center;border-radius:6px;max-width:660px;font-size:14px;box-shadow:0 0 40px rgba(0,0,0,.8)}
@@ -1487,20 +1533,45 @@ function updateLevel2(){
   updateLevel();
 }
 
+// Total number of attacks granted by a single class at its own class level.
+// Returns 0 for classes without Extra Attack — those contribute nothing to the sum.
+// Adding a new class with Extra-Attack progression just means adding another branch here.
+function _attacksForClass(cls, lvl){
+  if(cls === 'Warrior'){
+    if(lvl >= 18) return 4;
+    if(lvl >= 11) return 3;
+    if(lvl >=  5) return 2;
+    return 0;
+  }
+  if(cls === 'Survivalist'){
+    return lvl >= 5 ? 2 : 0;
+  }
+  return 0;
+}
+
 function updateAttackBar(){
   const bar = document.getElementById('attack_count_bar');
   if(!bar) return;
-  const cls = (document.getElementById('class_')||{}).value || '';
-  // Only show for Warrior class (which has Extra Attack)
-  const classesWithExtraAttack = ['Warrior', 'Survivalist'];
-  if(!classesWithExtraAttack.includes(cls) || _cachedLevel < 5){
+  const cls1 = document.getElementById('class_') ?.value || '';
+  const cls2 = _isMulticlass ? (document.getElementById('class_2')?.value || '') : '';
+  // Each class slot uses ITS OWN class level, not the combined level — a Warrior 5
+  // multiclassed with Survivalist 5 grants Warrior's L5 attacks (2) + Survivalist's
+  // L5 attacks (2) for a simple total of 4.
+  const a1 = _attacksForClass(cls1, _cachedPrimaryLevel);
+  const a2 = _attacksForClass(cls2, _cachedSecondaryLevel);
+  const totalAttacks = a1 + a2;
+  if(totalAttacks === 0){
     bar.style.display = 'none';
+    bar.title = '';
     return;
   }
-  const n = cls === 'Survivalist' ? 2
-           : _cachedLevel >= 18 ? 4
-           : _cachedLevel >= 11 ? 3 : 2;
-  bar.textContent = `⚔ Number of attacks: ${n}`;
+  bar.textContent = `⚔ Number of attacks: ${totalAttacks}`;
+  // Tooltip breakdown — only meaningful when both classes contribute (true stacking)
+  if(a1 > 0 && a2 > 0){
+    bar.title = `${cls1}: ${a1} + ${cls2}: ${a2}`;
+  } else {
+    bar.title = '';
+  }
   bar.style.display = '';
 }
 const CLASS_SPECS={
@@ -1655,6 +1726,7 @@ function updateSpecOptions2(showModal){
   if(prev && opts.includes(prev)) sel.value=prev;
   sel.disabled=opts.length===0;
   applySpecFeatures();
+  updateAttackBar();
 }
 
 // Toggle multiclass on/off. When turning off, wipe the secondary class/spec/renown data
