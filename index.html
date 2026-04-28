@@ -3649,6 +3649,8 @@ const FIGHTING_STYLES = [
   { key:'gwf',        name:'Great Weapon Fighting', desc:'When you roll a 1 or 2 on a damage die for a two-handed melee weapon attack, reroll the die and use the new roll.' },
   { key:'protection', name:'Protection',            desc:'Reaction: When a creature you can see attacks a target other than you within 5 ft., impose disadvantage on the attack roll (requires a shield).' },
   { key:'twf',        name:'Two-Weapon Fighting',   desc:'When two-weapon fighting, add your ability modifier to the damage of the second attack.' },
+  { key:'locked_in',  name:'Locked-In',             desc:'When attacking the same target for a third subsequent turn, add +4 to your damage roll. This bonus continues to apply on every subsequent turn after the third.' },
+  { key:'home_grown', name:'Home Grown',            desc:'When using the weapon(s) unique to your home region, you negate 4 points of the opponent’s armour class.' },
 ];
 let _chosenStyles = {};
 (function(){ try{ _chosenStyles=JSON.parse(localStorage.getItem('cs_fighting_styles')||'{}'); }catch(e){ _chosenStyles={}; } })();
