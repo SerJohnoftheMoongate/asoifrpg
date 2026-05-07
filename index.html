@@ -1024,6 +1024,17 @@ function scoreToMod(score) {
 }
 function recalc(){
   const prof=parseInt(document.getElementById('proficiency').value)||0;
+  // ── Diplomat: Unfaultable Expert ──
+  // If the character has Diplomat at L7+ on either primary or secondary AND has chosen an
+  // ability of expertise, all skills under that ability get an extra +floor(prof/2).
+  const ufeActive = (() => {
+    if(!_unfaultableExpertAbility) return false;
+    const primaryHasIt   = document.getElementById('spec') ?.value === 'Diplomat' && _cachedPrimaryLevel   >= 7;
+    const secondaryHasIt = _isMulticlass && document.getElementById('spec_2')?.value === 'Diplomat' && _cachedSecondaryLevel >= 7;
+    return primaryHasIt || secondaryHasIt;
+  })();
+  const ufeHalfProf = ufeActive ? Math.floor(prof/2) : 0;
+  const ufeAb = ufeActive ? _unfaultableExpertAbility : '';
   Object.entries(ABILITY_SKILLS).forEach(([ab,skills])=>{
     // Read score from dropdown
     const statEl=document.getElementById('stat_'+ab);
@@ -1034,11 +1045,18 @@ function recalc(){
     // Write modifier into gold box (read-only display)
     const modEl=document.getElementById('mod_'+ab);
     if(modEl)modEl.value=hasScore?fmt(mod):'';
-    // Skills
+    // Skills — add full prof if checked, otherwise add half-prof if Unfaultable Expert covers this ability
     skills.forEach(sk=>{
       const chk=document.getElementById('chk_'+sk);
       const el=document.getElementById('scr_'+sk);
-      if(el)el.value=hasScore?fmt(mod+(chk&&chk.checked?prof:0)):'';
+      if(el){
+        if(!hasScore){ el.value=''; el.title=''; return; }
+        const isProf = chk && chk.checked;
+        const ufeBonus = (ab === ufeAb && !isProf) ? ufeHalfProf : 0;
+        el.value = fmt(mod + (isProf ? prof : 0) + ufeBonus);
+        // Tooltip explains the half-prof when applied (only when not already proficient)
+        el.title = ufeBonus > 0 ? `Includes +${ufeBonus} Unfaultable Expert (half proficiency)` : '';
+      }
     });
     // Saving throw
     const sid=ABILITY_SAVE[ab];
@@ -1927,6 +1945,8 @@ function _collectSheetData() {
   try { d._cs_maester_link        = typeof _maesterLink            !== 'undefined' ? _maesterLink            : ''; } catch(e) {}
   try { d._cs_stellar_points      = typeof _stellarPoints          !== 'undefined' ? _stellarPoints          : 3;  } catch(e) {}
   try { d._cs_war_chest           = typeof _warChest               !== 'undefined' ? _warChest               : 0;  } catch(e) {}
+  try { d._cs_ufe_ability         = typeof _unfaultableExpertAbility   !== 'undefined' ? _unfaultableExpertAbility   : ''; } catch(e) {}
+  try { d._cs_ufe_sub             = typeof _unfaultableExpertSubChoice !== 'undefined' ? _unfaultableExpertSubChoice : ''; } catch(e) {}
   try { d._cs_merchant_trade_good = typeof _merchantTradeGood      !== 'undefined' ? _merchantTradeGood      : ''; } catch(e) {}
   try { d._cs_warg_bond           = typeof _wargBondAnimals        !== 'undefined' ? _wargBondAnimals        : []; } catch(e) {}
   try { d._cs_greater_warg_bond   = typeof _greaterWargBondAnimals !== 'undefined' ? _greaterWargBondAnimals : []; } catch(e) {}
@@ -2035,6 +2055,8 @@ function load(){
   try{ if(d._cs_maester_link!==undefined){        _maesterLink=d._cs_maester_link;                 try{localStorage.setItem('cs_maester_link',_maesterLink);}catch(e){} } }catch(e){}
   try{ if(d._cs_stellar_points!==undefined){      _stellarPoints=parseInt(d._cs_stellar_points);   try{localStorage.setItem('cs_stellar_points',String(_stellarPoints));}catch(e){} } }catch(e){}
   try{ if(d._cs_war_chest!==undefined){           _warChest=parseInt(d._cs_war_chest);             try{localStorage.setItem('cs_war_chest',String(_warChest));}catch(e){} } }catch(e){}
+  try{ if(d._cs_ufe_ability!==undefined){          _unfaultableExpertAbility=d._cs_ufe_ability;     try{localStorage.setItem('cs_ufe_ability',_unfaultableExpertAbility);}catch(e){} } }catch(e){}
+  try{ if(d._cs_ufe_sub!==undefined){              _unfaultableExpertSubChoice=d._cs_ufe_sub;       try{localStorage.setItem('cs_ufe_sub',_unfaultableExpertSubChoice);}catch(e){} } }catch(e){}
   try{ if(d._cs_merchant_trade_good!==undefined){ _merchantTradeGood=d._cs_merchant_trade_good;   try{localStorage.setItem('cs_merchant_trade_good',_merchantTradeGood);}catch(e){} } }catch(e){}
   try{ if(d._cs_warg_bond!==undefined){      _wargBondAnimals=d._cs_warg_bond;                   try{localStorage.setItem('cs_warg_bond',JSON.stringify(_wargBondAnimals));}catch(e){} } }catch(e){}
   try{ if(d._cs_greater_warg_bond!==undefined){ _greaterWargBondAnimals=d._cs_greater_warg_bond; try{localStorage.setItem('cs_greater_warg_bond',JSON.stringify(_greaterWargBondAnimals));}catch(e){} } }catch(e){}
@@ -3807,6 +3829,66 @@ let _warChest = 0;
 (function(){ try{ const v = localStorage.getItem('cs_war_chest'); if(v !== null) _warChest = parseInt(v); }catch(e){} })();
 function saveWarChest(){ try{ localStorage.setItem('cs_war_chest', String(_warChest)); }catch(e){} }
 
+// ── DIPLOMAT: UNFAULTABLE EXPERT ──
+// The chosen ability (e.g. 'subtlety' for Intrigue/Forgery) gets half-prof on its skills,
+// AND grants a thematic buff. For Attunement the player further picks a Faith; for Learning
+// they pick a bonus feat. Both sub-choices live in _unfaultableExpertSubChoice as a string.
+let _unfaultableExpertAbility = '';   // ability id: 'subtlety' | 'wisdom' | 'strength' | 'knowledge' | 'spirit'
+let _unfaultableExpertSubChoice = ''; // for spirit: faith key; for knowledge: feat name; otherwise unused
+(function(){
+  try{ _unfaultableExpertAbility = localStorage.getItem('cs_ufe_ability') || ''; }catch(e){ _unfaultableExpertAbility = ''; }
+  try{ _unfaultableExpertSubChoice = localStorage.getItem('cs_ufe_sub') || ''; }catch(e){ _unfaultableExpertSubChoice = ''; }
+})();
+function saveUnfaultableExpert(){
+  try{ localStorage.setItem('cs_ufe_ability', _unfaultableExpertAbility); }catch(e){}
+  try{ localStorage.setItem('cs_ufe_sub', _unfaultableExpertSubChoice); }catch(e){}
+}
+
+// Faiths used by the Attunement buff
+const UFE_FAITHS = [
+  { key:'seven',    name:'The Seven',     emoji:'✦' },
+  { key:'rhllor',   name:"R'hllor",       emoji:'🔥' },
+  { key:'old_gods', name:'The Old Gods',  emoji:'🌳' },
+  { key:'drowned',  name:'The Drowned God', emoji:'🌊' },
+];
+
+// Buff definitions for each ability the player can choose. Keyed by stat-id (matches FEAT_ABILITY_MAP).
+// The `desc(sub)` function takes the sub-choice (faith/feat) and returns the buff description.
+const UFE_BUFFS = {
+  subtlety: { // user wrote "Forgery"; canonical ability name is Intrigue
+    label: 'Intrigue',
+    desc: () => 'You can Hide, Dash, and Disengage as a bonus action. When attacking from a hidden position you deal an additional 1d6 damage.'
+  },
+  wisdom: {
+    label: 'Stewardship',
+    desc: () => 'You can purchase all wares and commodities at a 50% discount.'
+  },
+  strength: {
+    label: 'Martial',
+    desc: () => 'You gain one additional attack per round.'
+  },
+  knowledge: {
+    label: 'Learning',
+    desc: (sub) => sub
+      ? `You have selected an additional feat: ${sub}. (Click the picker button to change.)`
+      : 'You can pick an additional feat. Choose one via the picker button.'
+  },
+  spirit: {
+    label: 'Attunement',
+    desc: (sub) => {
+      const faith = UFE_FAITHS.find(f => f.key === sub);
+      return faith
+        ? `Your chosen Faith — ${faith.emoji} ${faith.name} — grants you the ability to heal someone for 1d6 temporary hit points, once per short rest.`
+        : 'Choose a Faith via the picker button. Your chosen Faith grants you the ability to heal someone for 1d6 temporary hit points, once per short rest.';
+    }
+  },
+};
+
+// Power is Power renown multiplier — only meaningful per-modal-open and not persisted across modals.
+// Using a global lets confirmRenown / confirmRenown2 read the choice without prop-drilling.
+let _renownMultiplier = 1;
+let _renownMultiplier2 = 1;
+
 // ── GREENSEER: WARG BOND ANIMALS ──
 const WARG_BOND_ANIMALS = [
   { key:'crow_raven', name:'Crow / Raven', emoji:'🪶' },
@@ -4047,6 +4129,115 @@ function openHomeTurfModal(){
   });
   o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
 }
+
+// ── DIPLOMAT: UNFAULTABLE EXPERT PICKER ──
+// Single modal that handles all three picks: the ability, plus the optional sub-choice
+// (Faith for Attunement, bonus feat for Learning). Sub-choice picker only renders when
+// the chosen ability needs one; otherwise the bottom row is hidden.
+function openUnfaultableExpertModal(){
+  document.getElementById('ufeModal')?.remove();
+  let pickedAb  = _unfaultableExpertAbility;
+  let pickedSub = _unfaultableExpertSubChoice;
+
+  // Abilities to choose from — everything EXCEPT charisma (Diplomacy)
+  const ABILITIES_PICKABLE = ['subtlety','wisdom','strength','knowledge','spirit'];
+
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'ufeModal';
+
+  // Refresh body each time picks change so the buff/sub-choice section updates live
+  function bodyHTML(){
+    const abilityCards = ABILITIES_PICKABLE.map(ab => {
+      const buff = UFE_BUFFS[ab];
+      const display = FEAT_ABILITY_DISPLAY[ab] || ab;
+      const isPicked = pickedAb === ab;
+      return `<div class="ufe-ab" data-ab="${ab}" style="cursor:pointer;border:2px solid ${isPicked?'var(--gold)':'rgba(180,140,60,.35)'};border-radius:5px;padding:10px 12px;background:${isPicked?'rgba(120,80,0,.35)':'rgba(20,12,0,.5)'};transition:border .15s,background .15s;">
+        <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--text-gold);margin-bottom:4px;">${display} <span style="font-size:10px;color:#c8b87a;font-style:italic;">— ${buff.label} buff</span></div>
+        <div style="font-family:'IM Fell English',serif;font-size:12px;color:#c8b87a;line-height:1.45;">${buff.desc(pickedSub)}</div>
+      </div>`;
+    }).join('');
+
+    // Sub-choice section: only meaningful for Learning (feat) or Attunement (faith)
+    let subHTML = '';
+    if(pickedAb === 'spirit'){
+      // Faith picker
+      subHTML = `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(139,106,0,.35);">
+        <div style="font-family:var(--got);font-size:12px;color:var(--text-gold);margin-bottom:8px;">Choose a Faith</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">${UFE_FAITHS.map(f => {
+          const isPicked = pickedSub === f.key;
+          return `<div class="ufe-sub" data-sub="${f.key}" style="flex:1 1 calc(50% - 4px);min-width:140px;cursor:pointer;border:2px solid ${isPicked?'var(--gold)':'rgba(180,140,60,.35)'};border-radius:5px;padding:8px 10px;background:${isPicked?'rgba(120,80,0,.35)':'rgba(20,12,0,.5)'};text-align:center;font-family:'Cinzel',serif;font-size:12px;color:var(--text-gold);transition:border .15s,background .15s;">${f.emoji} ${f.name}</div>`;
+        }).join('')}</div>
+      </div>`;
+    } else if(pickedAb === 'knowledge'){
+      // Bonus feat picker — list every feat from FEATS_DATA
+      const currentFeat = pickedSub;
+      subHTML = `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(139,106,0,.35);">
+        <div style="font-family:var(--got);font-size:12px;color:var(--text-gold);margin-bottom:8px;">Choose a Bonus Feat</div>
+        <div style="max-height:240px;overflow-y:auto;border:1px solid rgba(139,106,0,.3);background:rgba(0,0,0,.2);padding:6px;">
+          ${FEATS_DATA.map(f => {
+            const isPicked = currentFeat === f.name;
+            return `<div class="ufe-sub" data-sub="${f.name.replace(/"/g,'&quot;')}" style="cursor:pointer;border:1px solid ${isPicked?'var(--gold-lt)':'rgba(139,106,0,.3)'};background:${isPicked?'rgba(139,106,0,.2)':'rgba(0,0,0,.2)'};padding:6px 8px;margin-bottom:3px;border-radius:2px;">
+              <div style="font-family:var(--got);font-size:10.5px;color:${isPicked?'var(--text-gold)':'#ccc'};letter-spacing:.4px;">${f.name}${isPicked?' ✓':''}</div>
+              <div style="font-family:'IM Fell English',serif;font-size:10.5px;color:#888;line-height:1.35;margin-top:1px;">${f.desc}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
+    return `<div class="modal" style="max-width:560px;padding:28px 32px;">
+      <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Unfaultable Expert</div>
+      <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:18px;font-style:italic;">Choose an ability other than Diplomacy. You gain half-proficiency on its skills, and the buff associated with it.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">${abilityCards}</div>
+      <div id="ufe_sub_section">${subHTML}</div>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button id="ufe_confirm" class="rest-btn" style="flex:1;">✓ Confirm</button>
+        <button class="rest-btn" style="background:rgba(80,40,0,.4);" onclick="document.getElementById('ufeModal').remove()">Cancel</button>
+      </div>
+    </div>`;
+  }
+
+  o.innerHTML = bodyHTML();
+  document.body.appendChild(o);
+
+  // Wire up clicks — re-render the modal on any selection so the buff text and sub-section update live
+  function rerender(){
+    o.innerHTML = bodyHTML();
+    attachHandlers();
+  }
+  function attachHandlers(){
+    o.querySelectorAll('.ufe-ab').forEach(card => {
+      card.addEventListener('click', () => {
+        const newAb = card.dataset.ab;
+        if(newAb !== pickedAb){
+          pickedAb = newAb;
+          // Clear sub-choice when switching ability — the old sub may not apply to the new one
+          pickedSub = '';
+        }
+        rerender();
+      });
+    });
+    o.querySelectorAll('.ufe-sub').forEach(card => {
+      card.addEventListener('click', () => {
+        pickedSub = card.dataset.sub;
+        rerender();
+      });
+    });
+    o.querySelector('#ufe_confirm').addEventListener('click', () => {
+      _unfaultableExpertAbility = pickedAb;
+      _unfaultableExpertSubChoice = pickedSub;
+      saveUnfaultableExpert();
+      // recalc applies the half-prof bonus; applySpecFeatures refreshes the description/picker label
+      recalc();
+      applySpecFeatures();
+      save();
+      o.remove();
+    });
+  }
+  attachHandlers();
+  o.addEventListener('click', e => { if(e.target === o) o.remove(); });
+}
+
 function openMaesterLinkModal(){
   const existing = document.getElementById('maesterLinkModal');
   if(existing) existing.remove();
@@ -4766,6 +4957,90 @@ const SPEC_LEVEL_FEATURES = {
     }
   ]
 
+  ,'Diplomat': [
+    // ── PASSIVE column ──
+    {
+      name: 'Holding some Sway',
+      action_type: null, recovery: 'LR',
+      uses_fn: () => {
+        // Usable a number of times equal to the character's Diplomacy modifier per long rest (min 1).
+        const dipEl = document.getElementById('mod_charisma');
+        return Math.max(1, parseInt((dipEl||{}).value) || 1);
+      },
+      desc_fn: () => {
+        const dipEl = document.getElementById('mod_charisma');
+        const dip = Math.max(1, parseInt((dipEl||{}).value) || 1);
+        return `You know how to use your standing, connections, and demeanor to influence others. Usable ${dip} time${dip>1?'s':''} per long rest (equal to your Diplomacy modifier), you can spend some of your reputation during an interaction to gain one of the benefits below. Every time you invoke your reputation you move your reputation 1 point towards 'Notorious'.\n\n• Instantly succeed a Persuasion, Negotiation, or Intimidation check or combat roll. This can be decided after the roll.\n• Treat a neutral creature as friendly for the duration of the interaction.\n• Secure a favour (lodging, safe passage, basic assistance).`;
+      },
+      level_required: 1
+    },
+    {
+      // Unfaultable Expert — picks an ability (other than Diplomacy/charisma) for half-prof on its
+      // skills, and that ability also unlocks a buff. The picker UI is wired up in
+      // _applyFeatureToSlot via the `special: 'unfaultable_expert'` marker below; the half-prof
+      // bonus itself is applied in recalc() when _unfaultableExpertAbility is set.
+      name: 'Unfaultable Expert',
+      action_type: null, recovery: null,
+      uses_fn: () => 0,
+      special: 'unfaultable_expert',
+      desc_fn: () => {
+        const ab = _unfaultableExpertAbility;
+        const buffText = UFE_BUFFS[ab] ? UFE_BUFFS[ab].desc(_unfaultableExpertSubChoice) : '';
+        if(ab){
+          const display = FEAT_ABILITY_DISPLAY[ab] || ab;
+          return `Your expertise and knowledge about the world knows no bounds. You have chosen ${display} as your ability of expertise.\n\nYou add half your proficiency bonus (rounded down) to all skills related to ${display}.\n\nBuff — ${UFE_BUFFS[ab].label}: ${buffText}`;
+        }
+        return `Your expertise and knowledge about the world knows no bounds. Choose an ability other than Diplomacy below — you add half your proficiency bonus (rounded down) to all skills related to it, and you gain that ability's signature buff.`;
+      },
+      level_required: 7
+    },
+    {
+      // Power is Power has two parts: (1) a passive multiplier applied to renown gains —
+      // surfaced as an optional multiplier input in the relevant renown modal; (2) an active
+      // "10 minute inspiration" once per long rest. Because the active half consumes a use, we
+      // give the feature a recovery + uses count for the dot tracker, even though the passive
+      // half is always-on.
+      name: 'Power is Power',
+      action_type: null, recovery: 'LR',
+      uses_fn: () => 1,
+      desc_fn: () => {
+        const dipEl = document.getElementById('mod_charisma');
+        const dip = Math.max(1, parseInt((dipEl||{}).value) || 1);
+        const lvl = _cachedLevel;
+        const tempHP = lvl + dip;
+        return `You have made a name for yourself. Whenever you gain reputation you can multiply the amount — set the multiplier in the Renown adjustment modal (a "×N" field appears once this feature is unlocked).\n\nIn addition, you can spend 10 minutes inspiring your companions. Choose up to six friendly creatures (which can include yourself) within 30 ft who can see/hear and understand you. Each gains temporary hit points equal to your level + Diplomacy modifier (currently ${tempHP}). A creature can't gain temp HP from this feat again until it has finished a short or long rest. Usable once per long rest.`;
+      },
+      level_required: 10
+    },
+    // ── BONUS ACTION column (auto-detected as a Reaction by its desc starting with "Reaction:") ──
+    {
+      name: 'Sharp Tongue',
+      action_type: null, recovery: 'SR',
+      uses_fn: () => {
+        // Uses equal to proficiency bonus per short rest. Read the signed string "+N" and parse.
+        const profEl = document.getElementById('proficiency');
+        const raw = (profEl && profEl.value || '').replace(/^\+/, '');
+        return Math.max(1, parseInt(raw) || 1);
+      },
+      desc_fn: (lvl) => {
+        const die = lvl >= 15 ? '1d12' : lvl >= 10 ? '1d10' : lvl >= 5 ? '1d8' : '1d6';
+        const profEl = document.getElementById('proficiency');
+        const profRaw = (profEl && profEl.value || '').replace(/^\+/, '');
+        const prof = Math.max(1, parseInt(profRaw) || 1);
+        return `Reaction: When a person you can see within 60 ft makes an attack roll, an ability check, or a combat roll, expend one Envoy Die (${die}). Roll the die — they must subtract the rolled number from their result.\n\nYou can use this feature after the creature makes its roll, but before the GM determines success/failure or before damage is dealt.\n\nUsable ${prof} time${prof>1?'s':''} per short rest (equal to your proficiency bonus).`;
+      },
+      level_required: 3
+    },
+    // ── ACTION column ──
+    {
+      name: 'Master of the Masses',
+      action_type: 'A', recovery: 'LR',
+      uses_fn: () => 1,
+      desc_fn: () => `You have mastered the art of diplomacy to an exceptional degree. Use an action to suggest a course of activity to up to twelve persons of your choice that you can see within range and that can hear and understand you. The suggestion must be worded in such a manner as to make the course of action sound reasonable.\n\nEach target must make a Diplomacy saving throw. On a failed save, it pursues the course of action you described to the best of its ability.\n\nUsable once per long rest.`,
+      level_required: 15
+    }
+  ]
+
   ,'Maester': [
     {
       name: "Maester's Chain — Tin",
@@ -4881,6 +5156,8 @@ function _applyFeatureToSlot(slot, f, forLevel){
         if(oldWbLgBtn) oldWbLgBtn.remove();
         const oldTgBtn = block.querySelector('.merchant-tg-btn');
         if(oldTgBtn) oldTgBtn.remove();
+        const oldUfeBtn = block.querySelector('.ufe-pick-btn');
+        if(oldUfeBtn) oldUfeBtn.remove();
       }
     }
     // Hide the block if it's now truly empty (no name and no description).
@@ -5095,6 +5372,35 @@ function _applyFeatureToSlot(slot, f, forLevel){
         tgBtn.onclick = openMerchantTradeGoodModal;
         tgBtn.style.pointerEvents = 'auto'; tgBtn.style.cursor = 'pointer';
       } else if(tgBtn){ tgBtn.remove(); }
+      // Diplomat: Unfaultable Expert ability picker. Picker label reflects the chosen ability +
+      // sub-choice (faith/feat) so the player sees the current selection at a glance.
+      let ufeBtn = block.querySelector('.ufe-pick-btn');
+      if(f.special === 'unfaultable_expert'){
+        if(!ufeBtn){
+          ufeBtn = document.createElement('button');
+          ufeBtn.className = 'ufe-pick-btn rest-btn';
+          ufeBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;';
+          block.appendChild(ufeBtn);
+        }
+        const ab = _unfaultableExpertAbility;
+        if(ab){
+          const label = UFE_BUFFS[ab].label;
+          let subLabel = '';
+          if(ab === 'spirit'){
+            const f2 = UFE_FAITHS.find(x => x.key === _unfaultableExpertSubChoice);
+            subLabel = f2 ? ` — ${f2.emoji} ${f2.name}` : ' — pick a Faith';
+          } else if(ab === 'knowledge'){
+            subLabel = _unfaultableExpertSubChoice ? ` — ${_unfaultableExpertSubChoice}` : ' — pick a Feat';
+          }
+          ufeBtn.textContent = `📚 ${label}${subLabel} (change)`;
+          ufeBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(60,60,100,.5);border-color:rgba(140,140,220,.6);color:#cfd8ff;';
+        } else {
+          ufeBtn.textContent = '📚 Choose Ability of Expertise…';
+          ufeBtn.style.cssText = 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(140,0,0,.55);border-color:rgba(220,40,40,.7);color:#ffaaaa;';
+        }
+        ufeBtn.onclick = openUnfaultableExpertModal;
+        ufeBtn.style.pointerEvents = 'auto'; ufeBtn.style.cursor = 'pointer';
+      } else if(ufeBtn){ ufeBtn.remove(); }
     }
     if(aBtn)  aBtn.classList.remove('active');
     if(baBtn) baBtn.classList.remove('active');
@@ -5265,6 +5571,20 @@ function openRenownModal(){
   const existing=document.getElementById('renownModal');
   if(existing) existing.remove();
   const current=parseInt(document.getElementById('renown').value)||0;
+  // Power is Power (Diplomat L10+) — show optional multiplier when active on the primary side
+  const pipActive = document.getElementById('class_')?.value === 'Envoy'
+                 && document.getElementById('spec') ?.value === 'Diplomat'
+                 && _cachedPrimaryLevel >= 10;
+  const pipBlock = pipActive
+    ? `<div style="margin-bottom:14px;padding:10px;background:rgba(60,40,80,.25);border:1px solid rgba(180,140,220,.35);border-radius:3px;">
+         <div style="font-family:var(--got);font-size:10px;color:#e8d4ff;letter-spacing:.5px;margin-bottom:6px;">⚡ Power is Power — gain multiplier</div>
+         <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+           <span style="font-size:11px;color:#c8b87a;">×</span>
+           <input id="renown_mult" type="number" min="1" max="10" value="1" style="width:60px;text-align:center;font-size:14px;padding:3px;background:#1a1200;border:1px solid var(--gold);color:var(--text-gold);font-family:'IM Fell English',serif;">
+           <span style="font-size:10px;color:#c8b87a;font-style:italic;">(applied to positive gains only)</span>
+         </div>
+       </div>`
+    : '';
   const o=document.createElement('div');
   o.className='modal-overlay'; o.id='renownModal';
   o.innerHTML=`<div class="modal" style="max-width:480px;padding:30px 38px;text-align:center;">
@@ -5279,6 +5599,7 @@ function openRenownModal(){
       <input id="renown_delta" type="number" value="0" style="width:90px;text-align:center;font-size:18px;padding:4px;background:#1a1200;border:1px solid var(--gold);color:var(--text-gold);font-family:'IM Fell English',serif;">
       <button onclick="adjustRenown(1)" style="width:34px;height:34px;font-size:18px;background:rgba(20,60,20,.5);border:1px solid #883;color:var(--text-gold);cursor:pointer;border-radius:2px;">+</button>
     </div>
+    ${pipBlock}
     <div style="display:flex;gap:10px;">
       <button id="renown_confirm" class="rest-btn" style="flex:1;" onclick="confirmRenown()">✓ Apply</button>
       <button class="rest-btn" style="background:rgba(80,40,0,.4);" onclick="document.getElementById('renownModal').remove()">Cancel</button>
@@ -5292,7 +5613,13 @@ function adjustRenown(dir){
   if(inp) inp.value=parseInt(inp.value||0)+dir;
 }
 function confirmRenown(){
-  const delta=parseInt(document.getElementById('renown_delta').value)||0;
+  let delta=parseInt(document.getElementById('renown_delta').value)||0;
+  // Apply Power is Power multiplier ONLY to positive gains (per "whenever you gain reputation").
+  const multEl = document.getElementById('renown_mult');
+  if(multEl && delta > 0){
+    const m = Math.max(1, parseInt(multEl.value) || 1);
+    delta = delta * m;
+  }
   const current=parseInt(document.getElementById('renown').value)||0;
   const newVal=Math.max(0, current+delta);
   document.getElementById('renown').value=newVal;
@@ -5306,6 +5633,21 @@ function openRenownModal2(){
   const existing=document.getElementById('renownModal');
   if(existing) existing.remove();
   const current=parseInt(document.getElementById('renown2').value)||0;
+  // Power is Power on the secondary side — only show multiplier if secondary is Envoy/Diplomat L10+
+  const pipActive = _isMulticlass
+                 && document.getElementById('class_2')?.value === 'Envoy'
+                 && document.getElementById('spec_2') ?.value === 'Diplomat'
+                 && _cachedSecondaryLevel >= 10;
+  const pipBlock = pipActive
+    ? `<div style="margin-bottom:14px;padding:10px;background:rgba(60,40,80,.25);border:1px solid rgba(180,140,220,.35);border-radius:3px;">
+         <div style="font-family:var(--got);font-size:10px;color:#e8d4ff;letter-spacing:.5px;margin-bottom:6px;">⚡ Power is Power — gain multiplier</div>
+         <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+           <span style="font-size:11px;color:#c8b87a;">×</span>
+           <input id="renown2_mult" type="number" min="1" max="10" value="1" style="width:60px;text-align:center;font-size:14px;padding:3px;background:#1a1200;border:1px solid var(--gold);color:var(--text-gold);font-family:'IM Fell English',serif;">
+           <span style="font-size:10px;color:#c8b87a;font-style:italic;">(applied to positive gains only)</span>
+         </div>
+       </div>`
+    : '';
   const o=document.createElement('div');
   o.className='modal-overlay'; o.id='renownModal';
   o.innerHTML=`<div class="modal" style="max-width:480px;padding:30px 38px;text-align:center;">
@@ -5319,6 +5661,7 @@ function openRenownModal2(){
       <input id="renown2_delta" type="number" value="0" style="width:90px;text-align:center;font-size:18px;padding:4px;background:#1a1200;border:1px solid var(--gold);color:var(--text-gold);font-family:'IM Fell English',serif;">
       <button onclick="adjustRenown2(1)" style="width:34px;height:34px;font-size:18px;background:rgba(20,60,20,.5);border:1px solid #883;color:var(--text-gold);cursor:pointer;border-radius:2px;">+</button>
     </div>
+    ${pipBlock}
     <div style="display:flex;gap:10px;">
       <button class="rest-btn" style="flex:1;" onclick="confirmRenown2()">✓ Apply</button>
       <button class="rest-btn" style="background:rgba(80,40,0,.4);" onclick="document.getElementById('renownModal').remove()">Cancel</button>
@@ -5332,7 +5675,13 @@ function adjustRenown2(dir){
   if(inp) inp.value=parseInt(inp.value||0)+dir;
 }
 function confirmRenown2(){
-  const delta=parseInt(document.getElementById('renown2_delta').value)||0;
+  let delta=parseInt(document.getElementById('renown2_delta').value)||0;
+  // Apply Power is Power multiplier ONLY to positive gains
+  const multEl = document.getElementById('renown2_mult');
+  if(multEl && delta > 0){
+    const m = Math.max(1, parseInt(multEl.value) || 1);
+    delta = delta * m;
+  }
   const current=parseInt(document.getElementById('renown2').value)||0;
   const newVal=Math.max(0, current+delta);
   document.getElementById('renown2').value=newVal;
