@@ -293,6 +293,12 @@ textarea{resize:none;font-weight:400;font-size:12px}
 }
 .wpn-stat-value.small{font-size:11.5px;}
 .wpn-stat-value.empty{color:rgba(232,200,74,.25);text-shadow:none;font-weight:400;}
+.wpn-stat-throw{
+  display:block;font-family:'Cinzel',serif;font-weight:500;
+  font-size:9px;color:rgba(232,200,74,.7);letter-spacing:.3px;
+  line-height:1.1;margin-top:1px;text-shadow:0 0 4px rgba(232,200,74,.25);
+}
+.wpn-stat-throw .arrow{color:rgba(232,200,74,.55);margin-right:2px;}
 .wpn-card-tags{display:flex;flex-wrap:wrap;gap:3px;}
 .wpn-card-remove{
   position:absolute;top:4px;right:5px;
@@ -2665,6 +2671,15 @@ function _buildWeaponCardHTML(prefix, idx){
   const drDisplay    = dr    ? dr    : '<span class="empty">—</span>';
   const drIsLong = dr && dr.length > 6;
 
+  // If the weapon is Thrown, look up its throw range from the database and show it under the melee range.
+  let throwHTML = '';
+  if(props.includes('Thrown')){
+    const def = _findWeaponDef(name);
+    if(def && def.throwRange){
+      throwHTML = `<span class="wpn-stat-throw" title="Thrown range (normal/long, in feet)"><span class="arrow">↪</span>${def.throwRange}</span>`;
+    }
+  }
+
   return `<div class="wpn-card ${profOk ? '' : 'not-prof'}" onclick="openWeaponModal('${prefix}',${idx})" title="${profOk ? 'Click to edit' : 'Not proficient — proficiency bonus not added. Click to edit.'}">
     <span class="wpn-card-remove" onclick="event.stopPropagation();clearWeaponSlot('${prefix}',${idx})" title="Remove weapon">×</span>
     <div class="wpn-card-head">
@@ -2673,7 +2688,7 @@ function _buildWeaponCardHTML(prefix, idx){
       ${condDot}
     </div>
     <div class="wpn-card-stats">
-      <div class="wpn-stat-box"><span class="wpn-stat-label">RANGE</span><div class="wpn-stat-value small">${rangeDisplay}</div></div>
+      <div class="wpn-stat-box"><span class="wpn-stat-label">RANGE</span><div class="wpn-stat-value small">${rangeDisplay}</div>${throwHTML}</div>
       <div class="wpn-stat-box"><span class="wpn-stat-label">AR</span><div class="wpn-stat-value">${arDisplay}</div></div>
       <div class="wpn-stat-box"><span class="wpn-stat-label">DR</span><div class="wpn-stat-value ${drIsLong?'small':''}">${drDisplay}</div></div>
     </div>
@@ -3054,9 +3069,11 @@ function _renderWpnPreview(){
   const versDie      = def ? def.versDie : null;
 
   // Calculate AR / DR
+  const isBonus      = _wpnModalState.prefix === 'bon';
   const statVal      = parseInt(document.getElementById('scr_'+stat)?.value) || 0;
   const profOk       = isWeaponProficient(effectiveCat);
-  const profVal      = profOk ? (parseInt(document.getElementById('proficiency')?.value)||0) : 0;
+  // Bonus-action attacks do NOT add the proficiency bonus to AR.
+  const profVal      = (profOk && !isBonus) ? (parseInt(document.getElementById('proficiency')?.value)||0) : 0;
   const condEntry    = WPN_CONDITIONS.find(c => c.key === _wpnModalState.condition);
   const condMod      = condEntry ? condEntry.mod : 0;
   const arTotal      = statVal + profVal + condMod;
@@ -3064,6 +3081,12 @@ function _renderWpnPreview(){
   const drModStr     = statVal >= 0 ? '+'+statVal : String(statVal);
   const drStr        = die ? `${die} ${drModStr}` : '—';
   const drVersStr    = versDie ? `${versDie} ${drModStr}` : '';
+
+  // Thrown range indicator (in the RANGE stat box)
+  const throwR = (def && props.includes('Thrown')) ? def.throwRange : '';
+  const throwHTML = throwR
+    ? `<span class="wpn-stat-throw" title="Thrown range (normal/long, in feet)"><span class="arrow">↪</span>${throwR}</span>`
+    : '';
 
   // Damage icon & tags
   const dmgClass = _DMG_CLASS_MAP[dmg] || '';
@@ -3080,6 +3103,9 @@ function _renderWpnPreview(){
   const profWarn = effectiveCat && !profOk
     ? `<div style="font-family:var(--got);font-size:9px;color:#ff5555;letter-spacing:.4px;margin-top:5px;padding:3px 8px;background:rgba(60,0,0,.3);border:1px solid rgba(200,50,50,.4);border-radius:2px;">⚠ Not proficient — proficiency bonus will not be added</div>`
     : '';
+  const bonusNote = isBonus
+    ? `<div style="font-family:var(--got);font-size:9px;color:rgba(232,200,74,.65);letter-spacing:.4px;margin-top:5px;padding:3px 8px;background:rgba(40,30,10,.45);border:1px solid rgba(139,106,0,.35);border-radius:2px;">⚑ Bonus action — proficiency bonus not added to AR</div>`
+    : '';
 
   wrap.innerHTML = `<div class="wpn-sel-preview">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
@@ -3091,13 +3117,14 @@ function _renderWpnPreview(){
     </div>
     ${customFieldsHTML}
     <div class="wpn-sel-prev-stats">
-      <div class="wpn-stat-box"><span class="wpn-stat-label">RANGE</span><div class="wpn-stat-value small">${range || '—'}</div></div>
+      <div class="wpn-stat-box"><span class="wpn-stat-label">RANGE</span><div class="wpn-stat-value small">${range || '—'}</div>${throwHTML}</div>
       <div class="wpn-stat-box"><span class="wpn-stat-label">AR</span><div class="wpn-stat-value">${arStr}</div></div>
       <div class="wpn-stat-box"><span class="wpn-stat-label">DR</span><div class="wpn-stat-value ${drStr.length>6?'small':''}">${drStr}</div></div>
     </div>
     ${versDie ? `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.55);letter-spacing:.4px;margin-bottom:8px;text-align:center;">Two-handed (versatile): <strong style="color:var(--text-gold);">${drVersStr}</strong></div>` : ''}
     <div class="wpn-sel-prev-tags">${tagsHTML}</div>
     ${profWarn}
+    ${bonusNote}
 
     <div class="wpn-sel-options">
       <!-- Unique toggle -->
@@ -3224,7 +3251,9 @@ function confirmWeapon(){
   const stat         = _resolveWeaponStat(def.cat, props, _wpnModalState.finStat);
   const statVal      = parseInt(document.getElementById('scr_'+stat)?.value) || 0;
   const profOk       = isWeaponProficient(effectiveCat);
-  const profVal      = profOk ? (parseInt(document.getElementById('proficiency')?.value)||0) : 0;
+  const isBonus      = prefix === 'bon';
+  // Bonus-action attacks do NOT add the proficiency bonus to AR.
+  const profVal      = (profOk && !isBonus) ? (parseInt(document.getElementById('proficiency')?.value)||0) : 0;
   const condEntry    = WPN_CONDITIONS.find(c => c.key === _wpnModalState.condition);
   const condMod      = condEntry ? condEntry.mod : 0;
 
