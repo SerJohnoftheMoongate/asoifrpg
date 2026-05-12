@@ -226,8 +226,187 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .wpn-radio-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
 .wpn-radio{display:flex;align-items:center;gap:4px;cursor:pointer;padding:6px 12px;border:1px solid rgba(139,106,0,.4);border-radius:2px;font-family:var(--got);font-size:11px;color:var(--text-gold);letter-spacing:.5px;transition:all .15s;}
 .wpn-radio:hover,.wpn-radio.selected{background:rgba(139,106,0,.25);border-color:var(--gold-lt);}
+.wpn-radio.disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
 .wpn-lbl{font-family:var(--got);font-size:11px;color:var(--gold-lt);letter-spacing:.6px;margin-bottom:5px;display:block;}
 .wpn-inp{width:100%;background:var(--input-bg);border:1px solid var(--gold);color:#1a1000;height:30px;font-family:'IM Fell English',serif;font-size:15px;padding:0 6px;margin-bottom:12px;box-sizing:border-box;}
+
+/* ── WEAPON CARDS (action / bonus action columns) ── */
+.wpn-card-list{display:flex;flex-direction:column;gap:7px;padding:6px 5px 4px;}
+.wpn-card-empty{font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:rgba(232,200,74,.32);text-align:center;padding:14px 8px 10px;letter-spacing:.3px;}
+.wpn-card{
+  position:relative;
+  background:linear-gradient(140deg, rgba(28,18,2,.88) 0%, rgba(10,5,0,.95) 100%);
+  border:1px solid rgba(139,106,0,.55);
+  border-left:3px solid var(--gold);
+  border-radius:3px;
+  padding:7px 9px 6px;
+  cursor:pointer;
+  transition:border-color .18s, box-shadow .18s, transform .18s;
+}
+.wpn-card:hover{border-color:var(--gold-lt);box-shadow:0 0 10px rgba(232,200,74,.22), inset 0 0 14px rgba(232,200,74,.05);transform:translateX(1px);}
+.wpn-card.not-prof{border-left-color:#c44;}
+.wpn-card.not-prof .wpn-card-name{color:#ff5e5e;}
+.wpn-card-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.wpn-card-icon{
+  width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--gold);border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, rgba(232,200,74,.22), rgba(0,0,0,.5));
+  font-size:12px;line-height:1;
+}
+.wpn-card-icon.dmg-slashing  {border-color:rgba(220,80,80,.7); color:#ff7777; box-shadow:0 0 4px rgba(220,80,80,.35);}
+.wpn-card-icon.dmg-piercing  {border-color:rgba(200,120,50,.7); color:#ffaa55; box-shadow:0 0 4px rgba(200,120,50,.35);}
+.wpn-card-icon.dmg-bludgeoning{border-color:rgba(150,150,200,.7); color:#aaaacc; box-shadow:0 0 4px rgba(120,120,180,.35);}
+.wpn-card-name{
+  flex:1;min-width:0;
+  font-family:'Cinzel',serif;font-weight:600;
+  font-size:12.5px;color:var(--text-gold);
+  letter-spacing:.6px;line-height:1.15;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  text-shadow:0 0 5px rgba(232,200,74,.3);
+}
+.wpn-card-cond{
+  width:11px;height:11px;border-radius:50%;flex-shrink:0;
+  border:1px solid rgba(0,0,0,.4);
+}
+.wpn-card-stats{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:4px;margin-bottom:5px;}
+.wpn-stat-box{
+  background:linear-gradient(to bottom, rgba(0,0,0,.5), rgba(20,12,0,.6));
+  border:1px solid rgba(139,106,0,.5);
+  border-radius:2px;padding:2px 2px 3px;
+  text-align:center;
+  position:relative;
+}
+.wpn-stat-box::before{
+  content:'';position:absolute;top:0;left:6px;right:6px;height:1px;
+  background:linear-gradient(to right, transparent, rgba(232,200,74,.4), transparent);
+}
+.wpn-stat-label{
+  display:block;font-family:var(--got);font-size:7px;
+  color:rgba(232,200,74,.55);letter-spacing:.8px;
+  line-height:1.1;margin-bottom:1px;
+}
+.wpn-stat-value{
+  font-family:'Cinzel',serif;font-weight:600;
+  font-size:13px;color:var(--text-gold);
+  line-height:1.1;letter-spacing:.3px;
+  text-shadow:0 0 6px rgba(232,200,74,.4);
+}
+.wpn-stat-value.small{font-size:11.5px;}
+.wpn-stat-value.empty{color:rgba(232,200,74,.25);text-shadow:none;font-weight:400;}
+.wpn-card-tags{display:flex;flex-wrap:wrap;gap:3px;}
+.wpn-card-remove{
+  position:absolute;top:4px;right:5px;
+  width:15px;height:15px;display:flex;align-items:center;justify-content:center;
+  color:rgba(232,200,74,.25);font-size:14px;font-family:'Cinzel',serif;line-height:1;
+  cursor:pointer;border-radius:50%;transition:all .15s;
+  z-index:2;
+}
+.wpn-card-remove:hover{color:#ff6644;background:rgba(80,20,0,.4);}
+
+.wpn-add-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:calc(100% - 10px);margin:0 5px 4px;
+  background:linear-gradient(to bottom, rgba(40,28,5,.5), rgba(15,9,0,.75));
+  border:1.5px dashed rgba(139,106,0,.7);
+  color:rgba(232,200,74,.7);
+  font-family:var(--got);font-size:10px;letter-spacing:1px;
+  padding:7px 10px;cursor:pointer;border-radius:2px;
+  transition:all .2s;text-transform:uppercase;
+}
+.wpn-add-btn:hover{
+  background:linear-gradient(to bottom, rgba(70,50,12,.7), rgba(25,15,2,.9));
+  border-style:solid;border-color:var(--gold);color:var(--text-gold);
+  box-shadow:0 0 10px rgba(232,200,74,.25);
+}
+.wpn-add-btn:disabled,.wpn-add-btn.disabled{
+  opacity:.4;cursor:not-allowed;pointer-events:none;
+}
+.wpn-add-btn .plus{font-size:14px;line-height:1;}
+
+/* ── WEAPON SELECTION MODAL ── */
+.wpn-sel-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.wpn-sel-list-wrap{
+  background:rgba(0,0,0,.4);
+  border:1px solid rgba(139,106,0,.45);
+  border-radius:3px;
+  overflow:hidden;display:flex;flex-direction:column;
+  max-height:380px;
+}
+.wpn-sel-search{
+  width:100%;background:rgba(0,0,0,.55);border:none;border-bottom:1px solid rgba(139,106,0,.45);
+  color:var(--text-gold);font-family:'IM Fell English',serif;font-size:13px;
+  padding:7px 10px;outline:none;letter-spacing:.3px;box-sizing:border-box;
+}
+.wpn-sel-search::placeholder{color:rgba(232,200,74,.4);font-style:italic;}
+.wpn-sel-search:focus{background:rgba(0,0,0,.7);border-bottom-color:var(--gold);}
+.wpn-sel-list{flex:1;overflow-y:auto;padding:3px 0;}
+.wpn-sel-list::-webkit-scrollbar{width:7px;}
+.wpn-sel-list::-webkit-scrollbar-track{background:rgba(0,0,0,.3);}
+.wpn-sel-list::-webkit-scrollbar-thumb{background:rgba(139,106,0,.5);border-radius:4px;}
+.wpn-sel-list::-webkit-scrollbar-thumb:hover{background:var(--gold);}
+.wpn-sel-group{
+  font-family:var(--got);font-size:9px;letter-spacing:1.2px;
+  color:var(--gold-lt);background:rgba(20,12,0,.7);
+  padding:5px 10px 4px;border-top:1px solid rgba(139,106,0,.3);
+  border-bottom:1px solid rgba(139,106,0,.3);
+  display:flex;align-items:center;gap:6px;
+}
+.wpn-sel-group:first-child{border-top:none;}
+.wpn-sel-group::before,.wpn-sel-group::after{
+  content:'';flex:1;height:1px;background:rgba(139,106,0,.4);
+}
+.wpn-sel-item{
+  padding:5px 10px 4px;cursor:pointer;border-left:2px solid transparent;
+  font-family:'IM Fell English',serif;color:#d8c290;
+  transition:all .12s;line-height:1.25;
+}
+.wpn-sel-item:hover{background:rgba(139,106,0,.12);border-left-color:rgba(139,106,0,.5);}
+.wpn-sel-item.selected{background:rgba(139,106,0,.28);border-left-color:var(--gold);color:var(--text-gold);}
+.wpn-sel-item .wsn{font-size:13px;letter-spacing:.3px;}
+.wpn-sel-item .wsm{font-size:9.5px;color:rgba(216,194,144,.6);margin-top:1px;font-family:var(--got);letter-spacing:.4px;}
+.wpn-sel-item.selected .wsm{color:rgba(232,200,74,.85);}
+
+.wpn-sel-preview{
+  background:linear-gradient(140deg, rgba(28,18,2,.85), rgba(10,5,0,.92));
+  border:1px solid rgba(139,106,0,.5);
+  border-left:3px solid var(--gold);
+  border-radius:3px;padding:10px 12px;
+  display:flex;flex-direction:column;
+}
+.wpn-sel-preview.empty{
+  border-left-color:rgba(139,106,0,.3);
+  align-items:center;justify-content:center;text-align:center;
+  font-family:'IM Fell English',serif;font-style:italic;color:rgba(232,200,74,.35);font-size:13px;
+  min-height:200px;
+}
+.wpn-sel-prev-name{
+  font-family:'Cinzel',serif;font-weight:600;font-size:15px;color:var(--text-gold);
+  letter-spacing:.6px;margin-bottom:2px;text-shadow:0 0 6px rgba(232,200,74,.3);
+}
+.wpn-sel-prev-sub{
+  font-family:var(--got);font-size:9px;letter-spacing:.8px;color:rgba(232,200,74,.55);
+  margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(139,106,0,.3);
+}
+.wpn-sel-prev-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px;}
+.wpn-sel-prev-tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;}
+.wpn-sel-prev-tags:empty{display:none;}
+.wpn-sel-options{margin-top:auto;border-top:1px solid rgba(139,106,0,.3);padding-top:8px;}
+.wpn-uniq-toggle{
+  display:flex;align-items:center;gap:8px;padding:6px 9px;
+  background:rgba(0,0,0,.35);border:1px solid rgba(139,106,0,.4);border-radius:2px;
+  cursor:pointer;margin-bottom:8px;transition:all .15s;
+}
+.wpn-uniq-toggle:hover{background:rgba(139,106,0,.15);border-color:rgba(180,120,220,.5);}
+.wpn-uniq-toggle.on{background:rgba(80,30,120,.25);border-color:rgba(180,120,220,.8);box-shadow:0 0 6px rgba(180,120,220,.25);}
+.wpn-uniq-check{
+  width:14px;height:14px;border:1.5px solid rgba(180,120,220,.5);border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:rgba(180,120,220,.9);line-height:1;flex-shrink:0;
+}
+.wpn-uniq-toggle.on .wpn-uniq-check{background:rgba(180,120,220,.3);border-color:rgba(180,120,220,1);}
+.wpn-uniq-toggle .wpn-uniq-lbl{font-family:var(--got);font-size:9.5px;letter-spacing:.8px;color:rgba(232,200,74,.7);}
+.wpn-uniq-toggle.on .wpn-uniq-lbl{color:rgba(220,170,255,.95);}
+.wpn-uniq-toggle .wpn-uniq-desc{font-family:'IM Fell English',serif;font-size:10px;color:rgba(232,200,74,.4);font-style:italic;margin-left:auto;}
 .feat-upload-slot{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start;padding:12px 0;border-bottom:1px solid rgba(139,106,0,.2);}
 .feat-upload-slot:last-child{border-bottom:none;}
 .feat-slot-num{font-family:var(--got);font-size:13px;color:var(--text-gold);text-align:center;padding-top:4px;}
@@ -715,6 +894,28 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <input type="text" id="act_wcond_5"><input type="text" id="act_wcond_6"><input type="text" id="act_wcond_7"><input type="text" id="act_wcond_8">
     <input type="text" id="bon_wcond_1"><input type="text" id="bon_wcond_2"><input type="text" id="bon_wcond_3"><input type="text" id="bon_wcond_4">
     <input type="text" id="bon_wcond_5"><input type="text" id="bon_wcond_6"><input type="text" id="bon_wcond_7"><input type="text" id="bon_wcond_8">
+    <!-- Finesse stat choice (prowess|dexterity) for finesse weapons -->
+    <input type="text" id="act_wfinstat_1"><input type="text" id="act_wfinstat_2"><input type="text" id="act_wfinstat_3"><input type="text" id="act_wfinstat_4">
+    <input type="text" id="act_wfinstat_5"><input type="text" id="act_wfinstat_6"><input type="text" id="act_wfinstat_7"><input type="text" id="act_wfinstat_8">
+    <input type="text" id="bon_wfinstat_1"><input type="text" id="bon_wfinstat_2"><input type="text" id="bon_wfinstat_3"><input type="text" id="bon_wfinstat_4">
+    <input type="text" id="bon_wfinstat_5"><input type="text" id="bon_wfinstat_6"><input type="text" id="bon_wfinstat_7"><input type="text" id="bon_wfinstat_8">
+    <!-- Per-slot weapon data inputs (display moved to cards; these persist save/load) -->
+    <input type="text" id="act_w_1"><input type="text" id="act_m_1"><input type="text" id="act_a_1"><input type="text" id="act_d_1">
+    <input type="text" id="act_w_2"><input type="text" id="act_m_2"><input type="text" id="act_a_2"><input type="text" id="act_d_2">
+    <input type="text" id="act_w_3"><input type="text" id="act_m_3"><input type="text" id="act_a_3"><input type="text" id="act_d_3">
+    <input type="text" id="act_w_4"><input type="text" id="act_m_4"><input type="text" id="act_a_4"><input type="text" id="act_d_4">
+    <input type="text" id="act_w_5"><input type="text" id="act_m_5"><input type="text" id="act_a_5"><input type="text" id="act_d_5">
+    <input type="text" id="act_w_6"><input type="text" id="act_m_6"><input type="text" id="act_a_6"><input type="text" id="act_d_6">
+    <input type="text" id="act_w_7"><input type="text" id="act_m_7"><input type="text" id="act_a_7"><input type="text" id="act_d_7">
+    <input type="text" id="act_w_8"><input type="text" id="act_m_8"><input type="text" id="act_a_8"><input type="text" id="act_d_8">
+    <input type="text" id="bon_w_1"><input type="text" id="bon_m_1"><input type="text" id="bon_a_1"><input type="text" id="bon_d_1">
+    <input type="text" id="bon_w_2"><input type="text" id="bon_m_2"><input type="text" id="bon_a_2"><input type="text" id="bon_d_2">
+    <input type="text" id="bon_w_3"><input type="text" id="bon_m_3"><input type="text" id="bon_a_3"><input type="text" id="bon_d_3">
+    <input type="text" id="bon_w_4"><input type="text" id="bon_m_4"><input type="text" id="bon_a_4"><input type="text" id="bon_d_4">
+    <input type="text" id="bon_w_5"><input type="text" id="bon_m_5"><input type="text" id="bon_a_5"><input type="text" id="bon_d_5">
+    <input type="text" id="bon_w_6"><input type="text" id="bon_m_6"><input type="text" id="bon_a_6"><input type="text" id="bon_d_6">
+    <input type="text" id="bon_w_7"><input type="text" id="bon_m_7"><input type="text" id="bon_a_7"><input type="text" id="bon_d_7">
+    <input type="text" id="bon_w_8"><input type="text" id="bon_m_8"><input type="text" id="bon_a_8"><input type="text" id="bon_d_8">
   </div>
 
   <!-- REPUTATION DIAL with notorious/famed icons -->
@@ -868,7 +1069,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
 <div class="col-icon-top"><img class="col-icon" src="Images/Action Icon.webp" alt="Actions"></div>  
   <div id="attack_count_bar" style="font-family:'IM Fell English',serif;font-size:14.5px;color:var(--text-gold);padding:3px 6px 2px;border-bottom:1px solid rgba(139,106,0,.35);background:rgba(0,0,0,.18);letter-spacing:.3px;display:none;"></div>
   <div class="act-table">
-    <div class="act-hdr"><div class="act-col-lbl">What</div><div class="act-col-lbl">ft.</div><div class="act-col-lbl">AR</div><div class="act-col-lbl">DR</div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_1" onclick="openWeaponModal('act',1)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_1" readonly></div><div class="act-inp"><input type="text" id="act_a_1" readonly></div><div class="act-inp"><input type="text" id="act_d_1" readonly></div></div><div class="wpn-tag-row" id="act_tags_1"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_2" onclick="openWeaponModal('act',2)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_2" readonly></div><div class="act-inp"><input type="text" id="act_a_2" readonly></div><div class="act-inp"><input type="text" id="act_d_2" readonly></div></div><div class="wpn-tag-row" id="act_tags_2"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_3" onclick="openWeaponModal('act',3)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_3" readonly></div><div class="act-inp"><input type="text" id="act_a_3" readonly></div><div class="act-inp"><input type="text" id="act_d_3" readonly></div></div><div class="wpn-tag-row" id="act_tags_3"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_4" onclick="openWeaponModal('act',4)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_4" readonly></div><div class="act-inp"><input type="text" id="act_a_4" readonly></div><div class="act-inp"><input type="text" id="act_d_4" readonly></div></div><div class="wpn-tag-row" id="act_tags_4"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_5" onclick="openWeaponModal('act',5)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_5" readonly></div><div class="act-inp"><input type="text" id="act_a_5" readonly></div><div class="act-inp"><input type="text" id="act_d_5" readonly></div></div><div class="wpn-tag-row" id="act_tags_5"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_6" onclick="openWeaponModal('act',6)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_6" readonly></div><div class="act-inp"><input type="text" id="act_a_6" readonly></div><div class="act-inp"><input type="text" id="act_d_6" readonly></div></div><div class="wpn-tag-row" id="act_tags_6"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_7" onclick="openWeaponModal('act',7)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_7" readonly></div><div class="act-inp"><input type="text" id="act_a_7" readonly></div><div class="act-inp"><input type="text" id="act_d_7" readonly></div></div><div class="wpn-tag-row" id="act_tags_7"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="act_w_8" onclick="openWeaponModal('act',8)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="act_m_8" readonly></div><div class="act-inp"><input type="text" id="act_a_8" readonly></div><div class="act-inp"><input type="text" id="act_d_8" readonly></div></div><div class="wpn-tag-row" id="act_tags_8"></div>
+    <div class="wpn-card-list" id="act_wpn_cards"></div>
+    <button class="wpn-add-btn" id="act_wpn_add_btn" onclick="openWeaponSelectModal('act')"><span class="plus">+</span> Add Weapon</button>
   </div>
   <button class="rest-btn" onclick="openAdditionalActionsModal()" style="width:100%;margin:6px 0;font-size:11.5px;padding:7px 10px;letter-spacing:.4px;">Additional Actions</button><div id="ax_feat_container"></div>  <div style="flex:1"></div>
   <div class="sec">Actions</div>
@@ -878,7 +1080,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
 <div class="col">
 <div class="col-icon-top"><img class="col-icon" src="Images/Bonus Action Icon.webp" alt="Bonus Actions"></div>
   <div class="act-table">
-    <div class="act-hdr"><div class="act-col-lbl">What</div><div class="act-col-lbl">ft.</div><div class="act-col-lbl">AR</div><div class="act-col-lbl">DR</div></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_1" onclick="openWeaponModal('bon',1)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_1" readonly></div><div class="act-inp"><input type="text" id="bon_a_1" readonly></div><div class="act-inp"><input type="text" id="bon_d_1" readonly></div></div><div class="wpn-tag-row" id="bon_tags_1"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_2" onclick="openWeaponModal('bon',2)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_2" readonly></div><div class="act-inp"><input type="text" id="bon_a_2" readonly></div><div class="act-inp"><input type="text" id="bon_d_2" readonly></div></div><div class="wpn-tag-row" id="bon_tags_2"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_3" onclick="openWeaponModal('bon',3)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_3" readonly></div><div class="act-inp"><input type="text" id="bon_a_3" readonly></div><div class="act-inp"><input type="text" id="bon_d_3" readonly></div></div><div class="wpn-tag-row" id="bon_tags_3"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_4" onclick="openWeaponModal('bon',4)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_4" readonly></div><div class="act-inp"><input type="text" id="bon_a_4" readonly></div><div class="act-inp"><input type="text" id="bon_d_4" readonly></div></div><div class="wpn-tag-row" id="bon_tags_4"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_5" onclick="openWeaponModal('bon',5)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_5" readonly></div><div class="act-inp"><input type="text" id="bon_a_5" readonly></div><div class="act-inp"><input type="text" id="bon_d_5" readonly></div></div><div class="wpn-tag-row" id="bon_tags_5"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_6" onclick="openWeaponModal('bon',6)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_6" readonly></div><div class="act-inp"><input type="text" id="bon_a_6" readonly></div><div class="act-inp"><input type="text" id="bon_d_6" readonly></div></div><div class="wpn-tag-row" id="bon_tags_6"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_7" onclick="openWeaponModal('bon',7)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_7" readonly></div><div class="act-inp"><input type="text" id="bon_a_7" readonly></div><div class="act-inp"><input type="text" id="bon_d_7" readonly></div></div><div class="wpn-tag-row" id="bon_tags_7"></div><div class="act-row-g"><div class="act-inp act-what"><input type="text" id="bon_w_8" onclick="openWeaponModal('bon',8)" readonly placeholder="⚔ click to add"></div><div class="act-inp"><input type="text" id="bon_m_8" readonly></div><div class="act-inp"><input type="text" id="bon_a_8" readonly></div><div class="act-inp"><input type="text" id="bon_d_8" readonly></div></div><div class="wpn-tag-row" id="bon_tags_8"></div>
+    <div class="wpn-card-list" id="bon_wpn_cards"></div>
+    <button class="wpn-add-btn" id="bon_wpn_add_btn" onclick="openWeaponSelectModal('bon')"><span class="plus">+</span> Add Weapon</button>
   </div>
   <button class="rest-btn" onclick="openAdditionalBonusActionsModal()" style="width:100%;margin:6px 0;font-size:11.5px;padding:7px 10px;letter-spacing:.4px;">Additional Bonus Actions</button><div id="bx_feat_container"></div>
   <div style="flex:1"></div>
@@ -2394,46 +2597,101 @@ function updateWpnProfDisplay() {
   refreshWeaponProfColors();
 }
 
-function refreshWeaponTags(prefix, idx) {
-  const tagRow = document.getElementById(`${prefix}_tags_${idx}`);
-  if (!tagRow) return;
-  const wEl   = document.getElementById(`${prefix}_w_${idx}`);
-  const dmgEl = document.getElementById(`${prefix}_wdmg_${idx}`);
-  const propEl= document.getElementById(`${prefix}_wprop_${idx}`);
-  const hasWeapon = wEl && wEl.value && wEl.value !== '⚔ click to add';
-  if (!hasWeapon) { tagRow.innerHTML = ''; return; }
-  const dmg   = dmgEl  ? dmgEl.value.trim()  : '';
-  const props = propEl ? propEl.value.split(',').map(s=>s.trim()).filter(Boolean) : [];
-  const dmgClassMap = { Slashing:'wpn-tag-dmg-slashing', Piercing:'wpn-tag-dmg-piercing', Bludgeoning:'wpn-tag-dmg-bludgeoning' };
-  let html = '';
-  if (dmg) html += `<span class="wpn-tag ${dmgClassMap[dmg]||'wpn-tag-prop'}">${dmg}</span>`;
-  props.forEach(p => { html += `<span class="wpn-tag wpn-tag-prop">${p}</span>`; });
-  tagRow.innerHTML = html;
-}
+// ── WEAPON CARD RENDERING ──
+// All three legacy refresh functions are kept as thin wrappers around renderAllWeaponCards
+// so existing call sites continue to work without modification.
+function refreshWeaponTags(prefix, idx) { renderWeaponCard(prefix, idx); }
+function refreshAllWeaponTags()           { renderAllWeaponCards();        }
+function refreshWeaponConditionDot(prefix, idx) { renderWeaponCard(prefix, idx); }
+function refreshAllWeaponConditionDots()  { renderAllWeaponCards();        }
+function refreshWeaponProfColors()        { renderAllWeaponCards();        }
 
-function refreshAllWeaponTags() {
+function renderAllWeaponCards(){
   ['act','bon'].forEach(prefix => {
-    for (let i = 1; i <= 8; i++) refreshWeaponTags(prefix, i);
-  });
-  refreshAllWeaponConditionDots();
-}
-
-function refreshWeaponProfColors() {
-  // Re-apply red/normal colour on all weapon name inputs based on current proficiencies
-  ['act','bon'].forEach(prefix => {
-    for (let i = 1; i <= 8; i++) {
-      const wEl  = document.getElementById(`${prefix}_w_${i}`);
-      const catEl = document.getElementById(`${prefix}_wcat_${i}`);
-      if (!wEl || !catEl) continue;
-      const cat = catEl.value;
-      const hasWeapon = wEl.value && wEl.value !== '⚔ click to add';
-      if (hasWeapon && cat) {
-        wEl.style.color = isWeaponProficient(cat) ? '' : '#ff4444';
-      } else {
-        wEl.style.color = '';
-      }
+    const container = document.getElementById(`${prefix}_wpn_cards`);
+    if(!container) return;
+    let cardsHTML = '';
+    let filledCount = 0;
+    for(let i = 1; i <= 8; i++){
+      const html = _buildWeaponCardHTML(prefix, i);
+      if(html){ cardsHTML += html; filledCount++; }
+    }
+    if(filledCount === 0){
+      container.innerHTML = `<div class="wpn-card-empty">No weapons equipped — add one below</div>`;
+    } else {
+      container.innerHTML = cardsHTML;
+    }
+    // Disable add button if all 8 slots are filled
+    const addBtn = document.getElementById(`${prefix}_wpn_add_btn`);
+    if(addBtn){
+      if(filledCount >= 8){ addBtn.classList.add('disabled'); addBtn.textContent = '8 weapons equipped (max)'; }
+      else { addBtn.classList.remove('disabled'); addBtn.innerHTML = '<span class="plus">+</span> Add Weapon'; }
     }
   });
+}
+
+function renderWeaponCard(prefix, idx){
+  // Simply re-render everything — much simpler than swapping single cards and keeps logic uniform.
+  renderAllWeaponCards();
+}
+
+const _DMG_ICONS = { Slashing:'⚔', Piercing:'🗡', Bludgeoning:'🔨' };
+const _DMG_CLASS_MAP = { Slashing:'dmg-slashing', Piercing:'dmg-piercing', Bludgeoning:'dmg-bludgeoning' };
+
+function _buildWeaponCardHTML(prefix, idx){
+  const name = (document.getElementById(`${prefix}_w_${idx}`)?.value || '').trim();
+  if(!name) return '';
+  const range = document.getElementById(`${prefix}_m_${idx}`)?.value || '';
+  const ar    = document.getElementById(`${prefix}_a_${idx}`)?.value || '';
+  const dr    = document.getElementById(`${prefix}_d_${idx}`)?.value || '';
+  const cat   = document.getElementById(`${prefix}_wcat_${idx}`)?.value || '';
+  const dmg   = (document.getElementById(`${prefix}_wdmg_${idx}`)?.value || '').trim();
+  const props = (document.getElementById(`${prefix}_wprop_${idx}`)?.value || '').split(',').map(s=>s.trim()).filter(Boolean);
+  const cond  = document.getElementById(`${prefix}_wcond_${idx}`)?.value || '';
+  const profOk = isWeaponProficient(cat);
+  const condEntry = WPN_CONDITIONS.find(c => c.key === cond);
+  const condDot = condEntry
+    ? `<span class="wpn-card-cond" title="${condEntry.label} (${condEntry.mod >= 0 ? '+' : ''}${condEntry.mod} AR)" style="background:${condEntry.color};box-shadow:0 0 5px ${condEntry.color};"></span>`
+    : '';
+  const dmgClass = _DMG_CLASS_MAP[dmg] || '';
+  const dmgIcon  = _DMG_ICONS[dmg] || '⚔';
+  // Build tags: damage type first (coloured), then properties
+  let tagsHTML = '';
+  if(dmg) tagsHTML += `<span class="wpn-tag wpn-tag-dmg-${dmg.toLowerCase()}">${dmg}</span>`;
+  props.forEach(p => { tagsHTML += `<span class="wpn-tag wpn-tag-prop">${p}</span>`; });
+
+  const rangeDisplay = range ? range : '<span class="empty">—</span>';
+  const arDisplay    = ar    ? ar    : '<span class="empty">—</span>';
+  const drDisplay    = dr    ? dr    : '<span class="empty">—</span>';
+  const drIsLong = dr && dr.length > 6;
+
+  return `<div class="wpn-card ${profOk ? '' : 'not-prof'}" onclick="openWeaponModal('${prefix}',${idx})" title="${profOk ? 'Click to edit' : 'Not proficient — proficiency bonus not added. Click to edit.'}">
+    <span class="wpn-card-remove" onclick="event.stopPropagation();clearWeaponSlot('${prefix}',${idx})" title="Remove weapon">×</span>
+    <div class="wpn-card-head">
+      <span class="wpn-card-icon ${dmgClass}">${dmgIcon}</span>
+      <span class="wpn-card-name">${_escHTML(name)}</span>
+      ${condDot}
+    </div>
+    <div class="wpn-card-stats">
+      <div class="wpn-stat-box"><span class="wpn-stat-label">RANGE</span><div class="wpn-stat-value small">${rangeDisplay}</div></div>
+      <div class="wpn-stat-box"><span class="wpn-stat-label">AR</span><div class="wpn-stat-value">${arDisplay}</div></div>
+      <div class="wpn-stat-box"><span class="wpn-stat-label">DR</span><div class="wpn-stat-value ${drIsLong?'small':''}">${drDisplay}</div></div>
+    </div>
+    ${tagsHTML ? `<div class="wpn-card-tags">${tagsHTML}</div>` : ''}
+  </div>`;
+}
+
+function _escHTML(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+function clearWeaponSlot(prefix, idx){
+  ['w','m','a','d','wcat','wdmg','wprop','wcond','wfinstat'].forEach(f=>{
+    const el = document.getElementById(`${prefix}_${f}_${idx}`);
+    if(el) el.value = '';
+  });
+  renderAllWeaponCards();
+  save();
 }
 
 function openWeaponProfModal() {
@@ -2489,7 +2747,7 @@ function toggleWpnProf(checkboxId) {
 }
 
 // ── WEAPON CONFIGURATION MODAL ──
-const DAMAGE_DICE=['1d4','2d4','1d6','2d6','1d8','1d10','1d12'];
+const DAMAGE_DICE=['1','1d4','2d4','1d6','2d6','1d8','1d10','1d12'];
 
 const WPN_CONDITIONS = [
   { key:'tragic',    label:'Tragic',    mod:-2, color:'#cc2222', bg:'rgba(120,0,0,.35)'   },
@@ -2504,358 +2762,506 @@ function conditionColor(key){
   return c ? c.color : '';
 }
 
-function refreshWeaponConditionDot(prefix, idx){
-  const condEl = document.getElementById(`${prefix}_wcond_${idx}`);
-  const wEl    = document.getElementById(`${prefix}_w_${idx}`);
-  const tagRow = document.getElementById(`${prefix}_tags_${idx}`);
-  if(!tagRow || !wEl) return;
-  // Remove any existing dot
-  const old = tagRow.querySelector('.wpn-cond-dot');
-  if(old) old.remove();
-  const cond = condEl ? condEl.value : '';
-  const hasWeapon = wEl.value && wEl.value !== '⚔ click to add';
-  if(!hasWeapon || !cond) return;
-  const c = WPN_CONDITIONS.find(x => x.key === cond);
-  if(!c) return;
-  const dot = document.createElement('span');
-  dot.className = 'wpn-cond-dot';
-  dot.title = `${c.label} (${c.mod >= 0 ? '+' : ''}${c.mod} AR)`;
-  dot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:50%;background:${c.color};
-    box-shadow:0 0 4px ${c.color};flex-shrink:0;align-self:center;margin-left:2px;cursor:default;`;
-  // Insert at start of tag row
-  tagRow.insertBefore(dot, tagRow.firstChild);
+// ── WEAPON DATABASE ──
+// Premade weapons from the Game of Thrones RPG weapon list. Selecting one auto-fills
+// damage die, damage type, properties, base range and category. The player chooses
+// only: weapon condition, optional Unique flag, and (for Finesse weapons) the
+// attack stat (Prowess vs Dexterity).
+const WEAPON_DATABASE = [
+  // Simple Melee
+  { name:'Club',          cat:'Simple Melee',  die:'1d4',  versDie:null,  dmg:'Bludgeoning', props:['Light'],                                    range:'5'  },
+  { name:'Dagger',        cat:'Simple Melee',  die:'1d4',  versDie:null,  dmg:'Piercing',    props:['Light','Thrown'],                            range:'5',  throwRange:'20/60'  },
+  { name:'Rondel Dagger', cat:'Simple Melee',  die:'1d4',  versDie:null,  dmg:'Piercing',    props:['Light','Thrown','Armor Piercing'],           range:'5',  throwRange:'20/60'  },
+  { name:'Greatclub',     cat:'Simple Melee',  die:'1d8',  versDie:null,  dmg:'Bludgeoning', props:['Two-Handed'],                                range:'5'  },
+  { name:'Handaxe',       cat:'Simple Melee',  die:'1d6',  versDie:null,  dmg:'Slashing',    props:['Light','Thrown'],                            range:'5',  throwRange:'20/60'  },
+  { name:'Frog Spear',    cat:'Simple Melee',  die:'1d6',  versDie:null,  dmg:'Piercing',    props:['Light','Finesse','Thrown'],                  range:'5',  throwRange:'40/80'  },
+  { name:'Javelin',       cat:'Simple Melee',  die:'1d6',  versDie:null,  dmg:'Piercing',    props:['Thrown'],                                    range:'5',  throwRange:'30/120' },
+  { name:'Light Hammer',  cat:'Simple Melee',  die:'1d4',  versDie:null,  dmg:'Bludgeoning', props:['Light','Thrown'],                            range:'5',  throwRange:'20/60'  },
+  { name:'Mace',          cat:'Simple Melee',  die:'1d6',  versDie:null,  dmg:'Bludgeoning', props:[],                                            range:'5'  },
+  { name:'Quarterstaff',  cat:'Simple Melee',  die:'1d6',  versDie:'1d8', dmg:'Bludgeoning', props:['Reach','Versatile'],                         range:'10' },
+  { name:'Sickle',        cat:'Simple Melee',  die:'1d4',  versDie:null,  dmg:'Slashing',    props:['Light'],                                     range:'5'  },
+  { name:'Spear',         cat:'Simple Melee',  die:'1d6',  versDie:'1d8', dmg:'Piercing',    props:['Reach','Thrown','Versatile'],                range:'10', throwRange:'20/60'  },
+  { name:'Spiked Staff',  cat:'Simple Melee',  die:'1d6',  versDie:null,  dmg:'Piercing',    props:['Two-Handed','Reach','Armor Piercing'],       range:'10' },
+  { name:'Pitchfork',     cat:'Simple Melee',  die:'1d6',  versDie:null,  dmg:'Piercing',    props:['Two-Handed','Reach'],                        range:'10' },
+  { name:'Scythe',        cat:'Simple Melee',  die:'1d8',  versDie:null,  dmg:'Slashing',    props:['Two-Handed','Reach'],                        range:'10' },
+  // Simple Ranged
+  { name:'Light Crossbow',cat:'Simple Ranged', die:'1d8',  versDie:null,  dmg:'Piercing',    props:['Loading','Two-Handed'],                      range:'80/320'  },
+  { name:'Shortbow',      cat:'Simple Ranged', die:'1d6',  versDie:null,  dmg:'Piercing',    props:['Two-Handed'],                                range:'80/320'  },
+  { name:'Sling',         cat:'Simple Ranged', die:'1d4',  versDie:null,  dmg:'Bludgeoning', props:[],                                            range:'30/120'  },
+  // Martial Melee
+  { name:'Battleaxe',     cat:'Martial Melee', die:'1d8',  versDie:null,  dmg:'Slashing',    props:['Versatile'],                                 range:'5'  },
+  { name:'Poleaxe',       cat:'Martial Melee', die:'1d8',  versDie:null,  dmg:'Slashing',    props:['Reach'],                                     range:'10' },
+  { name:'Morningstar',   cat:'Martial Melee', die:'1d8',  versDie:null,  dmg:'Piercing',    props:['Armor Piercing'],                            range:'5'  },
+  { name:'Flail',         cat:'Martial Melee', die:'1d8',  versDie:null,  dmg:'Bludgeoning', props:[],                                            range:'5'  },
+  { name:'Glaive',        cat:'Martial Melee', die:'1d10', versDie:null,  dmg:'Slashing',    props:['Heavy','Reach','Two-Handed'],                range:'10' },
+  { name:'Greataxe',      cat:'Martial Melee', die:'1d12', versDie:null,  dmg:'Slashing',    props:['Heavy','Two-Handed'],                        range:'5'  },
+  { name:'Halberd',       cat:'Martial Melee', die:'1d10', versDie:null,  dmg:'Slashing',    props:['Heavy','Reach','Two-Handed'],                range:'10' },
+  { name:'Lance',         cat:'Martial Melee', die:'1d10', versDie:null,  dmg:'Piercing',    props:['Reach','Armor Piercing'],                    range:'10' },
+  { name:'Heavy Lance',   cat:'Martial Melee', die:'1d12', versDie:null,  dmg:'Piercing',    props:['Reach','Armor Piercing'],                    range:'10' },
+  { name:'Bardiche',      cat:'Martial Melee', die:'1d12', versDie:null,  dmg:'Slashing',    props:['Reach','Two-Handed'],                        range:'10' },
+  { name:'Falchion',      cat:'Martial Melee', die:'1d6',  versDie:null,  dmg:'Slashing',    props:['Finesse','Light'],                           range:'5'  },
+  { name:'Flanged Mace',  cat:'Martial Melee', die:'1d6',  versDie:'1d8', dmg:'Bludgeoning', props:['Versatile','Armor Piercing'],                range:'5'  },
+  { name:'Warhammer',     cat:'Martial Melee', die:'1d8',  versDie:'1d10',dmg:'Bludgeoning', props:['Versatile','Armor Piercing'],                range:'5'  },
+  { name:'Bastard Sword', cat:'Martial Melee', die:'1d8',  versDie:'1d10',dmg:'Slashing',    props:['Versatile'],                                 range:'5'  },
+  { name:'Pike',          cat:'Martial Melee', die:'1d10', versDie:null,  dmg:'Piercing',    props:['Heavy','Reach','Two-Handed'],                range:'10' },
+  { name:'Rapier',        cat:'Martial Melee', die:'1d8',  versDie:null,  dmg:'Piercing',    props:['Armor Piercing'],                            range:'5'  },
+  { name:'Scimitar',      cat:'Martial Melee', die:'1d6',  versDie:null,  dmg:'Slashing',    props:['Light'],                                     range:'5'  },
+  { name:'Shortsword',    cat:'Martial Melee', die:'1d6',  versDie:null,  dmg:'Piercing',    props:['Light'],                                     range:'5'  },
+  { name:'Trident',       cat:'Martial Melee', die:'1d6',  versDie:'1d8', dmg:'Piercing',    props:['Thrown','Versatile'],                        range:'5',  throwRange:'20/60' },
+  { name:'War Pickaxe',   cat:'Martial Melee', die:'1d8',  versDie:null,  dmg:'Piercing',    props:[],                                            range:'5'  },
+  { name:'Whip',          cat:'Martial Melee', die:'1d4',  versDie:null,  dmg:'Slashing',    props:['Reach'],                                     range:'10' },
+  // Martial Ranged
+  { name:'Blowgun',       cat:'Martial Ranged',die:'1',    versDie:null,  dmg:'Piercing',    props:['Loading'],                                   range:'25/100'  },
+  { name:'Hand Crossbow', cat:'Martial Ranged',die:'1d6',  versDie:null,  dmg:'Piercing',    props:['Loading'],                                   range:'30/120'  },
+  { name:'Heavy Crossbow',cat:'Martial Ranged',die:'1d10', versDie:null,  dmg:'Piercing',    props:['Loading','Heavy','Two-Handed'],              range:'100/400' },
+  { name:'Longbow',       cat:'Martial Ranged',die:'1d8',  versDie:null,  dmg:'Piercing',    props:['Heavy','Two-Handed'],                        range:'150/600' },
+  { name:'Net',           cat:'Martial Ranged',die:'',     versDie:null,  dmg:'',            props:['Thrown','Special'],                          range:'5/15'    },
+  // Unarmed
+  { name:'Unarmed Strike',cat:'Simple Melee',  die:'1',    versDie:null,  dmg:'Bludgeoning', props:[],                                            range:'5'  },
+];
+
+const WPN_CAT_GROUPS = ['Simple Melee', 'Simple Ranged', 'Martial Melee', 'Martial Ranged'];
+
+// Find a weapon definition in the database by name (case-insensitive)
+function _findWeaponDef(name){
+  if(!name) return null;
+  const n = String(name).trim().toLowerCase();
+  return WEAPON_DATABASE.find(w => w.name.toLowerCase() === n) || null;
 }
 
-function refreshAllWeaponConditionDots(){
-  ['act','bon'].forEach(prefix => {
-    for(let i = 1; i <= 8; i++) refreshWeaponConditionDot(prefix, i);
-  });
+// Determine which stat applies based on category + properties + finesse choice
+function _resolveWeaponStat(cat, props, finChoice){
+  const isRanged = cat === 'Simple Ranged' || cat === 'Martial Ranged';
+  if(isRanged) return 'dexterity';
+  const isFinesse = (props || []).includes('Finesse');
+  if(isFinesse){
+    // Default to prowess if no choice stored
+    return finChoice === 'dexterity' ? 'dexterity' : 'prowess';
+  }
+  return 'prowess';
 }
- 
+
+// ── WEAPON MODAL (replaces the old free-form openWeaponModal) ──
+// Single entrypoint. Behavior:
+//   openWeaponSelectModal(prefix)        → adds a new weapon in the first empty slot
+//   openWeaponModal(prefix, idx)         → edits an existing weapon at the given slot
+// Both flows present the same UI: weapon picker on the left, configuration/preview on the right.
+
+let _wpnModalState = null; // { prefix, idx, selectedKey, isCustom, unique, finStat, condition, customDef }
+
+function openWeaponSelectModal(prefix){
+  // Find the first empty slot among 1..8
+  let slot = 0;
+  for(let i = 1; i <= 8; i++){
+    const v = document.getElementById(`${prefix}_w_${i}`)?.value;
+    if(!v){ slot = i; break; }
+  }
+  if(!slot){
+    // All slots are full — show a small warning modal
+    const o = document.createElement('div'); o.className = 'modal-overlay';
+    o.innerHTML = `<div class="modal" style="max-width:380px;padding:26px 32px;">
+      <h2 style="font-size:17px;margin-bottom:10px;">All 8 slots are filled</h2>
+      <p style="font-size:12px;color:#cfc090;">Remove a weapon (click the × on a card) before adding another.</p>
+      <button onclick="this.closest('.modal-overlay').remove()" style="margin-top:6px;">Close</button>
+    </div>`;
+    document.body.appendChild(o);
+    o.onclick = e => { if(e.target === o) o.remove(); };
+    return;
+  }
+  openWeaponModal(prefix, slot);
+}
+
 function openWeaponModal(prefix, idx){
-  // Read existing values to pre-populate
-  const wEl=document.getElementById(`${prefix}_w_${idx}`);
-  const mEl=document.getElementById(`${prefix}_m_${idx}`);
-  const aEl=document.getElementById(`${prefix}_a_${idx}`);
-  const dEl=document.getElementById(`${prefix}_d_${idx}`);
-  const catEl=document.getElementById(`${prefix}_wcat_${idx}`);
-  const existingName=wEl?wEl.value.replace('⚔ click to add','').trim():'';
-  const existingRange=mEl?mEl.value:'';
-  const existingAR=aEl?aEl.value:'';
-  const existingDR=dEl?dEl.value:'';
-  const existingCat=catEl?catEl.value:'';
- 
-  // Figure out which stat was previously chosen
-  let existingStat='prowess';
-  if(existingDR.toLowerCase().includes('dex')) existingStat='dexterity';
- 
-  // Extract existing custom AR modifier if present (e.g. "+3 +2" → 2)
-  let existingCustomMod='';
-  const customModMatch=existingAR.match(/[+-]\d+\s*([+-]\d+)\s*$/);
-  if(customModMatch) existingCustomMod=customModMatch[1].replace('+','');
- 
-  const diceHTML=DAMAGE_DICE.map(d=>`
-    <div class="wpn-radio${existingDR.startsWith(d)?' selected':''}" data-die="${d}" onclick="selectWpnDie(this)">${d}</div>`).join('');
+  document.getElementById('wpnModal')?.remove();
 
-  const WPN_CATS = ['Simple Melee','Simple Ranged','Martial Melee','Martial Ranged','Unique'];
-  const WPN_PROPS = ['Ammunition','Armor Piercing','Finesse','Heavy','Light','Loading','Range','Reach','Special','Thrown','Two-Handed','Versatile'];
-  const dmgEl = document.getElementById(`${prefix}_wdmg_${idx}`);
-  const propEl = document.getElementById(`${prefix}_wprop_${idx}`);
-  const condEl = document.getElementById(`${prefix}_wcond_${idx}`);
-  const existingDmg = dmgEl ? dmgEl.value : '';
-  const existingProps = propEl ? propEl.value.split(',').map(s=>s.trim()).filter(Boolean) : [];
-  const existingCond = condEl ? condEl.value : 'decent';
-  const catHTML = WPN_CATS.map(c => {
-    const sel = existingCat === c;
-    return `<div class="wpn-radio${sel?' selected':''}" data-cat="${c}" onclick="selectWpnCat(this)">${c}</div>`;
-  }).join('');
- 
-  const o=document.createElement('div');o.className='modal-overlay';o.id='wpnModal';
-  o._prefix=prefix; o._idx=idx;
-  o.innerHTML=`<div class="modal" style="max-width:560px;padding:22px 28px;text-align:left;">
+  // Read existing slot values to pre-populate state
+  const existingName  = (document.getElementById(`${prefix}_w_${idx}`)?.value || '').trim();
+  const existingCat   = document.getElementById(`${prefix}_wcat_${idx}`)?.value || '';
+  const existingDmg   = document.getElementById(`${prefix}_wdmg_${idx}`)?.value || '';
+  const existingProps = (document.getElementById(`${prefix}_wprop_${idx}`)?.value || '').split(',').map(s=>s.trim()).filter(Boolean);
+  const existingCond  = document.getElementById(`${prefix}_wcond_${idx}`)?.value || 'decent';
+  const existingFinStat = document.getElementById(`${prefix}_wfinstat_${idx}`)?.value || '';
+  const existingRange = document.getElementById(`${prefix}_m_${idx}`)?.value || '';
+
+  // Try to identify which database weapon this is (if any)
+  let initialKey = '';
+  let isCustom = false;
+  let customDef = null;
+  if(existingName){
+    const def = _findWeaponDef(existingName);
+    if(def){
+      initialKey = def.name;
+    } else {
+      // Unknown weapon name → treat as custom
+      initialKey = '__custom__';
+      isCustom = true;
+      customDef = {
+        name: existingName,
+        cat: existingCat || 'Simple Melee',
+        die: '1d6',  // best-guess default; will be overridden if user keeps existing DR
+        versDie: null,
+        dmg: existingDmg || 'Slashing',
+        props: existingProps,
+        range: existingRange || '5',
+      };
+    }
+  }
+
+  // Unique flag = existing category is "Unique" (and we know the base weapon)
+  const initialUnique = existingCat === 'Unique';
+
+  _wpnModalState = {
+    prefix, idx,
+    selectedKey: initialKey,
+    isCustom,
+    customDef,
+    unique: initialUnique,
+    finStat: existingFinStat || 'prowess',
+    condition: existingCond || 'decent',
+  };
+
+  const o = document.createElement('div');
+  o.className = 'modal-overlay';
+  o.id = 'wpnModal';
+  o.innerHTML = `<div class="modal" style="max-width:760px;padding:22px 28px;text-align:left;">
     <h2 style="font-size:17px;margin-bottom:2px;letter-spacing:.5px;">⚔ Configure Weapon</h2>
-    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;margin-bottom:14px;">Name, category, damage and combat stats.</p>
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;margin-bottom:14px;">
+      Select a weapon from the list — all stats are filled in automatically. Adjust condition, mark as Unique, or pick a stat for Finesse weapons.
+    </p>
 
-    <!-- Row 1: Name -->
-    <span class="wpn-lbl">WEAPON NAME</span>
-    <input class="wpn-inp" id="wpn_name" type="text" placeholder="e.g. Longsword, Shortbow…" value="${existingName}" style="margin-bottom:10px;">
-
-    <!-- Row 2: Category + Damage Type side by side -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px;">
-      <div>
-        <span class="wpn-lbl">CATEGORY</span>
-        <div style="display:flex;flex-direction:column;gap:4px;">
-          ${WPN_CATS.map(c => {
-            const sel = existingCat === c;
-            return `<div class="wpn-radio${sel?' selected':''}" data-cat="${c}" onclick="selectWpnCat(this)"
-              style="padding:4px 8px;font-size:10px;">${c}</div>`;
-          }).join('')}
-        </div>
+    <div class="wpn-sel-grid">
+      <!-- LEFT: weapon picker -->
+      <div class="wpn-sel-list-wrap">
+        <input type="text" class="wpn-sel-search" id="wpn_search" placeholder="🔎 Search weapons…" autocomplete="off" oninput="_filterWpnList()">
+        <div class="wpn-sel-list" id="wpn_sel_list"></div>
       </div>
-      <div>
-        <span class="wpn-lbl">DAMAGE TYPE</span>
-        <div style="display:flex;flex-direction:column;gap:4px;">
-          <div class="wpn-radio${existingDmg==='Slashing'?' selected':''}" data-dmgtype="Slashing" onclick="selectWpnDmgType(this)"
-            style="padding:4px 8px;font-size:10px;${existingDmg==='Slashing'?'border-color:#ff7777;color:#ff7777;background:rgba(80,0,0,.25);':''}">⚔ Slashing</div>
-          <div class="wpn-radio${existingDmg==='Piercing'?' selected':''}" data-dmgtype="Piercing" onclick="selectWpnDmgType(this)"
-            style="padding:4px 8px;font-size:10px;${existingDmg==='Piercing'?'border-color:#ffaa55;color:#ffaa55;background:rgba(60,25,0,.25);':''}">🗡 Piercing</div>
-          <div class="wpn-radio${existingDmg==='Bludgeoning'?' selected':''}" data-dmgtype="Bludgeoning" onclick="selectWpnDmgType(this)"
-            style="padding:4px 8px;font-size:10px;${existingDmg==='Bludgeoning'?'border-color:#aaaacc;color:#aaaacc;background:rgba(20,20,50,.25);':''}">🔨 Bludgeoning</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- No-prof warning -->
-    <div id="wpn_noprof_warn" style="display:none;font-family:var(--got);font-size:9px;color:#ff5555;
-         letter-spacing:.4px;margin-bottom:8px;padding:3px 8px;
-         background:rgba(60,0,0,.3);border:1px solid rgba(200,50,50,.4);border-radius:2px;">
-      ⚠ Not proficient — proficiency bonus will not be added
-    </div>
-
-    <!-- Row 3: Properties (compact pills) -->
-    <span class="wpn-lbl">PROPERTIES</span>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
-      ${WPN_PROPS.map(p => {
-        const on = existingProps.includes(p);
-        return `<button type="button" data-prop="${p}" data-selected="${on?'1':'0'}" onclick="toggleWpnProp(this)"
-          style="padding:3px 8px;font-family:var(--got);font-size:8.5px;letter-spacing:.3px;
-                 border:1px solid ${on?'var(--gold-lt)':'rgba(139,106,0,.35)'};
-                 background:${on?'rgba(139,106,0,.3)':'rgba(0,0,0,.2)'};
-                 color:${on?'var(--text-gold)':'rgba(232,200,74,.45)'};
-                 cursor:pointer;border-radius:2px;transition:all .15s;"
-          onmouseover="this.style.filter='brightness(1.25)'" onmouseout="this.style.filter=''">
-          ${on?'✓ ':''}${p}
-        </button>`;
-      }).join('')}
-    </div>
-
-
-    <!-- Row 4: Range + Attack Stat side by side -->
-    <div style="display:grid;grid-template-columns:120px 1fr;gap:12px;margin-bottom:10px;">
-      <div>
-        <span class="wpn-lbl">RANGE (ft.)</span>
-        <input class="wpn-inp" id="wpn_range" type="text" placeholder="e.g. 5, 20/60…" value="${existingRange}" style="margin-bottom:0;width:100%;">
-      </div>
-      <div>
-        <span class="wpn-lbl">ATTACK ROLL STAT</span>
-        <div style="display:flex;gap:6px;">
-          <div class="wpn-radio${existingStat==='prowess'?' selected':''}" data-stat="prowess" onclick="selectWpnStat(this)" style="flex:1;justify-content:center;padding:6px 4px;font-size:10px;">⚔ Prowess</div>
-          <div class="wpn-radio${existingStat==='dexterity'?' selected':''}" data-stat="dexterity" onclick="selectWpnStat(this)" style="flex:1;justify-content:center;padding:6px 4px;font-size:10px;">🏹 Dexterity</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Row 5: AR preview + Custom modifier side by side -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;align-items:end;">
-      <div>
-        <span class="wpn-lbl">ATTACK RATING (AR)</span>
-        <div class="wpn-ar-preview" id="wpn_ar_preview" style="margin-bottom:0;">${aEl&&aEl.value?aEl.value:'—'}</div>
-      </div>
-      <div>
-        <span class="wpn-lbl">CUSTOM MODIFIER</span>
-        <input class="wpn-inp" id="wpn_custom_mod" type="number" placeholder="0" value="${existingCustomMod}" style="width:100%;margin-bottom:0;" oninput="recalcWpnAR()">
-      </div>
-    </div>
-
-    <!-- Row 6: Damage dice -->
-    <span class="wpn-lbl">DAMAGE DICE (DR)</span>
-    <div class="wpn-radio-row" id="wpn_dice_row" style="margin-bottom:14px;">${diceHTML}</div>
-
-    <!-- Row 7: Weapon Condition -->
-    <span class="wpn-lbl">WEAPON CONDITION</span>
-    <div style="display:flex;gap:5px;margin-bottom:16px;">
-      ${WPN_CONDITIONS.map(c => {
-        const sel = existingCond === c.key;
-        return `<button type="button" data-cond="${c.key}" data-selected="${sel?'1':'0'}" onclick="selectWpnCondition(this)"
-          style="flex:1;padding:6px 4px;font-family:var(--got);font-size:9px;letter-spacing:.3px;cursor:pointer;border-radius:2px;transition:all .15s;
-                 border:2px solid ${sel ? c.color : 'rgba(139,106,0,.3)'};
-                 background:${sel ? c.bg : 'rgba(0,0,0,.2)'};
-                 color:${sel ? c.color : 'rgba(232,200,74,.45)'};
-                 box-shadow:${sel ? `0 0 6px ${c.color}55` : 'none'};">
-          <div style="width:8px;height:8px;border-radius:50%;background:${c.color};margin:0 auto 3px;opacity:${sel?'1':'.4'}"></div>
-          ${c.label}<br><span style="font-size:8px;opacity:.8;">${c.mod > 0 ? '+' : ''}${c.mod} AR</span>
-        </button>`;
-      }).join('')}
+      <!-- RIGHT: preview + options -->
+      <div id="wpn_sel_preview_wrap"></div>
     </div>
 
     <!-- Buttons -->
     <div style="display:flex;gap:8px;">
-      <button onclick="confirmWeapon('${prefix}',${idx})" style="flex:2;">Confirm</button>
-      <button onclick="clearWeapon('${prefix}',${idx})" style="flex:1;background:rgba(80,20,4,.4);color:#cc6644;border-color:#883311;">Clear</button>
+      <button onclick="confirmWeapon()" style="flex:2;" id="wpn_confirm_btn">Confirm</button>
+      <button onclick="_wpnModalClear()" style="flex:1;background:rgba(80,20,4,.4);color:#cc6644;border-color:#883311;">Clear Slot</button>
       <button onclick="document.getElementById('wpnModal').remove()" style="flex:1;background:rgba(30,25,10,.5);color:#888;border-color:rgba(100,80,0,.3);">Cancel</button>
     </div>
   </div>`;
   document.body.appendChild(o);
-  o.onclick=e=>{if(e.target===o)o.remove();};
-  // Trigger AR preview on open
-  recalcWpnAR();
+  o.addEventListener('click', e => { if(e.target === o) o.remove(); });
+
+  _renderWpnList();
+  _renderWpnPreview();
 }
- 
-function selectWpnStat(el){
-  document.querySelectorAll('#wpnModal [data-stat]').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected');
-  const stat=el.dataset.stat;
-  document.querySelectorAll('#wpnModal [data-dmgstat]').forEach(e=>{
-    e.classList.toggle('selected', e.dataset.dmgstat===stat);
+
+function _renderWpnList(){
+  const list = document.getElementById('wpn_sel_list');
+  if(!list) return;
+  const search = (document.getElementById('wpn_search')?.value || '').toLowerCase().trim();
+  let html = '';
+  WPN_CAT_GROUPS.forEach(group => {
+    const weaponsInGroup = WEAPON_DATABASE.filter(w => w.cat === group);
+    const filtered = search
+      ? weaponsInGroup.filter(w => w.name.toLowerCase().includes(search) || (w.props||[]).some(p => p.toLowerCase().includes(search)) || (w.dmg||'').toLowerCase().includes(search))
+      : weaponsInGroup;
+    if(filtered.length === 0) return;
+    html += `<div class="wpn-sel-group">${group}</div>`;
+    filtered.forEach(w => {
+      const sel = _wpnModalState.selectedKey === w.name;
+      const propStr = (w.props || []).join(', ') || '—';
+      const dieStr = w.die || '—';
+      const dmgShort = w.dmg ? w.dmg.substring(0,5) : '';
+      html += `<div class="wpn-sel-item${sel?' selected':''}" onclick="_selectWpn('${_escAttr(w.name)}')">
+        <div class="wsn">${_escHTML(w.name)}</div>
+        <div class="wsm">${dieStr}${dmgShort?' '+dmgShort:''} · ${_escHTML(propStr)}</div>
+      </div>`;
+    });
   });
-  recalcWpnAR();
-}
- 
-function selectWpnDmgStat(el){
-  document.querySelectorAll('#wpnModal [data-dmgstat]').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected');
-}
- 
-function selectWpnDie(el){
-  document.querySelectorAll('#wpnModal [data-die]').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected');
+  // Custom weapon option, always at end
+  const isCustomSel = _wpnModalState.selectedKey === '__custom__';
+  html += `<div class="wpn-sel-group">Special</div>`;
+  html += `<div class="wpn-sel-item${isCustomSel?' selected':''}" onclick="_selectWpn('__custom__')">
+    <div class="wsn">✎ Custom Weapon</div>
+    <div class="wsm">Enter your own name & stats (for legendary or homebrew arms)</div>
+  </div>`;
+  list.innerHTML = html;
 }
 
-function selectWpnCat(el){
-  document.querySelectorAll('#wpnModal [data-cat]').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected');
-  recalcWpnAR(); // proficiency warning may change
+function _filterWpnList(){
+  _renderWpnList();
 }
 
-function selectWpnDmgType(el){
-  const DMG_STYLES = {
-    Slashing:    {border:'#ff7777', color:'#ff7777', bg:'rgba(80,0,0,.25)'},
-    Piercing:    {border:'#ffaa55', color:'#ffaa55', bg:'rgba(60,25,0,.25)'},
-    Bludgeoning: {border:'#aaaacc', color:'#aaaacc', bg:'rgba(20,20,50,.25)'},
+function _selectWpn(key){
+  _wpnModalState.selectedKey = key;
+  _wpnModalState.isCustom    = key === '__custom__';
+  if(key === '__custom__' && !_wpnModalState.customDef){
+    _wpnModalState.customDef = { name:'', cat:'Simple Melee', die:'1d6', versDie:null, dmg:'Slashing', props:[], range:'5' };
+  }
+  // If we switched to a different db weapon, reset finStat default to prowess
+  if(key !== '__custom__'){
+    const def = _findWeaponDef(key);
+    if(def && !(def.props||[]).includes('Finesse')){
+      // non-finesse → finStat irrelevant; clear for cleanliness
+      _wpnModalState.finStat = '';
+    } else if(def && (def.props||[]).includes('Finesse') && !_wpnModalState.finStat){
+      _wpnModalState.finStat = 'prowess';
+    }
+  }
+  _renderWpnList();
+  _renderWpnPreview();
+}
+
+function _getSelectedDef(){
+  if(!_wpnModalState) return null;
+  if(_wpnModalState.isCustom) return _wpnModalState.customDef;
+  return _findWeaponDef(_wpnModalState.selectedKey);
+}
+
+// Apply the unique flag → effective category
+function _getEffectiveCategory(def){
+  if(_wpnModalState && _wpnModalState.unique) return 'Unique';
+  return def ? def.cat : '';
+}
+
+// Compute the displayed range string based on the def and effective category
+function _getEffectiveRange(def){
+  if(!def) return '';
+  // Always show base range; throw range is communicated by the Thrown tag
+  return def.range || '';
+}
+
+function _renderWpnPreview(){
+  const wrap = document.getElementById('wpn_sel_preview_wrap');
+  if(!wrap) return;
+  const def = _getSelectedDef();
+
+  if(!def && !_wpnModalState.isCustom){
+    wrap.innerHTML = `<div class="wpn-sel-preview empty">
+      ← Select a weapon from the list to see its stats.
+    </div>`;
+    return;
+  }
+
+  const isCustom    = _wpnModalState.isCustom;
+  const effectiveCat = _getEffectiveCategory(def);
+  const props        = def ? (def.props || []) : [];
+  const isFinesse    = props.includes('Finesse');
+  const isRanged     = (def && (def.cat === 'Simple Ranged' || def.cat === 'Martial Ranged'));
+  const stat         = _resolveWeaponStat(def ? def.cat : '', props, _wpnModalState.finStat);
+  const range        = _getEffectiveRange(def);
+  const dmg          = def ? def.dmg : '';
+  const die          = def ? def.die : '';
+  const versDie      = def ? def.versDie : null;
+
+  // Calculate AR / DR
+  const statVal      = parseInt(document.getElementById('scr_'+stat)?.value) || 0;
+  const profOk       = isWeaponProficient(effectiveCat);
+  const profVal      = profOk ? (parseInt(document.getElementById('proficiency')?.value)||0) : 0;
+  const condEntry    = WPN_CONDITIONS.find(c => c.key === _wpnModalState.condition);
+  const condMod      = condEntry ? condEntry.mod : 0;
+  const arTotal      = statVal + profVal + condMod;
+  const arStr        = arTotal >= 0 ? '+'+arTotal : String(arTotal);
+  const drModStr     = statVal >= 0 ? '+'+statVal : String(statVal);
+  const drStr        = die ? `${die} ${drModStr}` : '—';
+  const drVersStr    = versDie ? `${versDie} ${drModStr}` : '';
+
+  // Damage icon & tags
+  const dmgClass = _DMG_CLASS_MAP[dmg] || '';
+  const dmgIcon  = _DMG_ICONS[dmg] || '⚔';
+  let tagsHTML = '';
+  if(dmg) tagsHTML += `<span class="wpn-tag wpn-tag-dmg-${dmg.toLowerCase()}">${dmg}</span>`;
+  props.forEach(p => { tagsHTML += `<span class="wpn-tag wpn-tag-prop">${p}</span>`; });
+
+  // Custom weapon: editable fields for name/die/dmg/props/range/category
+  const customFieldsHTML = isCustom ? _renderCustomFieldsHTML() : '';
+
+  // Build the preview HTML
+  const nameDisplay = isCustom ? (_wpnModalState.customDef?.name || 'Custom Weapon') : def.name;
+  const profWarn = effectiveCat && !profOk
+    ? `<div style="font-family:var(--got);font-size:9px;color:#ff5555;letter-spacing:.4px;margin-top:5px;padding:3px 8px;background:rgba(60,0,0,.3);border:1px solid rgba(200,50,50,.4);border-radius:2px;">⚠ Not proficient — proficiency bonus will not be added</div>`
+    : '';
+
+  wrap.innerHTML = `<div class="wpn-sel-preview">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+      <span class="wpn-card-icon ${dmgClass}" style="width:26px;height:26px;font-size:14px;">${dmgIcon}</span>
+      <div style="flex:1;min-width:0;">
+        <div class="wpn-sel-prev-name">${_escHTML(nameDisplay)}</div>
+        <div class="wpn-sel-prev-sub">${effectiveCat || '—'}${versDie ? ' · Versatile damage available' : ''}</div>
+      </div>
+    </div>
+    ${customFieldsHTML}
+    <div class="wpn-sel-prev-stats">
+      <div class="wpn-stat-box"><span class="wpn-stat-label">RANGE</span><div class="wpn-stat-value small">${range || '—'}</div></div>
+      <div class="wpn-stat-box"><span class="wpn-stat-label">AR</span><div class="wpn-stat-value">${arStr}</div></div>
+      <div class="wpn-stat-box"><span class="wpn-stat-label">DR</span><div class="wpn-stat-value ${drStr.length>6?'small':''}">${drStr}</div></div>
+    </div>
+    ${versDie ? `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.55);letter-spacing:.4px;margin-bottom:8px;text-align:center;">Two-handed (versatile): <strong style="color:var(--text-gold);">${drVersStr}</strong></div>` : ''}
+    <div class="wpn-sel-prev-tags">${tagsHTML}</div>
+    ${profWarn}
+
+    <div class="wpn-sel-options">
+      <!-- Unique toggle -->
+      <div class="wpn-uniq-toggle ${_wpnModalState.unique?'on':''}" onclick="_toggleWpnUnique()">
+        <div class="wpn-uniq-check">${_wpnModalState.unique?'✓':''}</div>
+        <span class="wpn-uniq-lbl">UNIQUE WEAPON</span>
+        <span class="wpn-uniq-desc">Legendary / heirloom — overrides category</span>
+      </div>
+
+      ${isFinesse && !isCustom ? `
+      <div style="margin-bottom:8px;">
+        <span class="wpn-lbl" style="font-size:9.5px;margin-bottom:4px;">ATTACK STAT <span style="color:rgba(232,200,74,.45);font-weight:400;text-transform:none;letter-spacing:.2px;">(Finesse — your choice)</span></span>
+        <div style="display:flex;gap:5px;">
+          <div class="wpn-radio${_wpnModalState.finStat==='prowess'?' selected':''}" onclick="_setFinStat('prowess')" style="flex:1;justify-content:center;padding:5px 4px;font-size:10px;">⚔ Prowess</div>
+          <div class="wpn-radio${_wpnModalState.finStat==='dexterity'?' selected':''}" onclick="_setFinStat('dexterity')" style="flex:1;justify-content:center;padding:5px 4px;font-size:10px;">🏹 Dexterity</div>
+        </div>
+      </div>` : ''}
+
+      <span class="wpn-lbl" style="font-size:9.5px;margin-bottom:4px;">WEAPON CONDITION</span>
+      <div style="display:flex;gap:4px;">
+        ${WPN_CONDITIONS.map(c => {
+          const sel = _wpnModalState.condition === c.key;
+          return `<button type="button" onclick="_setWpnCondition('${c.key}')"
+            style="flex:1;padding:6px 2px;font-family:var(--got);font-size:8.5px;letter-spacing:.3px;cursor:pointer;border-radius:2px;transition:all .15s;
+                   border:2px solid ${sel ? c.color : 'rgba(139,106,0,.3)'};
+                   background:${sel ? c.bg : 'rgba(0,0,0,.2)'};
+                   color:${sel ? c.color : 'rgba(232,200,74,.45)'};
+                   box-shadow:${sel ? `0 0 6px ${c.color}55` : 'none'};">
+            <div style="width:7px;height:7px;border-radius:50%;background:${c.color};margin:0 auto 2px;opacity:${sel?'1':'.4'}"></div>
+            ${c.label}<br><span style="font-size:7.5px;opacity:.8;">${c.mod > 0 ? '+' : ''}${c.mod}</span>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function _renderCustomFieldsHTML(){
+  const d = _wpnModalState.customDef || {};
+  const propsStr = (d.props || []).join(', ');
+  return `<div style="background:rgba(0,0,0,.35);border:1px dashed rgba(139,106,0,.5);border-radius:3px;padding:8px;margin-bottom:8px;">
+    <span class="wpn-lbl" style="font-size:9px;margin-bottom:3px;">CUSTOM WEAPON</span>
+    <input class="wpn-inp" id="cust_name" type="text" placeholder="Name (e.g. Ice, Lightbringer)" value="${_escAttr(d.name||'')}" oninput="_updateCustom('name',this.value)" style="height:24px;margin-bottom:6px;font-size:13px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+      <select onchange="_updateCustom('cat',this.value)" style="height:24px;font-size:10.5px;background:var(--input-bg);border:1px solid var(--gold);">
+        ${['Simple Melee','Simple Ranged','Martial Melee','Martial Ranged'].map(c =>
+          `<option value="${c}"${d.cat===c?' selected':''}>${c}</option>`).join('')}
+      </select>
+      <select onchange="_updateCustom('dmg',this.value)" style="height:24px;font-size:10.5px;background:var(--input-bg);border:1px solid var(--gold);">
+        ${['Slashing','Piercing','Bludgeoning'].map(t =>
+          `<option value="${t}"${d.dmg===t?' selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+      <select onchange="_updateCustom('die',this.value)" style="height:24px;font-size:10.5px;background:var(--input-bg);border:1px solid var(--gold);">
+        ${DAMAGE_DICE.map(x => `<option value="${x}"${d.die===x?' selected':''}>${x}</option>`).join('')}
+      </select>
+      <input class="wpn-inp" type="text" placeholder="Range (e.g. 5, 20/60)" value="${_escAttr(d.range||'')}" oninput="_updateCustom('range',this.value)" style="height:24px;margin-bottom:0;font-size:11px;">
+    </div>
+    <input class="wpn-inp" type="text" placeholder="Properties (comma-separated, e.g. Finesse, Light)" value="${_escAttr(propsStr)}" oninput="_updateCustom('props',this.value)" style="height:24px;margin-bottom:0;font-size:11px;">
+  </div>`;
+}
+
+function _updateCustom(field, value){
+  if(!_wpnModalState.customDef) _wpnModalState.customDef = { name:'', cat:'Simple Melee', die:'1d6', versDie:null, dmg:'Slashing', props:[], range:'5' };
+  if(field === 'props'){
+    _wpnModalState.customDef.props = String(value).split(',').map(s=>s.trim()).filter(Boolean);
+  } else {
+    _wpnModalState.customDef[field] = value;
+  }
+  // Reset finesse stat default if props were changed
+  if(field === 'props'){
+    const isFin = _wpnModalState.customDef.props.includes('Finesse');
+    if(isFin && !_wpnModalState.finStat) _wpnModalState.finStat = 'prowess';
+  }
+  _renderWpnPreview();
+}
+
+function _toggleWpnUnique(){
+  _wpnModalState.unique = !_wpnModalState.unique;
+  _renderWpnPreview();
+}
+
+function _setFinStat(s){
+  _wpnModalState.finStat = s;
+  _renderWpnPreview();
+}
+
+function _setWpnCondition(k){
+  _wpnModalState.condition = k;
+  _renderWpnPreview();
+}
+
+function _wpnModalClear(){
+  // Clear data in the slot and close
+  if(_wpnModalState){
+    clearWeaponSlot(_wpnModalState.prefix, _wpnModalState.idx);
+  }
+  document.getElementById('wpnModal')?.remove();
+}
+
+function _escAttr(s){ return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// ── CONFIRM (saves the modal state into the slot) ──
+function confirmWeapon(){
+  if(!_wpnModalState) return;
+  const { prefix, idx } = _wpnModalState;
+  const def = _getSelectedDef();
+  if(!def){
+    // Nothing selected — flash the confirm button or just close gracefully
+    const btn = document.getElementById('wpn_confirm_btn');
+    if(btn){ btn.style.background = '#aa4444'; setTimeout(() => btn.style.background='', 400); }
+    return;
+  }
+  // For custom weapons, require a name
+  if(_wpnModalState.isCustom && !((_wpnModalState.customDef?.name || '').trim())){
+    const inp = document.getElementById('cust_name');
+    if(inp){ inp.style.borderColor='#ff5555'; inp.focus(); setTimeout(() => inp.style.borderColor='', 800); }
+    return;
+  }
+
+  const effectiveCat = _getEffectiveCategory(def);
+  const props        = def.props || [];
+  const stat         = _resolveWeaponStat(def.cat, props, _wpnModalState.finStat);
+  const statVal      = parseInt(document.getElementById('scr_'+stat)?.value) || 0;
+  const profOk       = isWeaponProficient(effectiveCat);
+  const profVal      = profOk ? (parseInt(document.getElementById('proficiency')?.value)||0) : 0;
+  const condEntry    = WPN_CONDITIONS.find(c => c.key === _wpnModalState.condition);
+  const condMod      = condEntry ? condEntry.mod : 0;
+
+  // AR = stat mod + (prof if proficient) + condition mod
+  const arTotal = statVal + profVal + condMod;
+  const arStr   = arTotal >= 0 ? '+'+arTotal : String(arTotal);
+  // DR = damage die + stat mod
+  const drMod   = statVal >= 0 ? '+'+statVal : String(statVal);
+  const drStr   = def.die ? `${def.die} ${drMod}` : '';
+  const range   = _getEffectiveRange(def);
+
+  // Write into the slot's hidden inputs
+  const setVal = (suffix, value) => {
+    const el = document.getElementById(`${prefix}_${suffix}_${idx}`);
+    if(el) el.value = value;
   };
-  document.querySelectorAll('#wpnModal [data-dmgtype]').forEach(e=>{
-    e.classList.remove('selected');
-    e.style.borderColor=''; e.style.color=''; e.style.background='';
-  });
-  el.classList.add('selected');
-  const s = DMG_STYLES[el.dataset.dmgtype] || {};
-  el.style.borderColor = s.border||''; el.style.color = s.color||''; el.style.background = s.bg||'';
-}
+  setVal('w',      def.name);
+  setVal('m',      range);
+  setVal('a',      arStr);
+  setVal('d',      drStr);
+  setVal('wcat',   effectiveCat);
+  setVal('wdmg',   def.dmg || '');
+  setVal('wprop',  (def.props || []).join(','));
+  setVal('wcond',  _wpnModalState.condition);
+  setVal('wfinstat', (props.includes('Finesse') ? _wpnModalState.finStat : '') );
 
-function selectWpnCondition(btn){
-  document.querySelectorAll('#wpnModal [data-cond]').forEach(b => {
-    const c = WPN_CONDITIONS.find(x => x.key === b.dataset.cond);
-    if(!c) return;
-    b.dataset.selected   = '0';
-    b.style.border       = `2px solid rgba(139,106,0,.3)`;
-    b.style.background   = 'rgba(0,0,0,.2)';
-    b.style.color        = 'rgba(232,200,74,.45)';
-    b.style.boxShadow    = 'none';
-    b.querySelector('div').style.opacity = '.4';
-  });
-  const c = WPN_CONDITIONS.find(x => x.key === btn.dataset.cond);
-  if(!c) return;
-  btn.dataset.selected   = '1';
-  btn.style.border       = `2px solid ${c.color}`;
-  btn.style.background   = c.bg;
-  btn.style.color        = c.color;
-  btn.style.boxShadow    = `0 0 6px ${c.color}55`;
-  btn.querySelector('div').style.opacity = '1';
-  recalcWpnAR();
-}
-
-function toggleWpnProp(btn){
-  const on = btn.getAttribute('data-selected') === '1';
-  btn.setAttribute('data-selected', on ? '0' : '1');
-  btn.style.border      = on ? '1px solid rgba(139,106,0,.35)' : '1px solid var(--gold-lt)';
-  btn.style.background  = on ? 'rgba(0,0,0,.2)' : 'rgba(139,106,0,.3)';
-  btn.style.color       = on ? 'rgba(232,200,74,.45)' : 'var(--text-gold)';
-  btn.textContent       = (on ? '' : '✓ ') + btn.dataset.prop;
-}
- 
-function recalcWpnAR(){
-  const statEl=document.querySelector('#wpnModal [data-stat].selected');
-  const stat=statEl?statEl.dataset.stat:'prowess';
-  const skillVal=parseInt(document.getElementById('scr_'+stat)?.value)||0;
-  const customModVal=parseInt(document.getElementById('wpn_custom_mod')?.value)||0;
-  const catEl=document.querySelector('#wpnModal [data-cat].selected');
-  const cat=catEl?catEl.dataset.cat:'';
-  const profOk=isWeaponProficient(cat);
-  const profVal=profOk?(parseInt(document.getElementById('proficiency')?.value)||0):0;
-  const selCondBtn=document.querySelector('#wpnModal [data-cond][data-selected="1"]');
-  const condKey=selCondBtn?selCondBtn.dataset.cond:'decent';
-  const condEntry=WPN_CONDITIONS.find(x=>x.key===condKey);
-  const condMod=condEntry?condEntry.mod:0;
-  const total=skillVal+profVal+customModVal+condMod;
-  const preview=document.getElementById('wpn_ar_preview');
-  if(preview) preview.textContent = total >= 0 ? '+'+total : String(total);
-  const warn=document.getElementById('wpn_noprof_warn');
-  if(warn) warn.style.display = (cat && !profOk) ? 'block' : 'none';
-}
- 
-function confirmWeapon(prefix, idx){
-  const name=(document.getElementById('wpn_name')?.value||'').trim();
-  const range=(document.getElementById('wpn_range')?.value||'').trim();
-  const statEl=document.querySelector('#wpnModal [data-stat].selected');
-  const stat=statEl?statEl.dataset.stat:'prowess';
-  const dieEl=document.querySelector('#wpnModal [data-die].selected');
-  const die=dieEl?dieEl.dataset.die:'1d6';
-  const catEl=document.querySelector('#wpnModal [data-cat].selected');
-  const cat=catEl?catEl.dataset.cat:'';
-  const skillVal=parseInt(document.getElementById('scr_'+stat)?.value)||0;
-  const profOk=isWeaponProficient(cat);
-  const profVal=profOk?(parseInt(document.getElementById('proficiency')?.value)||0):0;
- 
-  // Custom modifier for AR: default to 0 if left empty
-  const customModVal=parseInt(document.getElementById('wpn_custom_mod')?.value)||0;
-
-  // Condition modifier
-  const selCondBtn=document.querySelector('#wpnModal [data-cond][data-selected="1"]');
-  const selCond=selCondBtn?selCondBtn.dataset.cond:'decent';
-  const condEntry=WPN_CONDITIONS.find(x=>x.key===selCond);
-  const condMod=condEntry?condEntry.mod:0;
-
-  // AR = stat modifier + proficiency (if proficient) + custom modifier + condition modifier
-  const arTotal=skillVal+profVal+customModVal+condMod;
-  const arStr=arTotal>=0?'+'+arTotal:String(arTotal);
- 
-  // DR unchanged: die + stat modifier only
-  const drMod=skillVal>=0?'+'+skillVal:String(skillVal);
-  const drStr=`${die} ${drMod}`;
- 
-  const wEl=document.getElementById(`${prefix}_w_${idx}`);
-  const mEl=document.getElementById(`${prefix}_m_${idx}`);
-  const aEl=document.getElementById(`${prefix}_a_${idx}`);
-  const dEl=document.getElementById(`${prefix}_d_${idx}`);
-  const dmgTypeEl = document.querySelector('#wpnModal [data-dmgtype].selected');
-  const dmgType = dmgTypeEl ? dmgTypeEl.dataset.dmgtype : '';
-  const selectedProps = [...document.querySelectorAll('#wpnModal [data-prop][data-selected="1"]')]
-    .map(b => b.dataset.prop).join(',');
-
-  const wcEl=document.getElementById(`${prefix}_wcat_${idx}`);
-  const wdEl=document.getElementById(`${prefix}_wdmg_${idx}`);
-  const wpEl=document.getElementById(`${prefix}_wprop_${idx}`);
-  const wcondEl=document.getElementById(`${prefix}_wcond_${idx}`);
-  if(wEl){ wEl.value=name||'Unnamed'; wEl.style.color=(!profOk && cat) ? '#ff4444' : ''; }
-  if(mEl) mEl.value=range;
-  if(aEl) aEl.value=arStr;
-  if(dEl) dEl.value=drStr;
-  if(wcEl) wcEl.value=cat;
-  if(wdEl) wdEl.value=dmgType;
-  if(wpEl) wpEl.value=selectedProps;
-  if(wcondEl) wcondEl.value=selCond;
-
-  document.getElementById('wpnModal').remove();
-  refreshWeaponTags(prefix, idx);
-  refreshWeaponConditionDot(prefix, idx);
+  document.getElementById('wpnModal')?.remove();
+  _wpnModalState = null;
+  renderAllWeaponCards();
   save();
 }
- 
+
+// Old API: clearWeapon(prefix, idx) — preserved for any external callers.
 function clearWeapon(prefix, idx){
-  ['w','m','a','d'].forEach(f=>{
-    const el=document.getElementById(`${prefix}_${f}_${idx}`);
-    if(el){ el.value=''; el.style.color=''; }
-  });
-  ['wcat','wdmg','wprop','wcond'].forEach(f=>{
-    const el=document.getElementById(`${prefix}_${f}_${idx}`);
-    if(el) el.value='';
-  });
-  const tagRow=document.getElementById(`${prefix}_tags_${idx}`);
-  if(tagRow) tagRow.innerHTML='';
-  document.getElementById('wpnModal').remove();
-  save();
+  clearWeaponSlot(prefix, idx);
+  document.getElementById('wpnModal')?.remove();
 }
-
 function hexToHSL(hex){
   let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
   const max=Math.max(r,g,b),min=Math.min(r,g,b);let h,s,l=(max+min)/2;
