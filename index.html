@@ -283,7 +283,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .wpn-stat-label{
   display:block;font-family:var(--got);font-size:7px;
   color:rgba(232,200,74,.55);letter-spacing:.8px;
-  line-height:2;margin-bottom:1px;
+  line-height:1.1;margin-bottom:1px;
 }
 .wpn-stat-value{
   font-family:'Cinzel',serif;font-weight:600;
@@ -298,6 +298,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   font-size:9px;color:rgba(232,200,74,.7);letter-spacing:.3px;
   line-height:1.1;margin-top:1px;text-shadow:0 0 4px rgba(232,200,74,.25);
 }
+.wpn-stat-throw .arrow{color:rgba(232,200,74,.55);margin-right:2px;}
 .wpn-card-tags{display:flex;flex-wrap:wrap;gap:3px;}
 .wpn-card-remove{
   position:absolute;top:4px;right:5px;
@@ -556,6 +557,155 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .modal p{font-size:14px;color:#ddd;font-family:'IM Fell English',serif;margin-bottom:14px;line-height:1.6}
 .modal button{background:var(--gold);border:none;color:var(--near-black);font-family:var(--got);padding:10px 32px;cursor:pointer;font-size:13px;margin-top:8px;letter-spacing:1px}
 .modal button:hover{background:var(--gold-lt)}
+
+/* ─────────── ATTACK FLOW: hex button + multi-step modal ─────────── */
+.attack-hex-wrap{display:flex;justify-content:center;margin:2px 0 8px;}
+.attack-hex-btn{
+  width:62px;height:70px;cursor:pointer;
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  background:linear-gradient(135deg,#d4af37 0%,#8b6a00 50%,#d4af37 100%);
+  padding:2px;position:relative;
+  transition:filter .2s, transform .2s, background .25s;
+  flex-shrink:0;
+}
+.attack-hex-btn .hex-inner{transition:background .25s;}
+.attack-hex-btn .hex-icon{transition:color .25s, text-shadow .25s;}
+.attack-hex-btn .hex-label{transition:color .25s;}
+.attack-hex-btn:hover{
+  background:linear-gradient(135deg,#ff5555 0%,#a00000 50%,#ff5555 100%);
+  filter:drop-shadow(0 0 10px rgba(255,80,80,.55));
+  transform:scale(1.06);
+}
+.attack-hex-btn:hover .hex-inner{
+  background:radial-gradient(ellipse at center,#3a0a0a 0%,#0d0000 100%);
+}
+.attack-hex-btn:hover .hex-icon{color:#ff5a5a;text-shadow:0 0 8px rgba(255,80,80,.7);}
+.attack-hex-btn:hover .hex-label{color:#ff6e6e;}
+.attack-hex-btn:active{transform:scale(.96);}
+.attack-hex-btn .hex-inner{
+  width:100%;height:100%;
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  background:radial-gradient(ellipse at center,#2a1d05 0%,#0d0700 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1px;
+}
+.attack-hex-btn .hex-icon{font-size:21px;line-height:1;color:#e8c84a;text-shadow:0 0 6px rgba(232,200,74,.6);}
+.attack-hex-btn .hex-label{font-family:var(--got);font-size:7.5px;letter-spacing:1.1px;color:#d4af37;line-height:1;margin-top:1px;}
+
+/* Step indicator at top of modal */
+.atk-stepper{display:flex;align-items:center;justify-content:center;gap:0;margin:4px 0 18px;padding:0 4px;}
+.atk-step-dot{
+  width:24px;height:24px;border-radius:50%;
+  border:1.5px solid rgba(139,106,0,.5);background:rgba(0,0,0,.45);
+  font-family:var(--got);font-size:10.5px;color:rgba(232,200,74,.4);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;flex-shrink:0;cursor:default;
+}
+.atk-step-dot.done{border-color:var(--gold);color:rgba(232,200,74,.8);background:rgba(80,60,10,.5);cursor:pointer;}
+.atk-step-dot.done:hover{filter:brightness(1.3);}
+.atk-step-dot.active{border-color:var(--gold);color:var(--text-gold);background:rgba(120,90,15,.6);box-shadow:0 0 10px rgba(232,200,74,.4);transform:scale(1.15);}
+.atk-step-bar{flex:1;height:1.5px;background:rgba(139,106,0,.25);margin:0 4px;max-width:36px;transition:background .2s;}
+.atk-step-bar.done{background:var(--gold);}
+
+.atk-step-title{font-family:var(--got);font-size:13px;letter-spacing:1.4px;color:var(--text-gold);text-align:center;margin-bottom:3px;}
+.atk-step-subtitle{font-family:'IM Fell English',serif;font-style:italic;font-size:11.5px;color:rgba(232,200,74,.55);text-align:center;margin-bottom:14px;}
+
+/* Step 1: weapon picker grid */
+.atk-wpn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;max-height:380px;overflow-y:auto;padding:2px;}
+.atk-wpn-grid .wpn-card{cursor:pointer;}
+.atk-wpn-grid .wpn-card.selected{box-shadow:0 0 0 2px var(--gold), 0 0 18px rgba(232,200,74,.4);transform:translateY(-2px);}
+.atk-wpn-empty{text-align:center;font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:rgba(232,200,74,.5);padding:30px 10px;border:1px dashed rgba(139,106,0,.4);border-radius:3px;}
+
+/* Step 2: body part picker */
+.atk-body-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.atk-body-card{
+  background:linear-gradient(to bottom,rgba(40,30,10,.5),rgba(15,10,2,.6));
+  border:1.5px solid rgba(139,106,0,.5);border-radius:4px;
+  padding:14px 8px 10px;text-align:center;cursor:pointer;
+  transition:all .15s;position:relative;
+}
+.atk-body-card:hover{border-color:var(--gold);background:linear-gradient(to bottom,rgba(80,60,15,.55),rgba(30,22,5,.65));}
+.atk-body-card.selected{border-color:var(--gold);background:linear-gradient(to bottom,rgba(120,90,20,.55),rgba(50,35,8,.7));box-shadow:0 0 14px rgba(232,200,74,.35);}
+.atk-body-img{width:auto;height:44px;display:block;margin:0 auto;opacity:.78;transition:opacity .15s, filter .15s;}
+.atk-body-card:hover .atk-body-img{opacity:.95;}
+.atk-body-card.selected .atk-body-img{opacity:1;filter:drop-shadow(0 0 8px rgba(232,200,74,.55));}
+.atk-body-name{font-family:var(--got);font-size:11px;letter-spacing:1.1px;color:var(--text-gold);margin-top:6px;}
+.atk-body-die{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:rgba(232,200,74,.65);margin-top:1px;letter-spacing:.4px;}
+.atk-body-card.selected .atk-body-die{color:var(--text-gold);}
+
+/* Roll input + label rows */
+.atk-roll-row{display:flex;align-items:center;justify-content:center;gap:14px;margin:12px 0;flex-wrap:wrap;}
+.atk-roll-label{font-family:var(--got);font-size:10.5px;letter-spacing:.9px;color:rgba(232,200,74,.75);}
+.atk-roll-input{
+  width:70px;height:42px;text-align:center;
+  font-family:'Cinzel',serif;font-size:22px;font-weight:600;
+  color:var(--text-gold);background:rgba(0,0,0,.5);
+  border:1.5px solid var(--gold);border-radius:3px;
+  text-shadow:0 0 8px rgba(232,200,74,.4);
+  outline:none;
+}
+.atk-roll-input:focus{border-color:var(--gold-lt);box-shadow:0 0 12px rgba(232,200,74,.4);}
+.atk-roll-input::-webkit-outer-spin-button,.atk-roll-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.atk-roll-input{-moz-appearance:textfield;}
+
+/* Selected-weapon mini summary card (Steps 2-6) */
+.atk-wpn-summary{
+  background:linear-gradient(135deg,rgba(40,30,10,.6),rgba(15,10,2,.7));
+  border:1px solid var(--gold);border-left-width:3px;border-radius:3px;
+  padding:7px 10px;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.atk-wpn-summary .name{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:var(--text-gold);flex:1;text-align:left;letter-spacing:.4px;}
+.atk-wpn-summary .stats{display:flex;gap:8px;align-items:center;}
+.atk-wpn-summary .stat{font-family:var(--got);font-size:9px;letter-spacing:.6px;color:rgba(232,200,74,.6);}
+.atk-wpn-summary .stat strong{display:block;font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:var(--text-gold);letter-spacing:.3px;}
+
+/* Calculation display (Step 4 & 6) */
+.atk-calc{
+  background:radial-gradient(ellipse at center,rgba(60,45,12,.55) 0%,rgba(10,6,0,.7) 100%);
+  border:1.5px solid var(--gold);border-radius:4px;
+  padding:20px 16px;margin:10px 0 14px;text-align:center;
+}
+.atk-calc-formula{font-family:'Cinzel',serif;font-size:16px;color:rgba(232,200,74,.85);letter-spacing:.6px;margin-bottom:10px;line-height:1.5;}
+.atk-calc-formula .op{color:rgba(232,200,74,.55);margin:0 4px;}
+.atk-calc-formula .term{font-weight:600;color:var(--text-gold);}
+.atk-calc-formula .neg{color:#cc6644;}
+.atk-calc-equals{font-family:var(--got);font-size:10px;letter-spacing:1.2px;color:rgba(232,200,74,.55);margin:4px 0 6px;}
+.atk-calc-total{
+  font-family:'Cinzel',serif;font-size:42px;font-weight:700;
+  color:var(--text-gold);text-shadow:0 0 18px rgba(232,200,74,.6);
+  letter-spacing:1.5px;line-height:1;
+}
+.atk-calc-suffix{font-family:'IM Fell English',serif;font-style:italic;font-size:11.5px;color:rgba(232,200,74,.5);margin-top:6px;}
+
+/* Vulnerability picker (Step 5) */
+.atk-vuln-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.atk-vuln-btn{
+  background:linear-gradient(to bottom,rgba(40,30,10,.5),rgba(15,10,2,.6));
+  border:1.5px solid rgba(139,106,0,.5);border-radius:3px;
+  padding:10px 8px;cursor:pointer;text-align:center;
+  font-family:var(--got);font-size:10.5px;letter-spacing:.8px;
+  color:rgba(232,200,74,.65);transition:all .15s;
+}
+.atk-vuln-btn:hover{filter:brightness(1.2);}
+.atk-vuln-btn .vuln-icon{font-size:18px;display:block;margin-bottom:3px;}
+.atk-vuln-btn .vuln-sub{font-family:'IM Fell English',serif;font-style:italic;font-size:9.5px;color:rgba(232,200,74,.45);margin-top:3px;letter-spacing:0;text-transform:none;}
+.atk-vuln-btn.vuln-vuln.selected{border-color:#ff5555;background:linear-gradient(to bottom,rgba(80,15,15,.55),rgba(30,5,5,.7));color:#ff8888;box-shadow:0 0 12px rgba(255,80,80,.3);}
+.atk-vuln-btn.vuln-norm.selected{border-color:var(--gold);background:linear-gradient(to bottom,rgba(120,90,20,.55),rgba(50,35,8,.7));color:var(--text-gold);box-shadow:0 0 12px rgba(232,200,74,.35);}
+.atk-vuln-btn.vuln-resi.selected{border-color:#55aaff;background:linear-gradient(to bottom,rgba(15,40,80,.55),rgba(5,15,30,.7));color:#88bbff;box-shadow:0 0 12px rgba(80,140,255,.3);}
+
+/* Modal nav buttons */
+.atk-nav{display:flex;gap:8px;margin-top:18px;}
+.atk-nav button{
+  flex:1;height:38px;font-family:var(--got);font-size:11px;letter-spacing:1px;
+  background:rgba(40,30,10,.5);color:var(--text-gold);
+  border:1.5px solid var(--gold);border-radius:3px;cursor:pointer;
+  transition:all .15s;padding:0 14px;
+}
+.atk-nav button:hover:not(:disabled){background:rgba(80,60,15,.6);filter:brightness(1.15);}
+.atk-nav button:disabled{opacity:.35;cursor:not-allowed;}
+.atk-nav .nav-next{flex:1.5;background:linear-gradient(to bottom,rgba(120,90,20,.55),rgba(60,45,10,.65));}
+.atk-nav .nav-close{background:rgba(30,25,10,.5);color:#888;border-color:rgba(100,80,0,.3);}
 </style>
 </head>
 <body>
@@ -904,7 +1054,10 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <input type="text" id="act_wfinstat_5"><input type="text" id="act_wfinstat_6"><input type="text" id="act_wfinstat_7"><input type="text" id="act_wfinstat_8">
     <input type="text" id="bon_wfinstat_1"><input type="text" id="bon_wfinstat_2"><input type="text" id="bon_wfinstat_3"><input type="text" id="bon_wfinstat_4">
     <input type="text" id="bon_wfinstat_5"><input type="text" id="bon_wfinstat_6"><input type="text" id="bon_wfinstat_7"><input type="text" id="bon_wfinstat_8">
-    <!-- Per-slot weapon data inputs (display moved to cards; these persist save/load) -->
+    <input type="text" id="act_wthrow_1"><input type="text" id="act_wthrow_2"><input type="text" id="act_wthrow_3"><input type="text" id="act_wthrow_4">
+    <input type="text" id="act_wthrow_5"><input type="text" id="act_wthrow_6"><input type="text" id="act_wthrow_7"><input type="text" id="act_wthrow_8">
+    <input type="text" id="bon_wthrow_1"><input type="text" id="bon_wthrow_2"><input type="text" id="bon_wthrow_3"><input type="text" id="bon_wthrow_4">
+    <input type="text" id="bon_wthrow_5"><input type="text" id="bon_wthrow_6"><input type="text" id="bon_wthrow_7"><input type="text" id="bon_wthrow_8">
     <input type="text" id="act_w_1"><input type="text" id="act_m_1"><input type="text" id="act_a_1"><input type="text" id="act_d_1">
     <input type="text" id="act_w_2"><input type="text" id="act_m_2"><input type="text" id="act_a_2"><input type="text" id="act_d_2">
     <input type="text" id="act_w_3"><input type="text" id="act_m_3"><input type="text" id="act_a_3"><input type="text" id="act_d_3">
@@ -1074,6 +1227,14 @@ textarea{resize:none;font-weight:400;font-size:12px}
 <div class="col-icon-top"><img class="col-icon" src="Images/Action Icon.webp" alt="Actions"></div>  
   <div id="attack_count_bar" style="font-family:'IM Fell English',serif;font-size:14.5px;color:var(--text-gold);padding:3px 6px 2px;border-bottom:1px solid rgba(139,106,0,.35);background:rgba(0,0,0,.18);letter-spacing:.3px;display:none;"></div>
   <div class="act-table">
+    <div class="attack-hex-wrap">
+      <div class="attack-hex-btn" onclick="openAttackModal('act')" title="Make an attack with an Action weapon">
+        <div class="hex-inner">
+          <span class="hex-icon">⚔</span>
+          <span class="hex-label">ATTACK</span>
+        </div>
+      </div>
+    </div>
     <div class="wpn-card-list" id="act_wpn_cards"></div>
     <button class="wpn-add-btn" id="act_wpn_add_btn" onclick="openWeaponSelectModal('act')"><span class="plus">+</span> Add Weapon</button>
   </div>
@@ -1085,6 +1246,14 @@ textarea{resize:none;font-weight:400;font-size:12px}
 <div class="col">
 <div class="col-icon-top"><img class="col-icon" src="Images/Bonus Action Icon.webp" alt="Bonus Actions"></div>
   <div class="act-table">
+    <div class="attack-hex-wrap">
+      <div class="attack-hex-btn" onclick="openAttackModal('bon')" title="Make an attack with a Bonus Action weapon">
+        <div class="hex-inner">
+          <span class="hex-icon">⚔</span>
+          <span class="hex-label">ATTACK</span>
+        </div>
+      </div>
+    </div>
     <div class="wpn-card-list" id="bon_wpn_cards"></div>
     <button class="wpn-add-btn" id="bon_wpn_add_btn" onclick="openWeaponSelectModal('bon')"><span class="plus">+</span> Add Weapon</button>
   </div>
@@ -2640,7 +2809,7 @@ function renderWeaponCard(prefix, idx){
   renderAllWeaponCards();
 }
 
-const _DMG_ICONS = { Slashing:'🩸', Piercing:'🗡', Bludgeoning:'👊🏻' };
+const _DMG_ICONS = { Slashing:'⚔', Piercing:'🗡', Bludgeoning:'🔨' };
 const _DMG_CLASS_MAP = { Slashing:'dmg-slashing', Piercing:'dmg-piercing', Bludgeoning:'dmg-bludgeoning' };
 
 function _buildWeaponCardHTML(prefix, idx){
@@ -2670,12 +2839,18 @@ function _buildWeaponCardHTML(prefix, idx){
   const drDisplay    = dr    ? dr    : '<span class="empty">—</span>';
   const drIsLong = dr && dr.length > 6;
 
-  // If the weapon is Thrown, look up its throw range from the database and show it under the melee range.
+  // If the weapon is Thrown, read its throw range from the saved hidden input.
+  // (Stored on confirm — works for both database weapons and custom weapons.)
   let throwHTML = '';
   if(props.includes('Thrown')){
-    const def = _findWeaponDef(name);
-    if(def && def.throwRange){
-      throwHTML = `<span class="wpn-stat-throw" title="Thrown range (normal/long, in feet)"><span class="arrow">↪</span>${def.throwRange}</span>`;
+    let throwR = (document.getElementById(`${prefix}_wthrow_${idx}`)?.value || '').trim();
+    // Fallback: older saves won't have wthrow stored — look it up by name in the database
+    if(!throwR){
+      const dbDef = _findWeaponDef(name);
+      if(dbDef && dbDef.throwRange) throwR = dbDef.throwRange;
+    }
+    if(throwR){
+      throwHTML = `<span class="wpn-stat-throw" title="Thrown range (normal/long, in feet)"><span class="arrow">↪</span>${_escHTML(throwR)}</span>`;
     }
   }
 
@@ -2700,7 +2875,7 @@ function _escHTML(s){
 }
 
 function clearWeaponSlot(prefix, idx){
-  ['w','m','a','d','wcat','wdmg','wprop','wcond','wfinstat'].forEach(f=>{
+  ['w','m','a','d','wcat','wdmg','wprop','wcond','wfinstat','wthrow'].forEach(f=>{
     const el = document.getElementById(`${prefix}_${f}_${idx}`);
     if(el) el.value = '';
   });
@@ -2950,8 +3125,11 @@ function openWeaponModal(prefix, idx){
         <div class="wpn-sel-list" id="wpn_sel_list"></div>
       </div>
 
-      <!-- RIGHT: preview + options -->
-      <div id="wpn_sel_preview_wrap"></div>
+      <!-- RIGHT: custom-form (rendered once) + preview/options (re-renders on state change) -->
+      <div>
+        <div id="wpn_cust_form_wrap"></div>
+        <div id="wpn_sel_preview_wrap"></div>
+      </div>
     </div>
 
     <!-- Buttons -->
@@ -2965,6 +3143,7 @@ function openWeaponModal(prefix, idx){
   o.addEventListener('click', e => { if(e.target === o) o.remove(); });
 
   _renderWpnList();
+  _renderCustomForm();
   _renderWpnPreview();
 }
 
@@ -3022,6 +3201,7 @@ function _selectWpn(key){
     }
   }
   _renderWpnList();
+  _renderCustomForm();
   _renderWpnPreview();
 }
 
@@ -3094,8 +3274,8 @@ function _renderWpnPreview(){
   if(dmg) tagsHTML += `<span class="wpn-tag wpn-tag-dmg-${dmg.toLowerCase()}">${dmg}</span>`;
   props.forEach(p => { tagsHTML += `<span class="wpn-tag wpn-tag-prop">${p}</span>`; });
 
-  // Custom weapon: editable fields for name/die/dmg/props/range/category
-  const customFieldsHTML = isCustom ? _renderCustomFieldsHTML() : '';
+  // Custom-form is rendered separately into #wpn_cust_form_wrap (rendered once on entry/selection change).
+  // We deliberately do NOT include it here, so per-keystroke preview re-renders don't kill input focus.
 
   // Build the preview HTML
   const nameDisplay = isCustom ? (_wpnModalState.customDef?.name || 'Custom Weapon') : def.name;
@@ -3114,7 +3294,6 @@ function _renderWpnPreview(){
         <div class="wpn-sel-prev-sub">${effectiveCat || '—'}${versDie ? ' · Versatile damage available' : ''}</div>
       </div>
     </div>
-    ${customFieldsHTML}
     <div class="wpn-sel-prev-stats">
       <div class="wpn-stat-box"><span class="wpn-stat-label">RANGE</span><div class="wpn-stat-value small">${range || '—'}</div>${throwHTML}</div>
       <div class="wpn-stat-box"><span class="wpn-stat-label">AR</span><div class="wpn-stat-value">${arStr}</div></div>
@@ -3161,10 +3340,17 @@ function _renderWpnPreview(){
   </div>`;
 }
 
-function _renderCustomFieldsHTML(){
+function _renderCustomForm(){
+  const wrap = document.getElementById('wpn_cust_form_wrap');
+  if(!wrap) return;
+  if(!_wpnModalState || !_wpnModalState.isCustom){
+    wrap.innerHTML = '';
+    return;
+  }
   const d = _wpnModalState.customDef || {};
   const propsStr = (d.props || []).join(', ');
-  return `<div style="background:rgba(0,0,0,.35);border:1px dashed rgba(139,106,0,.5);border-radius:3px;padding:8px;margin-bottom:8px;">
+  const hasThrown = (d.props || []).includes('Thrown');
+  wrap.innerHTML = `<div style="background:rgba(0,0,0,.35);border:1px dashed rgba(139,106,0,.5);border-radius:3px;padding:8px;margin-bottom:8px;">
     <span class="wpn-lbl" style="font-size:9px;margin-bottom:3px;">CUSTOM WEAPON</span>
     <input class="wpn-inp" id="cust_name" type="text" placeholder="Name (e.g. Ice, Lightbringer)" value="${_escAttr(d.name||'')}" oninput="_updateCustom('name',this.value)" style="height:24px;margin-bottom:6px;font-size:13px;">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
@@ -3183,7 +3369,10 @@ function _renderCustomFieldsHTML(){
       </select>
       <input class="wpn-inp" type="text" placeholder="Range (e.g. 5, 20/60)" value="${_escAttr(d.range||'')}" oninput="_updateCustom('range',this.value)" style="height:24px;margin-bottom:0;font-size:11px;">
     </div>
-    <input class="wpn-inp" type="text" placeholder="Properties (comma-separated, e.g. Finesse, Light)" value="${_escAttr(propsStr)}" oninput="_updateCustom('props',this.value)" style="height:24px;margin-bottom:0;font-size:11px;">
+    <input class="wpn-inp" id="cust_props" type="text" placeholder="Properties (comma-separated, e.g. Finesse, Light)" value="${_escAttr(propsStr)}" oninput="_updateCustom('props',this.value)" style="height:24px;margin-bottom:0;font-size:11px;">
+    <div id="cust_throw_row" style="display:${hasThrown?'block':'none'};margin-top:6px;">
+      <input class="wpn-inp" id="cust_throw" type="text" placeholder="Throw range (e.g. 20/60)" value="${_escAttr(d.throwRange||'')}" oninput="_updateCustom('throwRange',this.value)" style="height:24px;margin-bottom:0;font-size:11px;">
+    </div>
   </div>`;
 }
 
@@ -3191,14 +3380,18 @@ function _updateCustom(field, value){
   if(!_wpnModalState.customDef) _wpnModalState.customDef = { name:'', cat:'Simple Melee', die:'1d6', versDie:null, dmg:'Slashing', props:[], range:'5' };
   if(field === 'props'){
     _wpnModalState.customDef.props = String(value).split(',').map(s=>s.trim()).filter(Boolean);
+    // Toggle throw-range row visibility directly (don't rebuild form — would steal focus)
+    const throwRow = document.getElementById('cust_throw_row');
+    if(throwRow){
+      throwRow.style.display = _wpnModalState.customDef.props.includes('Thrown') ? 'block' : 'none';
+    }
+    // Set default finesse stat if needed
+    const isFin = _wpnModalState.customDef.props.includes('Finesse');
+    if(isFin && !_wpnModalState.finStat) _wpnModalState.finStat = 'prowess';
   } else {
     _wpnModalState.customDef[field] = value;
   }
-  // Reset finesse stat default if props were changed
-  if(field === 'props'){
-    const isFin = _wpnModalState.customDef.props.includes('Finesse');
-    if(isFin && !_wpnModalState.finStat) _wpnModalState.finStat = 'prowess';
-  }
+  // Re-render only the preview (right panel) — leave the form alone to preserve input focus
   _renderWpnPreview();
 }
 
@@ -3278,6 +3471,7 @@ function confirmWeapon(){
   setVal('wprop',  (def.props || []).join(','));
   setVal('wcond',  _wpnModalState.condition);
   setVal('wfinstat', (props.includes('Finesse') ? _wpnModalState.finStat : '') );
+  setVal('wthrow',   (props.includes('Thrown') ? (def.throwRange || '') : '') );
 
   document.getElementById('wpnModal')?.remove();
   _wpnModalState = null;
@@ -3289,6 +3483,390 @@ function confirmWeapon(){
 function clearWeapon(prefix, idx){
   clearWeaponSlot(prefix, idx);
   document.getElementById('wpnModal')?.remove();
+}
+
+// ═════════════════════════════════════════════════════════════════════
+//  ATTACK FLOW — multi-step combat modal (hex button → 6 steps)
+// ═════════════════════════════════════════════════════════════════════
+
+// Body parts: each has a die and an image icon from the repo.
+const ATK_BODY_PARTS = [
+  { key:'head', name:'Head', die:'1d12', img:'asoifrpg/Images/Head Icon.webp' },
+  { key:'arm',  name:'Arm',  die:'1d8',  img:'asoifrpg/Images/Arm Icon.webp'  },
+  { key:'body', name:'Body', die:'1d6',  img:'asoifrpg/Images/Body Icon.webp' },
+  { key:'leg',  name:'Leg',  die:'1d10', img:'asoifrpg/Images/Leg Icon.webp'  },
+];
+
+let _atkState = null;
+// { prefix, step (1-6), weaponIdx, bodyPart, penaltyRoll, rawAttackRoll, vulnState, rawDamageRoll }
+
+// Parse "+5" / "-2" / "+0" → integer
+function _atkParseAR(s){
+  const m = String(s||'').match(/-?\d+/);
+  return m ? parseInt(m[0]) : 0;
+}
+// Parse "1d8 +3" / "1d10 -1" → { die, mod }
+function _atkParseDR(s){
+  const m = String(s||'').match(/^\s*(\d+d\d+)\s*([+-]?\s*\d+)?/i);
+  if(!m) return { die:'', mod:0 };
+  const mod = m[2] ? parseInt(m[2].replace(/\s/g,'')) : 0;
+  return { die:m[1], mod };
+}
+
+// Read all equipped weapons in this prefix's column (returns array of { idx, name, ar, drDie, drMod, dmg, cat, props, cond })
+function _atkGetEquipped(prefix){
+  const out = [];
+  for(let i=1;i<=8;i++){
+    const name = (document.getElementById(`${prefix}_w_${i}`)?.value || '').trim();
+    if(!name) continue;
+    const arStr = document.getElementById(`${prefix}_a_${i}`)?.value || '';
+    const drStr = document.getElementById(`${prefix}_d_${i}`)?.value || '';
+    const dr    = _atkParseDR(drStr);
+    out.push({
+      idx: i,
+      name,
+      arStr,
+      ar: _atkParseAR(arStr),
+      drStr,
+      drDie: dr.die,
+      drMod: dr.mod,
+      dmg: document.getElementById(`${prefix}_wdmg_${i}`)?.value || '',
+      cat: document.getElementById(`${prefix}_wcat_${i}`)?.value || '',
+      props:(document.getElementById(`${prefix}_wprop_${i}`)?.value || '').split(',').map(s=>s.trim()).filter(Boolean),
+      cond: document.getElementById(`${prefix}_wcond_${i}`)?.value || '',
+    });
+  }
+  return out;
+}
+
+function openAttackModal(prefix){
+  document.getElementById('attackModal')?.remove();
+  _atkState = {
+    prefix,
+    step: 1,
+    weaponIdx: null,
+    bodyPart: null,
+    penaltyRoll: '',
+    rawAttackRoll: '',
+    vulnState: 'normal', // default
+    rawDamageRoll: '',
+  };
+  const o = document.createElement('div');
+  o.id = 'attackModal';
+  o.className = 'modal-overlay';
+  const title = prefix === 'act' ? 'Action Attack' : 'Bonus Action Attack';
+  o.innerHTML = `<div class="modal" style="max-width:680px;padding:24px 30px;text-align:left;">
+    <h2 style="font-size:18px;text-align:center;margin-bottom:2px;letter-spacing:1.6px;">${title}</h2>
+    <div id="atk_stepper" class="atk-stepper"></div>
+    <div id="atk_content"></div>
+    <div class="atk-nav">
+      <button class="nav-back" onclick="_atkBack()">← Back</button>
+      <button class="nav-next" onclick="_atkNext()">Next →</button>
+      <button class="nav-close" onclick="document.getElementById('attackModal').remove()">Close</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if(e.target === o) o.remove(); });
+  _atkRender();
+}
+
+function _atkRender(){
+  if(!_atkState) return;
+  _atkRenderStepper();
+  _atkRenderStep();
+  _atkUpdateNav();
+}
+
+function _atkRenderStepper(){
+  const wrap = document.getElementById('atk_stepper');
+  if(!wrap) return;
+  let html = '';
+  for(let i=1;i<=6;i++){
+    const cls = i === _atkState.step ? 'active' : (i < _atkState.step ? 'done' : '');
+    const click = i < _atkState.step ? `onclick="_atkGoto(${i})"` : '';
+    html += `<div class="atk-step-dot ${cls}" ${click}>${i}</div>`;
+    if(i < 6){
+      html += `<div class="atk-step-bar ${i < _atkState.step ? 'done' : ''}"></div>`;
+    }
+  }
+  wrap.innerHTML = html;
+}
+
+function _atkGoto(step){
+  if(step >= 1 && step <= _atkState.step){ // only allow going back to a completed step
+    _atkState.step = step;
+    _atkRender();
+  }
+}
+
+function _atkRenderStep(){
+  const wrap = document.getElementById('atk_content');
+  if(!wrap) return;
+  switch(_atkState.step){
+    case 1: wrap.innerHTML = _atkStep1HTML(); break;
+    case 2: wrap.innerHTML = _atkStep2HTML(); break;
+    case 3: wrap.innerHTML = _atkStep3HTML(); break;
+    case 4: wrap.innerHTML = _atkStep4HTML(); break;
+    case 5: wrap.innerHTML = _atkStep5HTML(); break;
+    case 6: wrap.innerHTML = _atkStep6HTML(); break;
+  }
+}
+
+// ── STEP 1: Choose weapon ──
+function _atkStep1HTML(){
+  const equipped = _atkGetEquipped(_atkState.prefix);
+  const colLabel = _atkState.prefix === 'act' ? 'Action' : 'Bonus Action';
+  if(equipped.length === 0){
+    return `
+      <div class="atk-step-title">STEP 1 · CHOOSE YOUR WEAPON</div>
+      <div class="atk-step-subtitle">Select a weapon from your ${colLabel} slot</div>
+      <div class="atk-wpn-empty">No weapons equipped in this column.<br>Close this dialog and add a weapon first.</div>`;
+  }
+  const cards = equipped.map(w => {
+    const selected = _atkState.weaponIdx === w.idx ? 'selected' : '';
+    // Build a mini version of the weapon card from existing helper
+    const cardHTML = _buildWeaponCardHTML(_atkState.prefix, w.idx);
+    // Replace the card's onclick with our own selector (and remove the × button click handler)
+    const adapted = cardHTML
+      .replace(/onclick="openWeaponModal\([^"]+\)"/, `onclick="_atkSelectWeapon(${w.idx})"`)
+      .replace(/<span class="wpn-card-remove"[\s\S]*?<\/span>/, '')
+      .replace('class="wpn-card ', `class="wpn-card ${selected} `);
+    return adapted;
+  }).join('');
+  return `
+    <div class="atk-step-title">STEP 1 · CHOOSE YOUR WEAPON</div>
+    <div class="atk-step-subtitle">Select a weapon from your ${colLabel} slot</div>
+    <div class="atk-wpn-grid">${cards}</div>`;
+}
+function _atkSelectWeapon(idx){
+  _atkState.weaponIdx = idx;
+  _atkRender();
+}
+
+// ── STEP 2: Aim your strike ──
+function _atkStep2HTML(){
+  const parts = ATK_BODY_PARTS.map(p => {
+    const sel = _atkState.bodyPart === p.key ? 'selected' : '';
+    return `<div class="atk-body-card ${sel}" onclick="_atkSelectBodyPart('${p.key}')">
+      <img class="atk-body-img" src="${p.img}" alt="${p.name}">
+      <div class="atk-body-name">${p.name.toUpperCase()}</div>
+      <div class="atk-body-die">${p.die}</div>
+    </div>`;
+  }).join('');
+  const part = ATK_BODY_PARTS.find(p => p.key === _atkState.bodyPart);
+  const rollInput = part
+    ? `<div class="atk-roll-row">
+        <span class="atk-roll-label">Your ${part.die} penalty roll:</span>
+        <input type="number" class="atk-roll-input" id="atk_penalty_inp" value="${_atkState.penaltyRoll}" min="1" max="20" oninput="_atkUpdateField('penaltyRoll',this.value)" autofocus>
+       </div>
+       <div style="text-align:center;font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.45);">This penalty will be subtracted from your attack roll.</div>`
+    : `<div style="text-align:center;font-family:'IM Fell English',serif;font-style:italic;font-size:11.5px;color:rgba(232,200,74,.45);margin-top:6px;">Select a target to reveal the penalty die.</div>`;
+  return `
+    ${_atkWpnSummaryHTML()}
+    <div class="atk-step-title">STEP 2 · AIM YOUR STRIKE</div>
+    <div class="atk-step-subtitle">Choose a body part to target — each has a penalty die</div>
+    <div class="atk-body-grid">${parts}</div>
+    ${rollInput}`;
+}
+function _atkSelectBodyPart(key){
+  _atkState.bodyPart = key;
+  _atkRender();
+  // focus the input after render
+  setTimeout(() => document.getElementById('atk_penalty_inp')?.focus(), 0);
+}
+
+// ── STEP 3: Attack roll ──
+function _atkStep3HTML(){
+  const w = _atkCurrentWpn();
+  const arStr = w.ar >= 0 ? '+' + w.ar : String(w.ar);
+  return `
+    ${_atkWpnSummaryHTML()}
+    <div class="atk-step-title">STEP 3 · ATTACK ROLL</div>
+    <div class="atk-step-subtitle">Roll 1d20 and enter your result — the weapon's attack modifier will be added</div>
+    <div style="text-align:center;margin:14px 0 8px;">
+      <span style="font-family:var(--got);font-size:10px;letter-spacing:.8px;color:rgba(232,200,74,.6);">Attack Modifier</span>
+      <div style="font-family:'Cinzel',serif;font-size:34px;font-weight:700;color:var(--text-gold);text-shadow:0 0 12px rgba(232,200,74,.5);letter-spacing:1.2px;">${arStr}</div>
+    </div>
+    <div class="atk-roll-row">
+      <span class="atk-roll-label">Your 1d20 roll:</span>
+      <input type="number" class="atk-roll-input" id="atk_attack_inp" value="${_atkState.rawAttackRoll}" min="1" max="20" oninput="_atkUpdateField('rawAttackRoll',this.value)" autofocus>
+    </div>`;
+}
+
+// ── STEP 4: Did you hit? ──
+function _atkStep4HTML(){
+  const w = _atkCurrentWpn();
+  const raw = parseInt(_atkState.rawAttackRoll) || 0;
+  const ar = w.ar;
+  const pen = parseInt(_atkState.penaltyRoll) || 0;
+  const total = raw + ar - pen;
+  const arOp = ar >= 0 ? '+' : '−';
+  const arAbs = Math.abs(ar);
+  return `
+    ${_atkWpnSummaryHTML()}
+    <div class="atk-step-title">STEP 4 · DID YOU HIT?</div>
+    <div class="atk-step-subtitle">Compare this total to your target's defense</div>
+    <div class="atk-calc">
+      <div class="atk-calc-formula">
+        <span class="term">${raw}</span><span class="op">+</span><span class="term">${arOp}${arAbs}</span><span class="op">−</span><span class="term neg">${pen}</span>
+      </div>
+      <div style="font-family:var(--got);font-size:8.5px;letter-spacing:.7px;color:rgba(232,200,74,.45);margin-bottom:6px;">
+        roll · attack mod · aim penalty
+      </div>
+      <div class="atk-calc-equals">═══ TOTAL TO HIT ═══</div>
+      <div class="atk-calc-total">${total}</div>
+    </div>`;
+}
+
+// ── STEP 5: Damage roll ──
+function _atkStep5HTML(){
+  const w = _atkCurrentWpn();
+  const dmgType = w.dmg || 'damage';
+  const drStr = w.drStr || (w.drDie + (w.drMod >= 0 ? ' +' + w.drMod : ' ' + w.drMod));
+  const modStr = w.drMod >= 0 ? '+'+w.drMod : String(w.drMod);
+  const vulnBtns = [
+    { key:'vuln',   label:'VULNERABLE', sub:'damage ×2', icon:'⤴', cls:'vuln-vuln' },
+    { key:'normal', label:'NORMAL',     sub:'damage ×1', icon:'•', cls:'vuln-norm' },
+    { key:'resist', label:'RESISTANT',  sub:'damage ÷2', icon:'⤵', cls:'vuln-resi' },
+  ].map(b => {
+    const sel = _atkState.vulnState === b.key ? 'selected' : '';
+    return `<div class="atk-vuln-btn ${b.cls} ${sel}" onclick="_atkSelectVuln('${b.key}')">
+      <span class="vuln-icon">${b.icon}</span>
+      ${b.label}
+      <div class="vuln-sub">${b.sub}</div>
+    </div>`;
+  }).join('');
+  return `
+    ${_atkWpnSummaryHTML()}
+    <div class="atk-step-title">STEP 5 · DAMAGE ROLL</div>
+    <div class="atk-step-subtitle">Mark target's vulnerability to <strong style="color:var(--text-gold);">${_escHTML(dmgType)}</strong>, then enter your damage roll</div>
+    <div class="atk-vuln-grid">${vulnBtns}</div>
+    <div style="text-align:center;margin:10px 0 4px;">
+      <span style="font-family:var(--got);font-size:10px;letter-spacing:.8px;color:rgba(232,200,74,.6);">Weapon Damage</span>
+      <div style="font-family:'Cinzel',serif;font-size:24px;font-weight:600;color:var(--text-gold);text-shadow:0 0 10px rgba(232,200,74,.4);letter-spacing:.8px;">${_escHTML(w.drDie || '—')} <span style="font-size:18px;color:rgba(232,200,74,.7);">${modStr}</span></div>
+    </div>
+    <div class="atk-roll-row">
+      <span class="atk-roll-label">Your ${_escHTML(w.drDie || 'damage')} roll:</span>
+      <input type="number" class="atk-roll-input" id="atk_dmg_inp" value="${_atkState.rawDamageRoll}" min="1" oninput="_atkUpdateField('rawDamageRoll',this.value)" autofocus>
+    </div>`;
+}
+function _atkSelectVuln(state){
+  _atkState.vulnState = state;
+  _atkRender();
+  setTimeout(() => document.getElementById('atk_dmg_inp')?.focus(), 0);
+}
+
+// ── STEP 6: Damage dealt ──
+function _atkStep6HTML(){
+  const w = _atkCurrentWpn();
+  const raw = parseInt(_atkState.rawDamageRoll) || 0;
+  const mod = w.drMod;
+  const v = _atkState.vulnState;
+  let scaled, formulaTerm, vulnLabel, vulnColor;
+  if(v === 'vuln'){
+    scaled = raw * 2;
+    formulaTerm = `(${raw} × 2)`;
+    vulnLabel = 'VULNERABLE';
+    vulnColor = '#ff8888';
+  } else if(v === 'resist'){
+    scaled = Math.ceil(raw / 2);
+    formulaTerm = `⌈${raw} ÷ 2⌉`;
+    vulnLabel = 'RESISTANT';
+    vulnColor = '#88bbff';
+  } else {
+    scaled = raw;
+    formulaTerm = `${raw}`;
+    vulnLabel = 'NORMAL';
+    vulnColor = 'var(--text-gold)';
+  }
+  const total = scaled + mod;
+  const modOp = mod >= 0 ? '+' : '−';
+  const modAbs = Math.abs(mod);
+  return `
+    ${_atkWpnSummaryHTML()}
+    <div class="atk-step-title">STEP 6 · DAMAGE DEALT</div>
+    <div class="atk-step-subtitle">Target is <span style="color:${vulnColor};font-style:normal;font-family:var(--got);font-size:10.5px;letter-spacing:1px;">${vulnLabel}</span> to ${_escHTML(w.dmg || 'damage')}</div>
+    <div class="atk-calc">
+      <div class="atk-calc-formula">
+        <span class="term">${formulaTerm}</span><span class="op">${modOp}</span><span class="term">${modAbs}</span>
+      </div>
+      <div style="font-family:var(--got);font-size:8.5px;letter-spacing:.7px;color:rgba(232,200,74,.45);margin-bottom:6px;">
+        scaled roll · damage mod
+      </div>
+      <div class="atk-calc-equals">═══ DAMAGE DEALT ═══</div>
+      <div class="atk-calc-total" style="color:${vulnColor};">${total}</div>
+      <div class="atk-calc-suffix">${_escHTML(w.dmg || '')} damage</div>
+    </div>
+    <button class="rest-btn" onclick="_atkReset()" style="width:100%;margin-top:6px;font-size:11.5px;padding:8px 10px;letter-spacing:.6px;">⟲ Attack Again</button>`;
+}
+
+function _atkReset(){
+  if(!_atkState) return;
+  const prefix = _atkState.prefix;
+  document.getElementById('attackModal')?.remove();
+  openAttackModal(prefix);
+}
+
+// Shared mini weapon summary used in steps 2-6
+function _atkWpnSummaryHTML(){
+  const w = _atkCurrentWpn();
+  if(!w) return '';
+  const arStr = w.ar >= 0 ? '+'+w.ar : String(w.ar);
+  const dmgClass = _DMG_CLASS_MAP[w.dmg] || '';
+  const dmgIcon = _DMG_ICONS[w.dmg] || '⚔';
+  return `<div class="atk-wpn-summary">
+    <span class="wpn-card-icon ${dmgClass}" style="width:22px;height:22px;font-size:12px;">${dmgIcon}</span>
+    <span class="name">${_escHTML(w.name)}</span>
+    <div class="stats">
+      <div class="stat">AR<strong>${arStr}</strong></div>
+      <div class="stat">DMG<strong>${_escHTML(w.drStr || '—')}</strong></div>
+    </div>
+  </div>`;
+}
+
+function _atkCurrentWpn(){
+  if(!_atkState || _atkState.weaponIdx == null) return null;
+  const eq = _atkGetEquipped(_atkState.prefix);
+  return eq.find(w => w.idx === _atkState.weaponIdx) || null;
+}
+
+function _atkUpdateField(field, value){
+  _atkState[field] = value;
+  _atkUpdateNav(); // only re-check nav state; don't re-render (would steal focus)
+}
+
+function _atkUpdateNav(){
+  const back = document.querySelector('#attackModal .nav-back');
+  const next = document.querySelector('#attackModal .nav-next');
+  if(!back || !next) return;
+  back.disabled = _atkState.step <= 1;
+  // Validate "next" by step
+  let canNext = true;
+  switch(_atkState.step){
+    case 1: canNext = _atkState.weaponIdx != null; break;
+    case 2: canNext = _atkState.bodyPart != null && _atkState.penaltyRoll !== '' && !isNaN(parseInt(_atkState.penaltyRoll)); break;
+    case 3: canNext = _atkState.rawAttackRoll !== '' && !isNaN(parseInt(_atkState.rawAttackRoll)); break;
+    case 4: canNext = true; break;
+    case 5: canNext = !!_atkState.vulnState && _atkState.rawDamageRoll !== '' && !isNaN(parseInt(_atkState.rawDamageRoll)); break;
+    case 6: canNext = false; break;
+  }
+  next.disabled = !canNext;
+  next.textContent = _atkState.step >= 6 ? '— Final —' : 'Next →';
+  if(_atkState.step >= 6) next.style.opacity = '.4';
+  else next.style.opacity = '';
+}
+
+function _atkNext(){
+  if(_atkState.step < 6){
+    _atkState.step++;
+    _atkRender();
+  }
+}
+function _atkBack(){
+  if(_atkState.step > 1){
+    _atkState.step--;
+    _atkRender();
+  }
 }
 function hexToHSL(hex){
   let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
