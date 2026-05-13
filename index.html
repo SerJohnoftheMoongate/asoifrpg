@@ -2474,6 +2474,8 @@ function load(){
   refreshWeaponProfColors();
   refreshAllWeaponTags();
   refreshAllWeaponConditionDots();
+  // Re-derive bonus-action damage based on current fighting style choices
+  try{ recomputeAllBonusActionDR(); }catch(e){}
   // Restore feat descriptions from saved feat names
   [1,2,3].forEach(i => {
     const name = document.getElementById('feat_'+i)?.value;
@@ -3030,6 +3032,46 @@ function _resolveWeaponStat(cat, props, finChoice){
   return 'prowess';
 }
 
+// True if any of the character's chosen fighting styles is Two-Weapon Fighting.
+function _hasTwoWeaponFighting(){
+  if(typeof _chosenStyles === 'undefined' || !_chosenStyles) return false;
+  return Object.values(_chosenStyles).includes('twf');
+}
+
+// Recompute the saved DR string for every bonus-action weapon slot.
+// Called when fighting style changes, ability scores change, or on initial load.
+function recomputeAllBonusActionDR(){
+  let touched = false;
+  const hasTWF = _hasTwoWeaponFighting();
+  for(let i = 1; i <= 8; i++){
+    const nameEl = document.getElementById(`bon_w_${i}`);
+    const drEl   = document.getElementById(`bon_d_${i}`);
+    if(!nameEl || !drEl || !nameEl.value.trim()) continue;
+    // Extract die from current saved DR (everything before the +/- mod)
+    const m = (drEl.value || '').match(/^\s*(\d+d\d+)/i);
+    if(!m) continue;
+    const die = m[1];
+    // Re-derive which stat applies
+    const cat   = document.getElementById(`bon_wcat_${i}`)?.value || '';
+    const props = (document.getElementById(`bon_wprop_${i}`)?.value || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const finStat = document.getElementById(`bon_wfinstat_${i}`)?.value || '';
+    const stat = _resolveWeaponStat(cat, props, finStat);
+    const statVal = parseInt(document.getElementById('scr_'+stat)?.value) || 0;
+    // TWF grants the ability mod on bonus action damage; otherwise omit it
+    const newDR = hasTWF
+      ? `${die} ${statVal >= 0 ? '+'+statVal : statVal}`
+      : die;
+    if(drEl.value !== newDR){
+      drEl.value = newDR;
+      touched = true;
+    }
+  }
+  if(touched){
+    renderAllWeaponCards();
+    if(typeof save === 'function') save();
+  }
+}
+
 // ── WEAPON MODAL (replaces the old free-form openWeaponModal) ──
 // Single entrypoint. Behavior:
 //   openWeaponSelectModal(prefix)        → adds a new weapon in the first empty slot
@@ -3247,19 +3289,22 @@ function _renderWpnPreview(){
   const die          = def ? def.die : '';
   const versDie      = def ? def.versDie : null;
 
-  // Calculate AR / DR
   const isBonus      = _wpnModalState.prefix === 'bon';
   const statVal      = parseInt(document.getElementById('scr_'+stat)?.value) || 0;
   const profOk       = isWeaponProficient(effectiveCat);
-  // Bonus-action attacks do NOT add the proficiency bonus to AR.
-  const profVal      = (profOk && !isBonus) ? (parseInt(document.getElementById('proficiency')?.value)||0) : 0;
+  // AR gets the prof bonus regardless of column (when proficient).
+  const profVal      = profOk ? (parseInt(document.getElementById('proficiency')?.value)||0) : 0;
   const condEntry    = WPN_CONDITIONS.find(c => c.key === _wpnModalState.condition);
   const condMod      = condEntry ? condEntry.mod : 0;
   const arTotal      = statVal + profVal + condMod;
   const arStr        = arTotal >= 0 ? '+'+arTotal : String(arTotal);
-  const drModStr     = statVal >= 0 ? '+'+statVal : String(statVal);
-  const drStr        = die ? `${die} ${drModStr}` : '—';
-  const drVersStr    = versDie ? `${versDie} ${drModStr}` : '';
+  // DR: bonus-action attacks normally skip the ability mod, UNLESS Two-Weapon Fighting is selected.
+  const twfActive    = isBonus && _hasTwoWeaponFighting();
+  const drIncludesMod = !isBonus || twfActive;
+  const drStatVal    = drIncludesMod ? statVal : 0;
+  const drModStr     = drStatVal >= 0 ? '+'+drStatVal : String(drStatVal);
+  const drStr        = die ? (drIncludesMod ? `${die} ${drModStr}` : die) : '—';
+  const drVersStr    = versDie ? (drIncludesMod ? `${versDie} ${drModStr}` : versDie) : '';
 
   // Thrown range indicator (in the RANGE stat box)
   const throwR = (def && props.includes('Thrown')) ? def.throwRange : '';
@@ -3283,7 +3328,9 @@ function _renderWpnPreview(){
     ? `<div style="font-family:var(--got);font-size:9px;color:#ff5555;letter-spacing:.4px;margin-top:5px;padding:3px 8px;background:rgba(60,0,0,.3);border:1px solid rgba(200,50,50,.4);border-radius:2px;">⚠ Not proficient — proficiency bonus will not be added</div>`
     : '';
   const bonusNote = isBonus
-    ? `<div style="font-family:var(--got);font-size:9px;color:rgba(232,200,74,.65);letter-spacing:.4px;margin-top:5px;padding:3px 8px;background:rgba(40,30,10,.45);border:1px solid rgba(139,106,0,.35);border-radius:2px;">⚑ Bonus action — proficiency bonus not added to AR</div>`
+    ? (twfActive
+        ? `<div style="font-family:var(--got);font-size:9px;color:rgba(120,255,150,.75);letter-spacing:.4px;margin-top:5px;padding:3px 8px;background:rgba(10,40,15,.45);border:1px solid rgba(80,180,100,.4);border-radius:2px;">⚔ Two-Weapon Fighting — ability modifier added to damage</div>`
+        : `<div style="font-family:var(--got);font-size:9px;color:rgba(232,200,74,.65);letter-spacing:.4px;margin-top:5px;padding:3px 8px;background:rgba(40,30,10,.45);border:1px solid rgba(139,106,0,.35);border-radius:2px;">⚑ Bonus action — ability modifier not added to damage</div>`)
     : '';
 
   wrap.innerHTML = `<div class="wpn-sel-preview">
@@ -3444,17 +3491,19 @@ function confirmWeapon(){
   const statVal      = parseInt(document.getElementById('scr_'+stat)?.value) || 0;
   const profOk       = isWeaponProficient(effectiveCat);
   const isBonus      = prefix === 'bon';
-  // Bonus-action attacks do NOT add the proficiency bonus to AR.
-  const profVal      = (profOk && !isBonus) ? (parseInt(document.getElementById('proficiency')?.value)||0) : 0;
+  // AR gets the proficiency bonus regardless of column.
+  const profVal      = profOk ? (parseInt(document.getElementById('proficiency')?.value)||0) : 0;
   const condEntry    = WPN_CONDITIONS.find(c => c.key === _wpnModalState.condition);
   const condMod      = condEntry ? condEntry.mod : 0;
 
   // AR = stat mod + (prof if proficient) + condition mod
   const arTotal = statVal + profVal + condMod;
   const arStr   = arTotal >= 0 ? '+'+arTotal : String(arTotal);
-  // DR = damage die + stat mod
-  const drMod   = statVal >= 0 ? '+'+statVal : String(statVal);
-  const drStr   = def.die ? `${def.die} ${drMod}` : '';
+  // DR: bonus-action weapons skip the ability mod, UNLESS Two-Weapon Fighting is selected.
+  const drIncludesMod = !isBonus || _hasTwoWeaponFighting();
+  const drStatVal = drIncludesMod ? statVal : 0;
+  const drMod   = drStatVal >= 0 ? '+'+drStatVal : String(drStatVal);
+  const drStr   = def.die ? (drIncludesMod ? `${def.die} ${drMod}` : def.die) : '';
   const range   = _getEffectiveRange(def);
 
   // Write into the slot's hidden inputs
@@ -3491,10 +3540,10 @@ function clearWeapon(prefix, idx){
 
 // Body parts: each has a die and an image icon from the repo.
 const ATK_BODY_PARTS = [
-  { key:'head', name:'Head', die:'1d12', img:'Images/Head Icon.webp' },
-  { key:'arm',  name:'Arm',  die:'1d8',  img:'Images/Arm Icon.webp'  },
-  { key:'body', name:'Body', die:'1d6',  img:'Images/Body Icon.webp' },
-  { key:'leg',  name:'Leg',  die:'1d10', img:'Images/Leg Icon.webp'  },
+  { key:'head', name:'Head', die:'1d12', img:'asoifrpg/Images/Head Icon.webp' },
+  { key:'arm',  name:'Arm',  die:'1d8',  img:'asoifrpg/Images/Arm Icon.webp'  },
+  { key:'body', name:'Body', die:'1d6',  img:'asoifrpg/Images/Body Icon.webp' },
+  { key:'leg',  name:'Leg',  die:'1d10', img:'asoifrpg/Images/Leg Icon.webp'  },
 ];
 
 let _atkState = null;
@@ -3722,8 +3771,12 @@ function _atkStep4HTML(){
 function _atkStep5HTML(){
   const w = _atkCurrentWpn();
   const dmgType = w.dmg || 'damage';
-  const drStr = w.drStr || (w.drDie + (w.drMod >= 0 ? ' +' + w.drMod : ' ' + w.drMod));
-  const modStr = w.drMod >= 0 ? '+'+w.drMod : String(w.drMod);
+  const isBonus = _atkState.prefix === 'bon';
+  const modStr  = w.drMod === 0 ? '' : (w.drMod > 0 ? '+'+w.drMod : String(w.drMod));
+  const twfActive = isBonus && _hasTwoWeaponFighting();
+  const bonusNote = !isBonus ? '' : (twfActive
+    ? `<div style="font-family:var(--got);font-size:9px;color:rgba(120,255,150,.7);letter-spacing:.4px;margin:6px 0 0;text-align:center;">⚔ Two-Weapon Fighting — ability modifier added to damage</div>`
+    : `<div style="font-family:var(--got);font-size:9px;color:rgba(232,200,74,.55);letter-spacing:.4px;margin:6px 0 0;text-align:center;">⚑ Bonus action — no ability modifier added to damage</div>`);
   const vulnBtns = [
     { key:'vuln',   label:'VULNERABLE', sub:'damage ×2', icon:'⤴', cls:'vuln-vuln' },
     { key:'normal', label:'NORMAL',     sub:'damage ×1', icon:'•', cls:'vuln-norm' },
@@ -3743,7 +3796,8 @@ function _atkStep5HTML(){
     <div class="atk-vuln-grid">${vulnBtns}</div>
     <div style="text-align:center;margin:10px 0 4px;">
       <span style="font-family:var(--got);font-size:10px;letter-spacing:.8px;color:rgba(232,200,74,.6);">Weapon Damage</span>
-      <div style="font-family:'Cinzel',serif;font-size:24px;font-weight:600;color:var(--text-gold);text-shadow:0 0 10px rgba(232,200,74,.4);letter-spacing:.8px;">${_escHTML(w.drDie || '—')} <span style="font-size:18px;color:rgba(232,200,74,.7);">${modStr}</span></div>
+      <div style="font-family:'Cinzel',serif;font-size:24px;font-weight:600;color:var(--text-gold);text-shadow:0 0 10px rgba(232,200,74,.4);letter-spacing:.8px;">${_escHTML(w.drDie || '—')}${modStr ? ` <span style="font-size:18px;color:rgba(232,200,74,.7);">${modStr}</span>` : ''}</div>
+      ${bonusNote}
     </div>
     <div class="atk-roll-row">
       <span class="atk-roll-label">Your ${_escHTML(w.drDie || 'damage')} roll:</span>
@@ -3782,16 +3836,20 @@ function _atkStep6HTML(){
   const total = scaled + mod;
   const modOp = mod >= 0 ? '+' : '−';
   const modAbs = Math.abs(mod);
+  const formulaHTML = mod === 0
+    ? `<span class="term">${formulaTerm}</span>`
+    : `<span class="term">${formulaTerm}</span><span class="op">${modOp}</span><span class="term">${modAbs}</span>`;
+  const formulaLabel = mod === 0 ? 'scaled roll' : 'scaled roll · damage mod';
   return `
     ${_atkWpnSummaryHTML()}
     <div class="atk-step-title">STEP 6 · DAMAGE DEALT</div>
     <div class="atk-step-subtitle">Target is <span style="color:${vulnColor};font-style:normal;font-family:var(--got);font-size:10.5px;letter-spacing:1px;">${vulnLabel}</span> to ${_escHTML(w.dmg || 'damage')}</div>
     <div class="atk-calc">
       <div class="atk-calc-formula">
-        <span class="term">${formulaTerm}</span><span class="op">${modOp}</span><span class="term">${modAbs}</span>
+        ${formulaHTML}
       </div>
       <div style="font-family:var(--got);font-size:8.5px;letter-spacing:.7px;color:rgba(232,200,74,.45);margin-bottom:6px;">
-        scaled roll · damage mod
+        ${formulaLabel}
       </div>
       <div class="atk-calc-equals">═══ DAMAGE DEALT ═══</div>
       <div class="atk-calc-total" style="color:${vulnColor};">${total}</div>
@@ -4729,6 +4787,8 @@ function openFightingStyleModal(slotKey, excludeKey){
     saveChosenStyles();
     o.remove();
     applySpecFeatures();
+    // Re-derive bonus-action damage in case Two-Weapon Fighting was added/removed
+    try{ recomputeAllBonusActionDR(); }catch(e){}
   });
   o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
 }
