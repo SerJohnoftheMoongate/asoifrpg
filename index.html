@@ -288,7 +288,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .wpn-stat-value{
   font-family:'Cinzel',serif;font-weight:600;
   font-size:13px;color:var(--text-gold);
-  line-height:1.1;letter-spacing:.3px;
+  line-height:2;letter-spacing:.3px;
   text-shadow:0 0 6px rgba(232,200,74,.4);
 }
 .wpn-stat-value.small{font-size:11.5px;}
@@ -296,7 +296,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .wpn-stat-throw{
   display:block;font-family:'Cinzel',serif;font-weight:500;
   font-size:9px;color:rgba(232,200,74,.7);letter-spacing:.3px;
-  line-height:1.1;margin-top:1px;text-shadow:0 0 4px rgba(232,200,74,.25);
+  line-height:1.3;margin-top:1px;text-shadow:0 0 4px rgba(232,200,74,.25);
 }
 .wpn-stat-throw .arrow{color:rgba(232,200,74,.55);margin-right:2px;}
 .wpn-card-tags{display:flex;flex-wrap:wrap;gap:3px;}
@@ -2811,7 +2811,7 @@ function renderWeaponCard(prefix, idx){
   renderAllWeaponCards();
 }
 
-const _DMG_ICONS = { Slashing:'⚔', Piercing:'🗡', Bludgeoning:'🔨' };
+const _DMG_ICONS = { Slashing:'⚔️', Piercing:'🔱', Bludgeoning:'🔨' };
 const _DMG_CLASS_MAP = { Slashing:'dmg-slashing', Piercing:'dmg-piercing', Bludgeoning:'dmg-bludgeoning' };
 
 function _buildWeaponCardHTML(prefix, idx){
@@ -3540,10 +3540,10 @@ function clearWeapon(prefix, idx){
 
 // Body parts: each has a die and an image icon from the repo.
 const ATK_BODY_PARTS = [
-  { key:'head', name:'Head', die:'1d12', img:'asoifrpg/Images/Head Icon.webp' },
-  { key:'arm',  name:'Arm',  die:'1d8',  img:'asoifrpg/Images/Arm Icon.webp'  },
-  { key:'body', name:'Body', die:'1d6',  img:'asoifrpg/Images/Body Icon.webp' },
-  { key:'leg',  name:'Leg',  die:'1d10', img:'asoifrpg/Images/Leg Icon.webp'  },
+  { key:'head', name:'Head', die:'1d12', img:'Images/Head Icon.webp' },
+  { key:'arm',  name:'Arm',  die:'1d8',  img:'Images/Arm Icon.webp'  },
+  { key:'body', name:'Body', die:'1d6',  img:'Images/Body Icon.webp' },
+  { key:'leg',  name:'Leg',  die:'1d10', img:'Images/Leg Icon.webp'  },
 ];
 
 let _atkState = null;
