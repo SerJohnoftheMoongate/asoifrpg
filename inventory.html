@@ -999,6 +999,16 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div>
     </div>
 
+    <!-- ── Toolkit selector (Tools tag only) ── -->
+    <div id="aim_toolkit_row" style="display:none;margin-bottom:4px;margin-top:8px;">
+      <label class="aim-lbl" style="font-size:10px;">Tool Kit</label>
+      <select id="aim_toolkit" onchange="aimToolkitChanged()"
+        style="width:100%;height:36px;font-family:var(--got);font-size:11px;border:1px solid var(--gold);background:var(--input-bg);color:#1a1000;padding:0 6px;">
+        <option value="">— Select a tool kit —</option>
+      </select>
+      <div id="aim_toolkit_preview" style="display:none;margin-top:8px;padding:8px 10px;background:rgba(139,106,0,.08);border:1px solid rgba(139,106,0,.25);border-radius:2px;font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:rgba(232,200,74,.7);line-height:1.5;"></div>
+    </div>
+
     <!-- ── Armor Type row (Helmet / Gauntlets / Body Armor / Sabatons only) ── -->
     <div id="aim_armortype_row" style="display:none;margin-bottom:4px;margin-top:4px;">
       <label class="aim-lbl" style="font-size:10px;">Armor Type</label>
@@ -3180,6 +3190,287 @@ function getItemMgmtCurrency() {
   return 'g';
 }
 
+/* ══════════════════════════════════════════════════════════
+   TOOL KIT DEFINITIONS — predetermined contents from rulebook
+══════════════════════════════════════════════════════════ */
+const TOOLKITS = [
+  { name: "Alchemist's Supplies",
+    materials: ["2 Glass Beakers","A Metal Frame","Glass Stirring Rod","Mortar and Pestle"],
+    dispensable: [
+      {name:"uses of Salt", max:10},
+      {name:"uses of Powdered Iron", max:5},
+      {name:"uses of Purified Water", max:5},
+      {name:"uses of Sulfur", max:5},
+    ], weight:"2.5", price:"20", pc:"g" },
+  { name: "Brewer's Supplies",
+    materials: ["Large Glass Jug","A Siphon","2ft Tubing"],
+    dispensable: [
+      {name:"uses of Hops", max:10},
+      {name:"uses of Yeast", max:5},
+      {name:"uses of Suger", max:10},
+      {name:"uses of Malted Grains", max:5},
+    ], weight:"1.5", price:"10", pc:"g" },
+  { name: "Calligrapher's Supplies",
+    materials: ["A Seal"],
+    dispensable: [
+      {name:"uses of Ink", max:10},
+      {name:"Parchments", max:12},
+      {name:"Quills", max:3},
+      {name:"uses of Sealing Wax", max:5},
+    ], weight:"0.5", price:"5", pc:"g" },
+  { name: "Carpenters Tool",
+    materials: ["A Saw","A Hammer","A Hatchet","A Ruler","A Chisle"],
+    dispensable: [
+      {name:"Nails", max:20},
+      {name:"uses of Cheese Glue", max:5},
+      {name:"uses of Beeswax", max:5},
+    ], weight:"3", price:"10", pc:"g" },
+  { name: "Cartographer's Tool",
+    materials: ["A Compass","Calipers","A Ruler"],
+    dispensable: [
+      {name:"Sheets of large Parchment", max:5},
+      {name:"uses of Ink", max:10},
+      {name:"Quills", max:3},
+      {name:"uses of coloured Ink", max:5},
+    ], weight:"1.5", price:"15", pc:"g" },
+  { name: "Cobbler's Tool",
+    materials: ["A Hammer","An Awl","A Knife","A Shoe Stand"],
+    dispensable: [
+      {name:"uses of Spare Leather", max:5},
+      {name:"uses of Thread", max:10},
+      {name:"uses of Animal Fur", max:5},
+      {name:"uses of scrap metal", max:10},
+    ], weight:"2", price:"3", pc:"g" },
+  { name: "Cook's Utensils",
+    materials: ["Metal Pot","Cutlery","A Ladle"],
+    dispensable: [
+      {name:"uses of Salt", max:10},
+      {name:"uses of Peper", max:10},
+      {name:"uses of Lard", max:10},
+      {name:"uses of Animal Bone Marrow", max:10},
+    ], weight:"1.5", price:"2", pc:"g" },
+  { name: "Disguise Kit",
+    materials: ["Several small clothing pieces","Several small props"],
+    dispensable: [
+      {name:"uses of Face Cosmetics", max:10},
+      {name:"uses of Hair Dye", max:5},
+      {name:"uses of Paint", max:5},
+    ], weight:"0.5", price:"10", pc:"g" },
+  { name: "Forgery Kit",
+    materials: ["A general Seal"],
+    dispensable: [
+      {name:"uses of Sealing Wax", max:10},
+      {name:"sheets of Parchment", max:10},
+      {name:"Quills", max:3},
+      {name:"uses of gold and silver leafs", max:5},
+    ], weight:"0.5", price:"10", pc:"g" },
+  { name: "Fletching Kit",
+    materials: ["A Draw Knife","A Spokeshave","A Sandstone"],
+    dispensable: [
+      {name:"uses of Sticks", max:10},
+      {name:"uses of Feathers", max:10},
+      {name:"uses of Hemp", max:5},
+      {name:"uses of Beeswax", max:5},
+      {name:"uses of Iron Scrap", max:5},
+    ], weight:"1", price:"8", pc:"g" },
+  { name: "Gaming Kit",
+    materials: ["Either: Cyvasse, Dice Set, or Tiles"],
+    dispensable: [
+      {name:"uses of strong liquor", max:10},
+    ], weight:"0.5", price:"1", pc:"g" },
+  { name: "Glassblower's Tool",
+    materials: ["Blowpipe","Tweezers","A small Marver"],
+    dispensable: [
+      {name:"uses of Flux", max:10},
+      {name:"uses of Silica", max:10},
+      {name:"uses of Lime", max:5},
+      {name:"uses of gold and silver leafs", max:5},
+    ], weight:"1.5", price:"20", pc:"g" },
+  { name: "Herbalism Kit",
+    materials: ["Herb Pouch","Clippers","Leather Gloves","Mortar and Pestle"],
+    dispensable: [
+      {name:"Glass Jars", max:5},
+      {name:"uses of Dried Sage", max:10},
+      {name:"uses of Yarrow", max:10},
+      {name:"uses of Dried Hemlock", max:5},
+    ], weight:"1", price:"5", pc:"g" },
+  { name: "Jeweler's Tool",
+    materials: ["A small Saw and Hammer","Pliers","Tweezers","Files"],
+    dispensable: [
+      {name:"uses of gold and silver leafs", max:10},
+      {name:"uses of Broken Glass", max:5},
+      {name:"uses of base Alloys", max:5},
+      {name:"uses of metal dress hooks", max:10},
+    ], weight:"1.5", price:"10", pc:"g" },
+  { name: "Leatherworker's Tools",
+    materials: ["A Knife","A small Mallet","An Edger","A hole Punch"],
+    dispensable: [
+      {name:"uses of Leather Scraps", max:10},
+      {name:"uses of Thread", max:10},
+      {name:"uses of Tanning Fats and Oils", max:5},
+      {name:"uses of metal scraps", max:5},
+    ], weight:"1.5", price:"8", pc:"g" },
+  { name: "Mason's Tool",
+    materials: ["A Trowl","A Hammer","A Chisel","Brushes"],
+    dispensable: [
+      {name:"Pistons", max:10},
+      {name:"uses of burned Limestone", max:5},
+      {name:"uses of Animal Fat", max:5},
+    ], weight:"2.5", price:"10", pc:"g" },
+  { name: "Navigator's Tool",
+    materials: ["A Sextant","Calipers","A Ruler"],
+    dispensable: [
+      {name:"sheets of Parchment", max:10},
+      {name:"uses of Ink", max:3},
+      {name:"Quills", max:3},
+    ], weight:"0.5", price:"5", pc:"g" },
+  { name: "Painter's Supplies",
+    materials: ["An Easel","A Palette"],
+    dispensable: [
+      {name:"Canvasses", max:5},
+      {name:"uses of Paints", max:10},
+      {name:"uses of Charcoal", max:10},
+      {name:"Paint Brushes", max:5},
+    ], weight:"1.5", price:"10", pc:"g" },
+  { name: "Poisoner's Kit",
+    materials: ["Mortar and Pestle","Glass Stirring Pot","Tweezers","Stirring Rod"],
+    dispensable: [
+      {name:"Glass Vials", max:10},
+      {name:"uses of natural concealers", max:5},
+      {name:"uses of food dye", max:5},
+      {name:"use of Theriac", max:1},
+    ], weight:"1", price:"15", pc:"g" },
+  { name: "Potter's Tool",
+    materials: ["Potter's Needles","Scrapers","Calipers","A Knife"],
+    dispensable: [
+      {name:"uses of Grog", max:10},
+      {name:"uses of Crushed Shell", max:5},
+      {name:"uses of natural temper", max:10},
+      {name:"uses of Metal Oxides", max:10},
+      {name:"uses of Lead", max:5},
+    ], weight:"3", price:"10", pc:"g" },
+  { name: "Smith's Tool",
+    materials: ["Two Hammers","Tongs","Whetstone"],
+    dispensable: [
+      {name:"uses of Animal Fat", max:5},
+      {name:"raw Iron Ingots", max:5},
+      {name:"uses of Flux", max:10},
+      {name:"uses of scrap metal", max:10},
+    ], weight:"3", price:"15", pc:"g" },
+  { name: "Thieves' Tool",
+    materials: ["A small File","A small Mirror on metal handle","Scissors","Pliers"],
+    dispensable: [
+      {name:"Lock Picks", max:10},
+      {name:"uses of Ball Bearings", max:10},
+    ], weight:"1", price:"8", pc:"g" },
+  { name: "Tinker's Tool",
+    materials: ["A Whetstone","Needles","Pliers & Tweezers","A small Hammer"],
+    dispensable: [
+      {name:"uses of Thread", max:10},
+      {name:"uses of Cheese Glue", max:5},
+      {name:"uses of Scrap Leather", max:10},
+      {name:"uses of Scrap Metal", max:5},
+    ], weight:"1.5", price:"5", pc:"g" },
+  { name: "Weaver's Tools",
+    materials: ["Needles","Hand Spindle","A Batten"],
+    dispensable: [
+      {name:"uses of Sheeps Wool", max:10},
+      {name:"uses of Flax", max:5},
+      {name:"uses of Thread", max:10},
+      {name:"uses of Dye", max:5},
+    ], weight:"2.5", price:"10", pc:"g" },
+  { name: "Weapons Kit",
+    materials: ["A Whetstone","Thongs","A Small Hammer","A Spokeshave"],
+    dispensable: [
+      {name:"uses of Leather Bindings", max:10},
+      {name:"uses of Beeswax", max:10},
+      {name:"uses of Hardwood Charcoal", max:5},
+      {name:"uses of Ferrules", max:5},
+    ], weight:"1", price:"8", pc:"g" },
+];
+
+/* Find a toolkit definition by its name (returns null if not found) */
+function findToolkitDef(name) {
+  if (!name) return null;
+  return TOOLKITS.find(t => t.name === name) || null;
+}
+
+/* Build the description string from a toolkit's standard materials */
+function toolkitDescription(def) {
+  if (!def || !Array.isArray(def.materials)) return '';
+  return 'Contains: ' + def.materials.join(', ') + '.';
+}
+
+/* Populate the toolkit <select> in the Add Item modal */
+function populateToolkitSelect() {
+  const sel = document.getElementById('aim_toolkit');
+  if (!sel) return;
+  // Only build options once
+  if (sel.dataset.populated === '1') return;
+  TOOLKITS.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.name;
+    opt.textContent = t.name;
+    sel.appendChild(opt);
+  });
+  sel.dataset.populated = '1';
+}
+
+/* Toggle readonly/auto-filled state for Tools mode */
+function setAimToolsLocked(locked) {
+  const ids = ['aim_name','aim_qty','aim_weight','aim_price','aim_desc'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (locked) {
+      el.setAttribute('readonly','readonly');
+      el.style.cursor = 'default';
+      el.style.opacity = '.85';
+    } else {
+      el.removeAttribute('readonly');
+      el.style.cursor = '';
+      el.style.opacity = '';
+    }
+  });
+  // Lock currency buttons too — toolkit price is always Gold
+  ['g','s','c'].forEach(k => {
+    const btn = document.getElementById('aim_pc_' + k);
+    if (!btn) return;
+    btn.disabled = !!locked;
+    btn.style.pointerEvents = locked ? 'none' : '';
+    btn.style.opacity = locked ? (btn.dataset.selected === '1' ? '.9' : '.4') : '';
+  });
+}
+
+/* Called when the toolkit dropdown changes — auto-fill all fields */
+function aimToolkitChanged() {
+  const sel = document.getElementById('aim_toolkit');
+  const preview = document.getElementById('aim_toolkit_preview');
+  const def = findToolkitDef(sel?.value || '');
+  if (!def) {
+    if (preview) { preview.style.display = 'none'; preview.textContent = ''; }
+    // Clear auto-filled fields
+    ['aim_name','aim_qty','aim_weight','aim_price','aim_desc'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    return;
+  }
+  // Auto-fill all the fields
+  const nameEl = document.getElementById('aim_name');   if (nameEl)   nameEl.value   = def.name;
+  const qtyEl  = document.getElementById('aim_qty');    if (qtyEl)    qtyEl.value    = '1';
+  const wEl    = document.getElementById('aim_weight'); if (wEl)      wEl.value      = def.weight || '';
+  const pEl    = document.getElementById('aim_price');  if (pEl)      pEl.value      = def.price  || '';
+  const dEl    = document.getElementById('aim_desc');   if (dEl)      dEl.value      = toolkitDescription(def);
+  selectAimCurrency(def.pc || 'g');
+  // Build the contents preview
+  if (preview) {
+    const lines = def.dispensable.map(d => `${d.max} ${d.name}`).join(' · ');
+    preview.innerHTML = `<div style="font-family:var(--got);font-size:8.5px;color:var(--gold-lt);letter-spacing:.7px;margin-bottom:4px;">CONSUMABLE CONTENTS (max amounts)</div>${lines}`;
+    preview.style.display = 'block';
+  }
+}
+
 function openAddItemModal() {
   // Reset form
   ['aim_name','aim_qty','aim_weight','aim_price','aim_ac','aim_desc'].forEach(id=>{
@@ -3198,6 +3489,15 @@ function openAddItemModal() {
   if(ingNote) ingNote.style.display = 'none';
   const atRow = document.getElementById('aim_armortype_row');
   if(atRow) atRow.style.display = 'none';
+  // Reset toolkit row
+  populateToolkitSelect();
+  const tkRow = document.getElementById('aim_toolkit_row');
+  if (tkRow) tkRow.style.display = 'none';
+  const tkSel = document.getElementById('aim_toolkit');
+  if (tkSel) tkSel.value = '';
+  const tkPreview = document.getElementById('aim_toolkit_preview');
+  if (tkPreview) { tkPreview.style.display = 'none'; tkPreview.innerHTML = ''; }
+  setAimToolsLocked(false);
   document.querySelectorAll('input[name="aim_armortype"]').forEach(r => r.checked = false);
   const resRow  = document.getElementById('aim_resistance_row');
   const vulnRow = document.getElementById('aim_vulnerability_row');
@@ -3244,12 +3544,32 @@ function aimTagChanged() {
   const atRow     = document.getElementById('aim_armortype_row');
   const isIng     = tag === 'Ingredient';
   const isArmor   = ARMOR_PROF_TAGS.has(tag); // Helmet/Gauntlets/Body Armor/Sabatons
+  const isTools   = tag === 'Tools';
   acRow.style.display   = AC_BONUS_TAGS.has(tag) ? 'block' : 'none';
   if(atRow)   atRow.style.display   = isArmor ? 'block' : 'none';
   if(!isArmor) document.querySelectorAll('input[name="aim_armortype"]').forEach(r => r.checked = false);
   if(wRow)    wRow.style.display    = isIng ? 'none'  : '';
   if(destRow) destRow.style.display = isIng ? 'none'  : '';
   if(ingNote) ingNote.style.display = isIng ? 'block' : 'none';
+  // ── Toolkit row (Tools tag only) ──
+  const tkRow = document.getElementById('aim_toolkit_row');
+  if (tkRow) tkRow.style.display = isTools ? 'block' : 'none';
+  if (isTools) {
+    populateToolkitSelect();
+    // Reset toolkit selection and clear any prior auto-fill
+    const tkSel = document.getElementById('aim_toolkit');
+    if (tkSel) tkSel.value = '';
+    const tkPreview = document.getElementById('aim_toolkit_preview');
+    if (tkPreview) { tkPreview.style.display = 'none'; tkPreview.innerHTML = ''; }
+    ['aim_name','aim_qty','aim_weight','aim_price','aim_desc'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    selectAimCurrency('g');
+    setAimToolsLocked(true);
+  } else {
+    setAimToolsLocked(false);
+  }
   // Show/hide resistance and vulnerability rows for armor items
   const resRow  = document.getElementById('aim_resistance_row');
   const vulnRow = document.getElementById('aim_vulnerability_row');
@@ -3423,10 +3743,23 @@ function buildResVulnDisplay() {
 }
 
 function confirmAddItem() {
+  const tag   = document.getElementById('aim_tag').value;
+  // ── Special handling for Tools: require a kit to be picked ──
+  let toolkitDef = null;
+  if (tag === 'Tools') {
+    const tkSel = document.getElementById('aim_toolkit');
+    toolkitDef = findToolkitDef(tkSel?.value || '');
+    if (!toolkitDef) {
+      if (tkSel) tkSel.style.borderColor = '#ff4444';
+      return;
+    }
+    if (tkSel) tkSel.style.borderColor = '';
+    // Make sure the auto-filled fields are populated (in case the user fiddled)
+    aimToolkitChanged();
+  }
   const name  = document.getElementById('aim_name').value.trim();
   if(!name){ document.getElementById('aim_name').style.borderColor='#ff4444'; return; }
   document.getElementById('aim_name').style.borderColor='';
-  const tag   = document.getElementById('aim_tag').value;
   const qty   = document.getElementById('aim_qty').value.trim() || '1';
   const wt    = document.getElementById('aim_weight').value.trim();
   const prc   = document.getElementById('aim_price').value.trim();
@@ -3462,7 +3795,18 @@ function confirmAddItem() {
   }
   let idx=rows.findIndex(r=>!r.name);
   if(idx===-1){ rows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); idx=rows.length-1; }
-  rows[idx]={name, tag, q:qty, w:wt, p:prc, pc, a:ac, armorType, desc, resistances, vulnerabilities, condition};
+  const newItem = {name, tag, q:qty, w:wt, p:prc, pc, a:ac, armorType, desc, resistances, vulnerabilities, condition};
+  // For Tools: pre-populate the toolkit array with the kit's dispensable goods,
+  // each starting at its max (full) amount and remembering its cap.
+  if (tag === 'Tools' && toolkitDef) {
+    newItem.toolkit = toolkitDef.dispensable.map(d => ({
+      name: d.name,
+      qty:  d.max,
+      max:  d.max
+    }));
+    newItem.toolkitDef = toolkitDef.name; // remember which kit this was
+  }
+  rows[idx] = newItem;
   if (dest === 'steed2') {
     sortTableByTag2(tableId);
     buildTable2(tableId, ['name','q','w','p']);
@@ -4269,7 +4613,10 @@ function openToolkitModal(tableId, rowIdx) {
         color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No tools added yet</div>`;
       return;
     }
-    listEl.innerHTML = item.toolkit.map((t, i) => `
+    listEl.innerHTML = item.toolkit.map((t, i) => {
+      const cap = (t.max != null) ? `<span style="font-family:var(--got);font-size:9px;color:rgba(232,200,74,.4);margin-left:3px;">/ ${t.max}</span>` : '';
+      const atMax = (t.max != null && (t.qty||0) >= t.max);
+      return `
       <div class="inv-tbl-row inv-item-row" onclick="toolkitOpenDetail(${i})"
         title="Click to manage"
         style="cursor:pointer;transition:background .12s;"
@@ -4280,12 +4627,14 @@ function openToolkitModal(tableId, rowIdx) {
           <span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.45);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">Tool</span>
         </div>
         <div class="cell-q" style="display:flex;align-items:center;justify-content:center;">
-          <span style="font-size:13px;">${t.qty||1}</span>
+          <span style="font-size:13px;color:${atMax?'rgba(232,200,74,.55)':'inherit'};">${t.qty||0}</span>${cap}
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   };
 
   const metaStr = [item.w ? item.w + ' kg' : '', item.p || ''].filter(Boolean).join(' · ');
+  const descStr = (item.desc || '').trim();
 
   const isBackpack = tableId === 'bp_items';
   const isSteed    = tableId === 'st_items';
@@ -4318,7 +4667,8 @@ function openToolkitModal(tableId, rowIdx) {
         <h2 style="font-size:19px;margin:0;">${item.name}</h2>
         <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);">Tools</span>
       </div>
-      ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:16px;">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
+      ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:${descStr?'6px':'16px'};">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
+      ${descStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#e8d8a0;text-align:center;margin-bottom:16px;line-height:1.5;padding:0 8px;">${descStr}</div>` : ''}
 
       <div style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:8px;">TOOLKIT CONTENTS</div>
       <!-- Header row -->
@@ -4327,15 +4677,6 @@ function openToolkitModal(tableId, rowIdx) {
         <div class="inv-tbl-hdr-cell itc-q">Q</div>
       </div>
       <div id="toolkit_list" style="max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>
-
-      <!-- Add tool row -->
-      <div style="display:flex;gap:6px;margin-bottom:16px;padding-top:8px;border-top:1px solid rgba(139,106,0,.25);">
-        <input type="text" id="toolkit_new_name" placeholder="Add tool..."
-          style="flex:1;height:30px;font-size:12px;padding:0 8px;"
-          onkeydown="if(event.key==='Enter') toolkitAddTool()">
-        <button onclick="toolkitAddTool()" class="rest-btn"
-          style="padding:4px 12px;font-size:11px;">+ Add</button>
-      </div>
 
       <!-- Weight / Price -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;
@@ -4410,6 +4751,15 @@ function toolkitOpenDetail(idx) {
 
   const o = document.createElement('div');
   o.className = 'modal-overlay'; o.id = 'toolkitDetailModal';
+  const hasMax = (t.max != null);
+  const maxLabel = hasMax
+    ? `<span style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.4);margin-left:6px;">/ ${t.max}</span>`
+    : '';
+  // Predetermined kit entries (with a max) cannot be deleted — they belong to the kit.
+  const detailDeleteBtn = hasMax
+    ? ''
+    : `<button class="rest-btn" onclick="toolkitDetailDelete(${idx})"
+        style="background:#3a0000;border-color:#882222;color:#ff6666;">Delete</button>`;
   o.innerHTML = `<div class="modal" style="max-width:380px;padding:28px 36px;">
     <div style="display:flex;align-items:baseline;justify-content:center;gap:0;margin-bottom:4px;flex-wrap:wrap;">
       <h2 style="font-size:19px;margin:0;">${t.name}</h2>
@@ -4417,13 +4767,15 @@ function toolkitOpenDetail(idx) {
     </div>
 
     <div style="margin:16px 0 14px;border-top:1px solid rgba(139,106,0,.25);padding-top:14px;">
-      <div style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.5px;margin-bottom:10px;text-align:center;">QUANTITY</div>
+      <div style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.5px;margin-bottom:10px;text-align:center;">QUANTITY${hasMax?` <span style="color:rgba(232,200,74,.45);font-size:9px;">(max ${t.max})</span>`:''}</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
         <button onclick="toolkitDetailAdjQty(${idx},-1)"
           style="width:36px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.45);border:none;color:var(--text-gold);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;"
           onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
         <div style="text-align:center;min-width:60px;">
-          <div id="toolkitDetail_qty" style="font-family:var(--got);font-size:28px;color:var(--text-gold);line-height:1;text-shadow:0 0 10px rgba(232,200,74,.4);">${t.qty||1}</div>
+          <div style="display:flex;align-items:baseline;justify-content:center;">
+            <div id="toolkitDetail_qty" style="font-family:var(--got);font-size:28px;color:var(--text-gold);line-height:1;text-shadow:0 0 10px rgba(232,200,74,.4);">${t.qty||0}</div>${maxLabel}
+          </div>
           <div style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.35);letter-spacing:1px;margin-top:3px;">QUANTITY</div>
         </div>
         <button onclick="toolkitDetailAdjQty(${idx},+1)"
@@ -4435,8 +4787,7 @@ function toolkitOpenDetail(idx) {
     <div style="display:flex;gap:8px;margin-top:8px;">
       <button class="rest-btn" onclick="document.getElementById('toolkitDetailModal').remove()"
         style="flex:1;">Close</button>
-      <button class="rest-btn" onclick="toolkitDetailDelete(${idx})"
-        style="background:#3a0000;border-color:#882222;color:#ff6666;">Delete</button>
+      ${detailDeleteBtn}
     </div>
   </div>`;
   o._toolIdx = idx;
@@ -4449,19 +4800,18 @@ function toolkitDetailAdjQty(idx, delta) {
   if (!modal) return;
   const item = tableData[modal._tableId][modal._rowIdx];
   if (!item?.toolkit?.[idx]) return;
-  item.toolkit[idx].qty = Math.max(1, (item.toolkit[idx].qty || 1) + delta);
+  const entry = item.toolkit[idx];
+  let newQty = (entry.qty || 0) + delta;
+  // Floor at 0 (used up)
+  if (newQty < 0) newQty = 0;
+  // Cap at max if defined
+  if (entry.max != null && newQty > entry.max) newQty = entry.max;
+  entry.qty = newQty;
   // Update detail display
   const detailQty = document.getElementById('toolkitDetail_qty');
-  if (detailQty) detailQty.textContent = item.toolkit[idx].qty;
-  // Refresh list row qty
-  const listEl = document.getElementById('toolkit_list');
-  if (listEl) {
-    const rows = listEl.querySelectorAll('.inv-tbl-row');
-    if (rows[idx]) {
-      const qSpan = rows[idx].querySelector('.cell-q span');
-      if (qSpan) qSpan.textContent = item.toolkit[idx].qty;
-    }
-  }
+  if (detailQty) detailQty.textContent = entry.qty;
+  // Refresh full list row (so the "/max" stays in sync)
+  window._toolkitRenderList?.();
 }
 
 function toolkitDetailDelete(idx) {
@@ -4469,6 +4819,8 @@ function toolkitDetailDelete(idx) {
   if (!modal) return;
   const item = tableData[modal._tableId][modal._rowIdx];
   if (!item?.toolkit) return;
+  // Predetermined kit entries (with a max) belong to the kit and cannot be removed.
+  if (item.toolkit[idx]?.max != null) return;
   item.toolkit.splice(idx, 1);
   document.getElementById('toolkitDetailModal')?.remove();
   window._toolkitRenderList?.();
@@ -4479,7 +4831,11 @@ function toolkitAdjQty(idx, delta) {
   if (!modal) return;
   const item = tableData[modal._tableId][modal._rowIdx];
   if (!item.toolkit[idx]) return;
-  item.toolkit[idx].qty = Math.max(1, (item.toolkit[idx].qty || 1) + delta);
+  const entry = item.toolkit[idx];
+  let newQty = (entry.qty || 0) + delta;
+  if (newQty < 0) newQty = 0;
+  if (entry.max != null && newQty > entry.max) newQty = entry.max;
+  entry.qty = newQty;
   window._toolkitRenderList?.();
 }
 
@@ -4487,22 +4843,16 @@ function toolkitDeleteTool(idx) {
   const modal = document.getElementById('toolkitModal');
   if (!modal) return;
   const item = tableData[modal._tableId][modal._rowIdx];
+  // Predetermined kit entries (with a max) can't be removed individually.
+  if (item?.toolkit?.[idx]?.max != null) return;
   item.toolkit.splice(idx, 1);
   window._toolkitRenderList?.();
 }
 
 function toolkitAddTool() {
-  const modal = document.getElementById('toolkitModal');
-  if (!modal) return;
-  const inp = document.getElementById('toolkit_new_name');
-  const name = inp?.value.trim();
-  if (!name) { if(inp) inp.style.borderColor='#ff4444'; return; }
-  inp.style.borderColor = '';
-  const item = tableData[modal._tableId][modal._rowIdx];
-  if (!Array.isArray(item.toolkit)) item.toolkit = [];
-  item.toolkit.push({name, qty: 1});
-  inp.value = '';
-  window._toolkitRenderList?.();
+  // Custom items are no longer allowed — toolkit contents are predetermined by the kit definition.
+  // This function is retained as a no-op so any legacy callers don't error out.
+  return;
 }
 
 function toolkitSave() {
