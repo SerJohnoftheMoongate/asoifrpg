@@ -3174,11 +3174,18 @@ const TAG_COLORS = {
 };
 
 /* Build the small uppercase tag badge that sits beside an item's name.
-   Inspired by .prof-badge but slimmer to fit inline in the inventory rows. */
+   Inspired by .prof-badge but tuned for inline use inside compact inventory rows:
+   • inline-flex so the glyph centres on both axes (default <span> sits on the
+     baseline of the parent's IM Fell text, which floats the chip above the row's
+     visual mid-line — flex + vertical-align:middle anchors it properly).
+   • font-size deliberately small (8.5px) because the GoT font fills its em-square,
+     so 8.5px GoT optically matches ~13px IM Fell next to it.
+   • line-height:1 so the box hugs the glyph and the chip's box height is
+     predictable rather than depending on the font's leading. */
 function tagBadgeHTML(tag) {
   if (!tag) return '';
   const c = TAG_COLORS[tag] || { border:'rgba(232,200,74,.5)', text:'rgba(232,200,74,.7)', bg:'transparent' };
-  return `<span style="font-family:var(--got);font-size:9.5px;color:${c.text};background:${c.bg};border:1.5px solid ${c.border};letter-spacing:.8px;padding:1px 5px;border-radius:2px;margin-left:6px;white-space:nowrap;flex-shrink:0;line-height:1.2;">${tag}</span>`;
+  return `<span style="display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;font-family:var(--got);font-size:8.5px;line-height:1;color:${c.text};background:${c.bg};border:1.5px solid ${c.border};letter-spacing:.9px;padding:3px 6px 2px;border-radius:2px;margin-left:6px;white-space:nowrap;flex-shrink:0;">${tag}</span>`;
 }
 
 /* ── Currency definitions ── */
