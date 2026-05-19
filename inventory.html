@@ -1906,9 +1906,7 @@ function buildTable(containerId, cols) {
     // For dynamic tables we need the real index for item modal
     const realIdx = isDynamic ? rows.indexOf(r) : displayIdx;
     const tag = r.tag || '';
-    const badge = tag
-      ? `<span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.55);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">${tag}</span>`
-      : '';
+    const badge = tagBadgeHTML(tag);
     // Build columns display
     const colsHTML = cols.map(c => {
       if (c === 'name') {
@@ -2262,8 +2260,8 @@ function openItemModal(tableId, rowIdx) {
     <!-- Hidden sync field so itemModalSave always reads correctly -->
     <textarea id="itemMgmt_desc" style="display:none;">${item.desc||''}</textarea>
 
-    <div style="border-top:1px solid rgba(139,106,0,.25);padding-top:14px;margin-top:0;">
-      <div style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.5px;margin-bottom:10px;">DETAILS</div>
+    <div style="border-top:1px solid rgba(139,106,0,.25);padding-top:16px;margin-top:0;">
+      <div style="font-family:var(--got);font-size:13px;color:var(--text-gold);letter-spacing:1.6px;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid rgba(139,106,0,.4);">DETAILS</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr${hasAC?' 1fr':''};gap:6px;margin-bottom:8px;">
         <div>
           <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Weight (kg)</label>
@@ -2274,20 +2272,22 @@ function openItemModal(tableId, rowIdx) {
           <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Price</label>
           <input type="text" id="itemMgmt_p" value="${item.p||''}" placeholder="—"
             style="width:100%;height:28px;font-size:13px;text-align:center;box-sizing:border-box;">
-          <div style="display:flex;margin-top:3px;gap:2px;">
-            ${['g','s','c'].map(k => { const cur = CURRENCIES[k]; const sel = (item.pc||'g')===k; return `<button type="button" id="itemMgmt_pc_${k}" onclick="selectItemMgmtCurrency('${k}')" data-selected="${sel?'1':'0'}" title="${cur.title}" style="flex:1;height:18px;border:1px solid ${sel?cur.color:'rgba(139,106,0,.3)'};background:${sel?cur.activeBg:cur.inactiveBg};cursor:pointer;font-family:var(--got);font-size:8px;color:${sel?cur.activeColor:cur.inactiveColor};letter-spacing:.3px;transition:all .15s;border-radius:2px;">${cur.label}</button>`; }).join('')}
+          <div style="display:flex;justify-content:center;margin-top:4px;gap:4px;">
+            ${['g','s','c'].map(k => { const cur = CURRENCIES[k]; const sel = (item.pc||'g')===k; return `<button type="button" id="itemMgmt_pc_${k}" onclick="selectItemMgmtCurrency('${k}')" data-selected="${sel?'1':'0'}" title="${cur.title}" style="width:22px;height:22px;padding:0;margin:0;border:1px solid ${sel?cur.color:'rgba(139,106,0,.3)'};background:${sel?cur.activeBg:cur.inactiveBg};cursor:pointer;font-family:var(--got);font-size:12px;color:${sel?cur.activeColor:cur.inactiveColor};letter-spacing:0;transition:all .15s;border-radius:2px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;">${cur.label}</button>`; }).join('')}
           </div>
         </div>
         <div>
           <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Quantity</label>
-          <div style="display:flex;align-items:center;height:28px;border:1px solid var(--gold);background:var(--input-bg);border-radius:0;">
+          <div style="display:flex;align-items:center;height:28px;gap:4px;">
             <button onclick="itemModalAdjQty(-1)"
-              style="width:26px;height:100%;border:none;border-right:1px solid rgba(139,106,0,.4);background:rgba(60,40,0,.15);color:rgba(30,20,5,.8);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding-bottom:2px;transition:background .12s;flex-shrink:0;"
-              onmouseover="this.style.background='rgba(139,106,0,.25)'" onmouseout="this.style.background='rgba(60,40,0,.15)'">−</button>
-            <span id="itemMgmt_qty_display" style="flex:1;text-align:center;font-family:'IM Fell English',serif;font-size:14px;font-weight:700;color:#1a1000;">${item.q||'1'}</span>
+              style="width:20px;height:20px;padding:0;margin:0;border:1px solid rgba(180,60,60,.55);background:rgba(60,15,15,.45);color:#ff8a8a;font-family:var(--got);font-size:15px;font-weight:700;cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;flex-shrink:0;"
+              onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
+            <div style="flex:1;height:100%;display:flex;align-items:center;justify-content:center;background:var(--input-bg);border:1px solid var(--gold);min-width:0;">
+              <span id="itemMgmt_qty_display" style="font-family:'IM Fell English',serif;font-size:14px;font-weight:700;color:#1a1000;">${item.q||'1'}</span>
+            </div>
             <button onclick="itemModalAdjQty(+1)"
-              style="width:26px;height:100%;border:none;border-left:1px solid rgba(139,106,0,.4);background:rgba(60,40,0,.15);color:rgba(30,20,5,.8);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding-bottom:2px;transition:background .12s;flex-shrink:0;"
-              onmouseover="this.style.background='rgba(139,106,0,.25)'" onmouseout="this.style.background='rgba(60,40,0,.15)'">+</button>
+              style="width:20px;height:20px;padding:0;margin:0;border:1px solid rgba(60,180,60,.55);background:rgba(15,60,15,.45);color:#8aff8a;font-family:var(--got);font-size:15px;font-weight:700;cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;flex-shrink:0;"
+              onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
           </div>
         </div>
         ${hasAC ? `<div>
@@ -2299,10 +2299,12 @@ function openItemModal(tableId, rowIdx) {
       ${hasAC ? (() => {
         const cond = item.condition || 'decent';
         const effAC = Math.max(0, (parseFloat(item.a)||0) + conditionInfo(cond).mod);
-        return `<div style="margin-top:10px;">
-          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:6px;letter-spacing:.4px;">
-            CONDITION <span id="itemMgmt_cond_effAC" style="color:rgba(136,221,136,.8);margin-left:6px;">→ Effective AC: ${effAC}</span>
-          </label>
+        return `<div style="margin-top:26px;">
+          <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;gap:10px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(139,106,0,.4);">
+            <span></span>
+            <span style="font-family:var(--got);font-size:13px;color:var(--text-gold);letter-spacing:1.6px;">CONDITION</span>
+            <span id="itemMgmt_cond_effAC" style="font-family:var(--got);font-size:10px;color:rgba(136,221,136,.85);letter-spacing:.6px;justify-self:end;">→ Effective AC: ${effAC}</span>
+          </div>
           <div style="display:flex;gap:5px;" id="itemMgmt_cond_btns">
             ${ITEM_CONDITIONS.map(c => {
               const sel = cond === c.key;
@@ -2758,7 +2760,7 @@ function buildTable2(containerId, cols) {
   container.innerHTML = visibleRows.map((r, displayIdx) => {
     const realIdx = rows.indexOf(r);
     const tag = r.tag || '';
-    const badge = tag ? `<span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.55);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">${tag}</span>` : '';
+    const badge = tagBadgeHTML(tag);
     const colsHTML = cols.map(c => {
       if (c === 'name') return `<div class="cell-name" style="display:flex;align-items:center;gap:2px;overflow:hidden;"><span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${r.name||''}</span>${badge}</div>`;
       return `<div class="cell-${c}" style="display:flex;align-items:center;justify-content:center;"><span style="font-size:13px;">${r[c]||''}</span></div>`;
@@ -3134,6 +3136,51 @@ const SLOT_TAGS = {
   shield:  ['Shield'],
 };
 
+/* ── Per-tag colour palette ─────────────────────────────────────────────
+   Each inventory item displays a small tag badge next to its name (e.g.
+   HELMET, TOOLS). The palette gives every category its own border / text /
+   tint so they're scannable at a glance, while still feeling consistent
+   with the gold-on-dark medieval theme.
+─────────────────────────────────────────────────────────────────────────*/
+const TAG_COLORS = {
+  // Armour pieces — steel/slate blue (defensive)
+  'Helmet':     { border:'#8aa4b8', text:'#cfe0ee', bg:'rgba(60,80,100,.28)' },
+  'Body Armor': { border:'#8aa4b8', text:'#cfe0ee', bg:'rgba(60,80,100,.28)' },
+  'Gauntlets':  { border:'#8aa4b8', text:'#cfe0ee', bg:'rgba(60,80,100,.28)' },
+  'Sabatons':   { border:'#8aa4b8', text:'#cfe0ee', bg:'rgba(60,80,100,.28)' },
+  // Shield — deeper steel blue
+  'Shield':     { border:'#6f8bc4', text:'#bccae6', bg:'rgba(50,70,120,.28)' },
+  // Weapon — blood red (offensive)
+  'Weapon':     { border:'#b85a5a', text:'#ecb2b2', bg:'rgba(110,30,30,.28)' },
+  // Archery & Ammunition — forest green / bronze
+  'Archery':    { border:'#7aa64a', text:'#c8e6a4', bg:'rgba(60,90,30,.28)'  },
+  'Ammunition': { border:'#a07235', text:'#e6c590', bg:'rgba(90,55,20,.28)'  },
+  // Cloak — royal purple
+  'Cloak':      { border:'#9b6abf', text:'#d4bce6', bg:'rgba(70,40,110,.28)' },
+  // Ring — gold (matches house style)
+  'Ring':       { border:'var(--gold)', text:'var(--text-gold)', bg:'rgba(139,106,0,.28)' },
+  // Ingredient — herbal green (mostly diverted to pouch)
+  'Ingredient': { border:'#7aaf5a', text:'#c8e6a4', bg:'rgba(40,80,30,.28)' },
+  // Tools — warm bronze
+  'Tools':      { border:'#c8884a', text:'#ecc59a', bg:'rgba(110,70,20,.28)' },
+  // Book — scholar's teal
+  'Book':       { border:'#5aa0b8', text:'#b5d8e6', bg:'rgba(20,80,100,.28)' },
+  // Food — warm amber
+  'Food':       { border:'#d4a85a', text:'#ecd8a8', bg:'rgba(110,80,20,.28)' },
+  // Camping — earthy brown
+  'Camping':    { border:'#a08060', text:'#dac8b0', bg:'rgba(80,60,40,.28)' },
+  // Misc — neutral grey
+  'Misc':       { border:'rgba(170,170,170,.65)', text:'#d0d0d0', bg:'rgba(80,80,80,.28)' },
+};
+
+/* Build the small uppercase tag badge that sits beside an item's name.
+   Inspired by .prof-badge but slimmer to fit inline in the inventory rows. */
+function tagBadgeHTML(tag) {
+  if (!tag) return '';
+  const c = TAG_COLORS[tag] || { border:'rgba(232,200,74,.5)', text:'rgba(232,200,74,.7)', bg:'transparent' };
+  return `<span style="font-family:var(--got);font-size:9.5px;color:${c.text};background:${c.bg};border:1.5px solid ${c.border};letter-spacing:.8px;padding:1px 5px;border-radius:2px;margin-left:6px;white-space:nowrap;flex-shrink:0;line-height:1.2;">${tag}</span>`;
+}
+
 /* ── Currency definitions ── */
 const CURRENCIES = {
   g: { label:'G', title:'Gold Dragons',   color:'#ffd700', activeColor:'#ffd700', activeBg:'rgba(184,134,11,.5)',  inactiveColor:'rgba(255,215,0,.35)',  inactiveBg:'rgba(30,25,10,.4)' },
@@ -3395,10 +3442,20 @@ function findToolkitDef(name) {
   return TOOLKITS.find(t => t.name === name) || null;
 }
 
-/* Build the description string from a toolkit's standard materials */
+/* Plain-text description — used in the Add Item textarea preview and stored in
+   item.desc as a sensible fallback for non-HTML contexts. */
+function toolkitDescriptionText(def) {
+  if (!def || !Array.isArray(def.materials)) return '';
+  return 'Permanent Assets: ' + def.materials.join(', ') + '.';
+}
+
+/* Styled HTML description — used inside the toolkit modal so the label reads as
+   a proper title above the materials list. */
 function toolkitDescription(def) {
   if (!def || !Array.isArray(def.materials)) return '';
-  return 'Contains: ' + def.materials.join(', ') + '.';
+  const title = `<span style="display:block;font-family:var(--got);font-style:normal;font-size:11px;color:var(--text-gold);letter-spacing:1.2px;margin-bottom:4px;">PERMANENT ASSETS</span>`;
+  const body  = def.materials.join(', ') + '.';
+  return title + body;
 }
 
 /* Populate the toolkit <select> in the Add Item modal */
@@ -3461,7 +3518,7 @@ function aimToolkitChanged() {
   const qtyEl  = document.getElementById('aim_qty');    if (qtyEl)    qtyEl.value    = '1';
   const wEl    = document.getElementById('aim_weight'); if (wEl)      wEl.value      = def.weight || '';
   const pEl    = document.getElementById('aim_price');  if (pEl)      pEl.value      = def.price  || '';
-  const dEl    = document.getElementById('aim_desc');   if (dEl)      dEl.value      = toolkitDescription(def);
+  const dEl    = document.getElementById('aim_desc');   if (dEl)      dEl.value      = toolkitDescriptionText(def);
   selectAimCurrency(def.pc || 'g');
   // Build the contents preview
   if (preview) {
@@ -4614,27 +4671,51 @@ function openToolkitModal(tableId, rowIdx) {
       return;
     }
     listEl.innerHTML = item.toolkit.map((t, i) => {
-      const cap = (t.max != null) ? `<span style="font-family:var(--got);font-size:9px;color:rgba(232,200,74,.4);margin-left:3px;">/ ${t.max}</span>` : '';
-      const atMax = (t.max != null && (t.qty||0) >= t.max);
+      const hasMax = (t.max != null);
+      const qty    = (t.qty || 0);
+      const atMax  = hasMax && qty >= t.max;
+      const atZero = qty <= 0;
+      // Stepper button base style — small squares with semantic red/green tints.
+      // The padding:0 and margin:0 overrides are NEEDED to defeat the global
+      // ".modal button { padding:10px 32px; margin-top:8px }" rule (line ~264).
+      const stepperShared = `width:20px;height:20px;padding:0;margin:0;border-radius:2px;font-family:var(--got);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s,opacity .15s;flex-shrink:0;`;
+      const minusBase = `${stepperShared}border:1px solid rgba(180,60,60,.55);background:rgba(60,15,15,.45);color:#ff8a8a;`;
+      const plusBase  = `${stepperShared}border:1px solid rgba(60,180,60,.55);background:rgba(15,60,15,.45);color:#8aff8a;`;
+      const minusStyle = minusBase + (atZero ? 'opacity:.35;cursor:not-allowed;' : '');
+      const plusStyle  = plusBase  + (atMax  ? 'opacity:.35;cursor:not-allowed;' : '');
+      const minusHover = atZero ? '' : `onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''"`;
+      const plusHover  = atMax  ? '' : `onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''"`;
+      const maxFrag = hasMax
+        ? `<span style="font-family:var(--got);font-size:13px;color:rgba(232,200,74,.45);font-weight:400;"> / ${t.max}</span>`
+        : '';
+      // Legacy entries (no max) keep an inline ✕ delete since they were added freeform
+      const legacyDelete = hasMax ? '' : `
+        <button onclick="toolkitDeleteTool(${i})" title="Remove"
+          style="width:20px;height:20px;padding:0;margin:0 0 0 6px;border:1px solid rgba(180,60,60,.5);background:rgba(60,15,15,.4);color:#ff7a7a;font-family:var(--got);font-size:11px;cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
+          onmouseover="this.style.background='rgba(120,30,30,.6)'" onmouseout="this.style.background='rgba(60,15,15,.4)'">✕</button>`;
       return `
-      <div class="inv-tbl-row inv-item-row" onclick="toolkitOpenDetail(${i})"
-        title="Click to manage"
-        style="cursor:pointer;transition:background .12s;"
-        onmouseover="this.style.background='rgba(139,106,0,.15)'"
-        onmouseout="this.style.background=''">
-        <div class="cell-name" style="display:flex;align-items:center;gap:2px;overflow:hidden;">
-          <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${t.name}</span>
-          <span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.45);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">Tool</span>
+      <div style="display:flex;gap:6px;align-items:center;padding:6px 8px;margin-bottom:3px;border-radius:2px;background:rgba(0,0,0,.18);border:1px solid rgba(139,106,0,.18);">
+        <div style="flex:1;display:flex;align-items:center;gap:6px;overflow:hidden;min-width:0;">
+          <span style="font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${t.name}</span>
         </div>
-        <div class="cell-q" style="display:flex;align-items:center;justify-content:center;">
-          <span style="font-size:13px;color:${atMax?'rgba(232,200,74,.55)':'inherit'};">${t.qty||0}</span>${cap}
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <button onclick="toolkitAdjQty(${i},-1)" ${minusHover} style="${minusStyle}">−</button>
+          <div style="min-width:58px;text-align:center;font-family:var(--got);font-size:20px;color:${atZero?'rgba(232,200,74,.45)':'var(--text-gold)'};font-weight:700;line-height:1;text-shadow:${atZero?'none':'0 0 6px rgba(232,200,74,.25)'};">
+            ${qty}${maxFrag}
+          </div>
+          <button onclick="toolkitAdjQty(${i},+1)" ${plusHover} style="${plusStyle}">+</button>
+          ${legacyDelete}
         </div>
       </div>`;
     }).join('');
   };
 
   const metaStr = [item.w ? item.w + ' kg' : '', item.p || ''].filter(Boolean).join(' · ');
-  const descStr = (item.desc || '').trim();
+  // If this item is linked to a known kit definition, derive the description from
+  // the live data so wording changes (e.g. "Contains:" → "Permanent Assets:") apply
+  // to items added under the old wording too. Fall back to whatever was stored.
+  const tkDef   = item.toolkitDef ? findToolkitDef(item.toolkitDef) : null;
+  const descStr = (tkDef ? toolkitDescription(tkDef) : (item.desc || '')).trim();
 
   const isBackpack = tableId === 'bp_items';
   const isSteed    = tableId === 'st_items';
@@ -4668,15 +4749,15 @@ function openToolkitModal(tableId, rowIdx) {
         <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);">Tools</span>
       </div>
       ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:${descStr?'6px':'16px'};">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
-      ${descStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#e8d8a0;text-align:center;margin-bottom:16px;line-height:1.5;padding:0 8px;">${descStr}</div>` : ''}
+      ${descStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:17px;color:#e8d8a0;text-align:center;margin-bottom:16px;line-height:1.7;letter-spacing:.2px;padding:0 12px;">${descStr}</div>` : ''}
 
       <div style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:8px;">TOOLKIT CONTENTS</div>
       <!-- Header row -->
-      <div class="inv-tbl-hdr">
-        <div class="inv-tbl-hdr-cell itc-name">Tool</div>
-        <div class="inv-tbl-hdr-cell itc-q">Q</div>
+      <div style="display:flex;gap:2px;margin-bottom:4px;">
+        <div class="inv-tbl-hdr-cell" style="flex:1;justify-content:flex-start;padding-left:8px;">Dispensable Items</div>
+        <div class="inv-tbl-hdr-cell" style="width:124px;">Quantity</div>
       </div>
-      <div id="toolkit_list" style="max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>
+      <div id="toolkit_list" style="max-height:260px;overflow-y:auto;margin-bottom:12px;"></div>
 
       <!-- Weight / Price -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;
