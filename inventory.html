@@ -3498,6 +3498,14 @@ const TOOLKITS = [
       {name:"Lock Picks", max:10},
       {name:"uses of Ball Bearings", max:10},
     ], weight:"1", price:"8", pc:"g" },
+  { name: "Tinder Box",
+    materials: ["A Flint","Firesteel"],
+    dispensable: [
+      {name:"uses of Kindle", max:10},
+      {name:"Torches", max:5},
+      {name:"uses of cloth", max:10},
+      {name:"uses of oil", max:5},
+    ], weight:"1", price:"1", pc:"g" },
   { name: "Tinker's Tool",
     materials: ["A Whetstone","Needles","Pliers & Tweezers","A small Hammer"],
     dispensable: [
@@ -4855,7 +4863,7 @@ function openToolkitModal(tableId, rowIdx) {
       return `
       <div style="display:flex;gap:6px;align-items:center;padding:6px 8px;margin-bottom:3px;border-radius:2px;background:rgba(0,0,0,.18);border:1px solid rgba(139,106,0,.18);">
         <div style="flex:1;display:flex;align-items:center;gap:6px;overflow:hidden;min-width:0;">
-          <span style="font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${t.name}</span>
+          <span style="font-family:'IM Fell English',serif;font-size:16px;color:#e8d8a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${t.name}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
           <button onclick="toolkitAdjQty(${i},-1)" ${minusHover} style="${minusStyle}">−</button>
