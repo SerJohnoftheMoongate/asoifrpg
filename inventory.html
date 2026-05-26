@@ -68,10 +68,22 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .name-bar input::placeholder{color:rgba(232,200,74,.3)}
 
 /* dropdowns — GoT font */
+/* Dropdown row layout: Origin + Class (+ optional Class-2) on top; Culture + Spec (+ optional Spec-2) below. */
 .header-drops{position:absolute;left:166px;top:80px;width:460px;height:28px;display:flex;gap:5px}
-.header-drops select{flex:1;height:100%;font-family:var(--got);font-size:10px;font-weight:400;text-align:center;border:2px solid var(--gold);background:var(--input-bg);color:#1a1000}
+.header-drops select{flex:1;min-width:0;height:100%;font-family:var(--got);font-size:10px;font-weight:400;text-align:center;border:2px solid var(--gold);background:var(--input-bg);color:#1a1000}
 .header-drops2{position:absolute;left:166px;top:114px;width:460px;height:28px;display:flex;gap:5px}
-.header-drops2 select{width:100%;height:100%;font-family:var(--got);font-size:10px;font-weight:400;text-align:center;border:2px solid var(--gold);background:var(--input-bg);color:#1a1000}
+.header-drops2 select{flex:1;min-width:0;height:100%;font-family:var(--got);font-size:10px;font-weight:400;text-align:center;border:2px solid var(--gold);background:var(--input-bg);color:#1a1000}
+/* When multiclass is active, secondary dropdowns become visible and the row expands to hold three columns */
+.header-drops.multiclass-on,.header-drops2.multiclass-on{width:690px}
+.header-drops.multiclass-on #origin{flex:1.5}  /* origin stays wider as it's a solo in col 1 */
+.header-drops.multiclass-on #class_2,.header-drops2.multiclass-on #spec_2{display:block !important}
+.header-drops2.multiclass-on #culture{flex:1.5}
+
+/* Multiclass toggle — sits just below the dropdowns, subtle until hovered */
+.multiclass-toggle{position:absolute;left:166px;top:148px;display:flex;align-items:center;gap:6px;font-family:var(--got);font-size:9.5px;letter-spacing:1px;color:var(--gold-lt);cursor:pointer;user-select:none;padding:3px 8px;border:1px solid rgba(139,106,0,.35);background:rgba(10,5,0,.3);transition:all .18s}
+.multiclass-toggle:hover{border-color:var(--gold);color:var(--text-gold);background:rgba(30,20,0,.5)}
+.multiclass-toggle input{margin:0;cursor:pointer;accent-color:var(--gold)}
+.multiclass-toggle span{text-transform:uppercase}
 
 /* rest buttons */
 .rest-buttons{position:absolute;right:166px;top:80px;display:flex;flex-direction:column;gap:6px;align-items:stretch}
@@ -587,9 +599,9 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .eq-slot-label{font-family:var(--got);font-size:8px;color:rgba(232,200,74,.45);letter-spacing:.5px;line-height:1;margin-top:2px;}
 .eq-slot-item{font-size:15px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;}
 .eq-slot-item.empty{color:rgba(255,255,255,.2);font-style:italic;font-size:13px;}
-.eq-slot-stats{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;margin-left:6px;gap:1px;}
+.eq-slot-stats{display:flex;flex-direction:column;align-items:stretch;flex-shrink:0;margin-left:6px;gap:4px;}
 .eq-slot-ac{font-size:14px;color:var(--text-gold);line-height:1.2;white-space:nowrap;letter-spacing:.5px;}
-.eq-slot-wp{font-size:14px;color:rgba(232,200,74,.5);line-height:2.5;white-space:nowrap;}
+.eq-slot-wp{font-size:13px;color:rgba(232,200,74,.55);line-height:1.2;white-space:nowrap;}
 /* ── PAGE-TAB NAV ── */
 .nav-tab-active{background:rgba(139,106,0,.45)!important;border-color:var(--gold)!important;color:var(--text-gold)!important;font-weight:700;letter-spacing:.5px;box-shadow:inset 0 -2px 0 var(--gold);}
 .nav-tab-other{background:rgba(30,22,0,.4)!important;border-color:rgba(139,106,0,.45)!important;color:rgba(200,180,100,.75)!important;}
@@ -615,12 +627,19 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
   <div class="header-drops" onclick="event.stopPropagation()">
     <select id="origin" onchange="applyOriginProfs()"><option value="">— Origin —</option><option>The Vale</option><option>The Westerlands</option><option>Dorne</option><option>The Crownlands</option><option>The North</option><option>The Iron Islands</option><option>The Riverlands</option><option>The Reach</option><option>The Stormlands</option></select>
-    <select id="class_" onchange="updateSpecOptions(true);updateKnightImage()"><option value="">— Class —</option><option>Warrior</option><option>Survivalist</option><option>Priest</option><option>Envoy</option><option>Skulker</option></select>
-    <select id="spec" onchange="applySpecFeatures()"><option value="">— Specialisation —</option></select>
+    <select id="class_" onchange="updateSpecOptions(true);updateKnightImage()"><option value="">— Class —</option></select>
+    <!-- Secondary class+spec dropdowns — hidden unless multiclass is toggled on -->
+    <select id="class_2" onchange="updateSpecOptions2(true)" style="display:none"><option value="">— 2nd Class —</option></select>
   </div>
   <div class="header-drops2" onclick="event.stopPropagation()">
     <select id="culture" onchange="applyCultureBonus()"><option value="">— Culture —</option></select>
+    <select id="spec" onchange="applySpecFeatures()"><option value="">— Specialisation —</option></select>
+    <select id="spec_2" onchange="applySpecFeatures()" style="display:none"><option value="">— 2nd Specialisation —</option></select>
   </div>
+  <label class="multiclass-toggle" onclick="event.stopPropagation()" title="Enable a secondary class & specialisation.">
+    <input type="checkbox" id="multiclass_toggle" onchange="toggleMulticlass()">
+    <span>⚔ Multiclass</span>
+  </label>
 <div class="rest-buttons" onclick="event.stopPropagation()">
   <div style="display:flex;gap:8px;">
     <button id="shortRestBtn" class="rest-btn" onclick="doRest('short')"><img class="ri" src="Images/Short Rest Icon.webp" alt="">SHORT REST</button>
@@ -672,9 +691,9 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div>
     </div>
 
-    <!-- Resistances & Vulnerabilities (active when 3 pieces of same armor type) -->
+    <!-- Armor Set Effects (active when 3+ pieces of same armor type) -->
     <div class="inv-dc-block" id="resVulnBlock" style="display:none;">
-      <div class="sec" style="font-size:11px;margin-bottom:4px;">Resistances &amp; Vulnerabilities</div>
+      <div class="sec" style="font-size:11px;margin-bottom:4px;">Armor Set Effects</div>
       <div id="resVulnContent" style="font-family:'IM Fell English',serif;font-size:12px;color:var(--white);line-height:1.6;padding:4px 0;"></div>
     </div>
 
@@ -994,8 +1013,9 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div>
       <div id="aim_ac_row" style="display:none;">
         <label class="aim-lbl" style="font-size:10px;">AC Bonus</label>
-        <input type="text" id="aim_ac" placeholder="+2"
-          style="width:100%;height:36px;font-size:15px;text-align:center;font-weight:700;">
+        <input type="text" id="aim_ac" placeholder="Fill in!"
+          style="width:100%;height:36px;font-size:15px;text-align:center;font-weight:700;"
+          oninput="this.style.borderColor='';">
       </div>
     </div>
 
@@ -1314,6 +1334,7 @@ function uploadBg(e) {
   const skip = ['INPUT','SELECT','TEXTAREA','BUTTON','IMG'];
   if (skip.includes(e.target.tagName) || e.target.closest('.portrait') ||
       e.target.closest('.name-bar') || e.target.closest('.header-drops') ||
+      e.target.closest('.header-drops2') || e.target.closest('.multiclass-toggle') ||
       e.target.closest('.rest-buttons')) return;
   const inp = document.getElementById('fBg');
   inp.onchange = ev => {
@@ -1618,6 +1639,17 @@ function load() {
   });
 
   // Dropdowns need rehydration
+  // Rebuild the class lists first so class_ / class_2 have options before we restore values
+  _rebuildClassDropdowns();
+  if (d.class_) {
+    const clsEl = document.getElementById('class_');
+    if (clsEl) { const m = [...clsEl.options].find(o => o.textContent === d.class_); if (m) clsEl.value = m.value; }
+  }
+  if (d.class_2) {
+    const cls2El = document.getElementById('class_2');
+    if (cls2El) { const m = [...cls2El.options].find(o => o.textContent === d.class_2); if (m) cls2El.value = m.value; }
+  }
+  _rebuildClassDropdowns();
   updateSpecOptions(false);
   // Restore spec after options are populated (generic restore can't set it — options don't exist yet)
   if (d.spec) {
@@ -1625,6 +1657,20 @@ function load() {
     if (specEl) {
       const match = [...specEl.options].find(o => o.textContent === d.spec);
       if (match) specEl.value = match.value;
+    }
+  }
+  // ── Multiclass rehydration ──
+  _isMulticlass = !!d.multiclass_toggle;
+  const _mcChk = document.getElementById('multiclass_toggle');
+  if (_mcChk) _mcChk.checked = _isMulticlass;
+  // Visibility only — don't call toggleMulticlass() here (it would wipe data when off)
+  document.querySelector('.header-drops') ?.classList.toggle('multiclass-on', _isMulticlass);
+  document.querySelector('.header-drops2')?.classList.toggle('multiclass-on', _isMulticlass);
+  if (document.getElementById('class_2')?.value) {
+    updateSpecOptions2(false);
+    if (d.spec_2) {
+      const spec2El = document.getElementById('spec_2');
+      if (spec2El) { const m = [...spec2El.options].find(o => o.textContent === d.spec_2); if (m) spec2El.value = m.value; }
     }
   }
   const _loadedOrigin = document.getElementById('origin') ? document.getElementById('origin').value : '';
@@ -1976,10 +2022,18 @@ function buildEquippedColumn() {
       const d = slotData[si.id];
       const occupied = d && d.name;
       const profOk   = !occupied || isItemProficient({tag: d.tag, armorType: d.armorType});
-      const acStr = occupied && d.ac ? 'AC +' + d.ac : (occupied ? '' : '');
-      const wpParts = [];
-      if (occupied && d.w) wpParts.push(d.w + ' kg');
-      if (occupied && d.p) wpParts.push(d.p);
+      // AC badge — styled like the Total AC box (metallic silver gradient + glow)
+      const acBadge = occupied && d.ac
+        ? `<div style="display:flex;align-items:center;justify-content:center;gap:3px;padding:2px 9px;border-radius:3px;border:1px solid #aaa;background:linear-gradient(135deg,#1a1a1a,#6e6e6e,#1a1a1a);color:#f0f0f0;font-family:var(--got);font-size:12px;letter-spacing:.5px;text-shadow:0 0 4px rgba(255,255,255,.4);box-shadow:0 0 5px rgba(180,180,180,.25);white-space:nowrap;">
+            <span style="font-size:8px;opacity:.8;">AC</span><span style="font-weight:700;">+${d.ac}</span>
+          </div>`
+        : '';
+      // KG badge — same shape & width as the AC badge but a cream box with theme-gold text
+      const kgBadge = occupied && d.w
+        ? `<div style="display:flex;align-items:center;justify-content:center;gap:3px;padding:2px 9px;border-radius:3px;border:1px solid var(--gold);background:var(--input-bg);color:var(--gold-dk);font-family:var(--got);font-size:12px;letter-spacing:.5px;box-shadow:0 0 4px rgba(184,134,11,.2);white-space:nowrap;">
+            <span style="font-size:8px;opacity:.75;">KG</span><span style="font-weight:700;">${d.w}</span>
+          </div>`
+        : '';
       const slotBorder  = occupied && !profOk ? 'border-bottom:1px solid rgba(220,50,50,.5);' : '';
       const nameStyle   = occupied && !profOk ? 'color:#ff6666;' : '';
       const noProfNote  = occupied && !profOk
@@ -1988,16 +2042,33 @@ function buildEquippedColumn() {
       const atBadge = occupied && d.armorType
         ? `<div style="font-family:var(--got);font-size:7px;color:rgba(232,200,74,.4);margin-top:1px;">${d.armorType}</div>`
         : '';
-      return `<div class="eq-static-slot${occupied ? ' occupied' : ''}" onclick="clickEquippedSlot('${si.id}')" title="${occupied ? d.name : 'Click to equip — ' + si.label}" style="${slotBorder}">
+      // Per-piece resistance (green) / vulnerability (red) tags — stacked vertically
+      // in a centered middle column, top-aligned with the label/name/AC row.
+      const resArr  = occupied && Array.isArray(d.resistances)    ? d.resistances    : [];
+      const vulnArr = occupied && Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [];
+      const rvTagStyle = (col) =>
+        `display:inline-flex;align-items:center;justify-content:center;font-family:var(--got);font-size:7.5px;line-height:1;letter-spacing:.4px;padding:2px 6px 1px;border-radius:2px;border:1px solid ${col.bd};background:${col.bg};color:${col.fg};white-space:nowrap;`;
+      const resCol  = { bd:'rgba(90,191,90,.6)',  bg:'rgba(20,60,20,.45)', fg:'#9ce69c' };
+      const vulnCol = { bd:'rgba(223,90,90,.6)',   bg:'rgba(70,15,15,.45)', fg:'#f0a0a0' };
+      const rvTags = (resArr.length || vulnArr.length)
+        ? `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;padding-top:1px;min-width:0;">
+            <div style="display:inline-flex;flex-direction:column;align-items:stretch;gap:3px;">
+              ${resArr.map(r => `<span title="Resistant to ${r}" style="${rvTagStyle(resCol)}">▲ ${r}</span>`).join('')}
+              ${vulnArr.map(v => `<span title="Vulnerable to ${v}" style="${rvTagStyle(vulnCol)}">▼ ${v}</span>`).join('')}
+            </div>
+          </div>`
+        : '<div style="flex:1;min-width:0;"></div>';
+      return `<div class="eq-static-slot${occupied ? ' occupied' : ''}" onclick="clickEquippedSlot('${si.id}')" title="${occupied ? d.name : 'Click to equip — ' + si.label}" style="${slotBorder}align-items:flex-start;">
         <img src="${si.icon}" class="eq-slot-thumb${occupied ? ' occupied' : ''}" alt="${si.label}" onerror="this.style.opacity='.3'" style="${occupied && !profOk ? 'border-color:rgba(220,50,50,.7);' : ''}">
-        <div class="eq-slot-body">
+        <div class="eq-slot-body" style="flex:0 1 auto;max-width:55%;">
           <div class="eq-slot-label">${si.label}</div>
           <div class="eq-slot-item${occupied ? '' : ' empty'}" style="${nameStyle}">${occupied ? d.name : '— Empty —'}</div>
           ${noProfNote}${atBadge}
         </div>
+        ${rvTags}
         ${occupied ? `<div class="eq-slot-stats">
-          ${acStr ? `<div class="eq-slot-ac">${acStr}</div>` : ''}
-          ${wpParts.length ? `<div class="eq-slot-wp">${wpParts.join(' · ')}</div>` : ''}
+          ${acBadge}
+          ${kgBadge}
         </div>` : ''}
       </div>`;
     }).join('');
@@ -2049,6 +2120,15 @@ function openEquippedItemDetail(slotId) {
           }).join('')}
         </div>
       </div>` : '';
+  // Per-piece resistance / vulnerability summary (now an individual-piece trait)
+  const _resArr  = Array.isArray(d.resistances)    ? d.resistances    : [];
+  const _vulnArr = Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [];
+  const rvBlock = (_resArr.length || _vulnArr.length)
+    ? `<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px;">
+        ${_resArr.map(r => `<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--got);font-size:9px;letter-spacing:.4px;padding:3px 9px;border-radius:3px;border:1px solid rgba(90,191,90,.6);background:rgba(20,60,20,.4);color:#9ce69c;">▲ Resistant: ${r}</span>`).join('')}
+        ${_vulnArr.map(v => `<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--got);font-size:9px;letter-spacing:.4px;padding:3px 9px;border-radius:3px;border:1px solid rgba(223,90,90,.6);background:rgba(70,15,15,.4);color:#f0a0a0;">▼ Vulnerable: ${v}</span>`).join('')}
+      </div>`
+    : '';
   const o = document.createElement('div');
   o.className = 'modal-overlay'; o.id = 'equippedDetailModal';
   o._slotId = slotId;
@@ -2056,7 +2136,8 @@ function openEquippedItemDetail(slotId) {
     <h2 style="font-size:19px;margin-bottom:4px;text-align:center;">${d.name}</h2>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:${metaStr?'6px':'10px'}">${SLOT_NAMES[slotId]||slotId}</p>
     ${metaStr ? `<p style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.65);text-align:center;margin-bottom:${(d.desc||hasAC)?'12px':'16px'};">${metaStr}</p>` : ''}
-    ${hasAC ? `<div style="text-align:center;margin-bottom:${d.desc?'10px':'0'};">${condBadge}</div>` : ''}
+    ${hasAC ? `<div style="text-align:center;margin-bottom:${(d.desc||rvBlock)?'10px':'0'};">${condBadge}</div>` : ''}
+    ${rvBlock}
     ${d.desc ? `<div style="position:relative;text-align:center;padding:14px 28px;margin-bottom:14px;">
         <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:80%;height:1px;background:linear-gradient(to right,transparent,rgba(200,184,122,.45),transparent);"></div>
         <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:17px;color:#e8d8a0;text-align:center;line-height:1.7;margin:0;letter-spacing:.2px;">${d.desc}</p>
@@ -3538,7 +3619,7 @@ function aimToolkitChanged() {
 function openAddItemModal() {
   // Reset form
   ['aim_name','aim_qty','aim_weight','aim_price','aim_ac','aim_desc'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.value='';
+    const el=document.getElementById(id); if(el){ el.value=''; el.style.borderColor=''; }
   });
   selectAimCurrency('g'); // default to Gold Dragons
   const tagSel=document.getElementById('aim_tag');
@@ -3727,10 +3808,17 @@ function aimResVulnChanged(type) {
   });
 }
 
-/* ── Resistances & Vulnerabilities display ──────────────────────────────
+/* ── Armor Set Effects display ──────────────────────────────────────────
    Rule: only active when 3+ pieces of the SAME armor type (Light/Medium/Heavy)
    are equipped among: head, gloves, boots, armor.
-   The resistances and vulnerabilities of that armor type are shown.
+
+   Resistances & vulnerabilities are NO LONGER part of this set mechanic —
+   they now apply per individual armor piece and are shown as tags on each
+   equipped slot (see buildEquippedColumn).
+
+   The set mechanic now grants:
+     • Movement-speed penalty by weight class (Heavy −10 ft, Medium −5 ft).
+     • Heavy only: disadvantage on attacks made with a ranged weapon.
    Mixed types are ignored.
 ─────────────────────────────────────────────────────────────────────── */
 function buildResVulnDisplay() {
@@ -3756,51 +3844,37 @@ function buildResVulnDisplay() {
     return;
   }
 
-  // Gather resistances and vulnerabilities from the 3+ pieces of the active type
-  const allRes  = new Set();
-  const allVuln = new Set();
-  armorSlots.forEach(slotId => {
-    const d = slotData[slotId];
-    if (d && d.name && d.armorType === activeType) {
-      (d.resistances || []).forEach(r => allRes.add(r));
-      (d.vulnerabilities || []).forEach(v => allVuln.add(v));
-    }
-  });
-
-  // Movement speed penalty for wearing 3+ pieces of the same armor type
-  const MOVEMENT_PENALTIES = {
-    'Heavy':  { ft: -10, label: '−10 ft Movement Speed' },
-    'Medium': { ft:  -5, label: '−5 ft Movement Speed'  },
-    'Light':  { ft:   0, label: null },
+  // Set effects by weight class
+  const SET_EFFECTS = {
+    'Heavy':  { ft: -10, move: '−10 ft Movement Speed', rangedDisadv: true  },
+    'Medium': { ft:  -5, move: '−5 ft Movement Speed',  rangedDisadv: false },
+    'Light':  { ft:   0, move: null,                    rangedDisadv: false },
   };
-  const movePenalty = MOVEMENT_PENALTIES[activeType] || null;
+  const eff = SET_EFFECTS[activeType] || null;
 
-  // Show the block as long as there's either a penalty or res/vuln to display
-  const hasMoveEffect = movePenalty && movePenalty.ft !== 0;
-  if (allRes.size === 0 && allVuln.size === 0 && !hasMoveEffect) {
+  const hasMoveEffect    = eff && eff.ft !== 0;
+  const hasRangedDisadv  = eff && eff.rangedDisadv;
+
+  // Nothing to show for this set (e.g. a Light set with no penalties)
+  if (!hasMoveEffect && !hasRangedDisadv) {
     block.style.display = 'none';
     return;
   }
 
   block.style.display = 'block';
-  let html = `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:4px;">${activeType.toUpperCase()} ARMOR SET (${Object.values(typeCounts).reduce((a,b)=>a+b,0)} / 4 pieces)</div>`;
+  const totalPieces = Object.values(typeCounts).reduce((a,b)=>a+b,0);
+  let html = `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:4px;">${activeType.toUpperCase()} ARMOR SET (${totalPieces} / 4 pieces)</div>`;
 
   if (hasMoveEffect) {
     html += `<div style="margin-bottom:3px;">
       <span style="font-family:var(--got);font-size:9px;color:#d4a040;letter-spacing:.4px;">⚠ Penalty: </span>
-      <span style="font-family:'IM Fell English',serif;font-size:12px;color:#e8c07a;">${movePenalty.label}</span>
+      <span style="font-family:'IM Fell English',serif;font-size:12px;color:#e8c07a;">${eff.move}</span>
     </div>`;
   }
-  if (allRes.size > 0) {
-    html += `<div style="margin-bottom:3px;">
-      <span style="font-family:var(--got);font-size:9px;color:#5abf5a;letter-spacing:.4px;">✦ Resistant: </span>
-      <span style="font-family:'IM Fell English',serif;font-size:12px;color:#8cdf8c;">${[...allRes].join(', ')}</span>
-    </div>`;
-  }
-  if (allVuln.size > 0) {
+  if (hasRangedDisadv) {
     html += `<div>
-      <span style="font-family:var(--got);font-size:9px;color:#df5a5a;letter-spacing:.4px;">✦ Vulnerable: </span>
-      <span style="font-family:'IM Fell English',serif;font-size:12px;color:#df8c8c;">${[...allVuln].join(', ')}</span>
+      <span style="font-family:var(--got);font-size:9px;color:#d4a040;letter-spacing:.4px;">⚠ Penalty: </span>
+      <span style="font-family:'IM Fell English',serif;font-size:12px;color:#e8c07a;">Disadvantage on ranged weapon attacks</span>
     </div>`;
   }
   content.innerHTML = html;
@@ -3824,12 +3898,18 @@ function confirmAddItem() {
   const name  = document.getElementById('aim_name').value.trim();
   if(!name){ document.getElementById('aim_name').style.borderColor='#ff4444'; return; }
   document.getElementById('aim_name').style.borderColor='';
+  // ── AC Bonus is required for armor pieces & shields ──
+  const ac    = AC_BONUS_TAGS.has(tag) ? (document.getElementById('aim_ac').value.trim()) : '';
+  if (AC_BONUS_TAGS.has(tag) && !ac) {
+    const acEl = document.getElementById('aim_ac');
+    if (acEl) { acEl.style.borderColor = '#ff4444'; acEl.focus(); }
+    return;
+  }
   const qty   = document.getElementById('aim_qty').value.trim() || '1';
   const wt    = document.getElementById('aim_weight').value.trim();
   const prc   = document.getElementById('aim_price').value.trim();
   const pc    = getAimCurrency();
   const desc  = document.getElementById('aim_desc')?.value.trim() || '';
-  const ac    = AC_BONUS_TAGS.has(tag) ? (document.getElementById('aim_ac').value.trim()) : '';
   const armorType = ARMOR_PROF_TAGS.has(tag)
     ? (document.querySelector('input[name="aim_armortype"]:checked')?.value || '')
     : '';
@@ -4033,9 +4113,81 @@ const ORIGIN_CULTURES = {
   'Dorne':            ['Salt-Dornish','Sand-Dornish','Stone-Dornish'],
 };
 
+/* ── Multiclass state ── */
+let _isMulticlass = false;
+
+/* Rebuild both class dropdowns from CLASS_SPECS, each excluding the other's
+   current selection so you can't pick the same class twice. Preserves the
+   current selections where still valid. */
+function _rebuildClassDropdowns() {
+  const allClasses  = Object.keys(CLASS_SPECS);
+  const primaryEl   = document.getElementById('class_');
+  const secondaryEl = document.getElementById('class_2');
+  if (!primaryEl || !secondaryEl) return;
+  // If the two ended up equal (e.g. stale saved state), clear the secondary
+  if (primaryEl.value && primaryEl.value === secondaryEl.value) secondaryEl.value = '';
+  const rebuild = (el, placeholder, excludeVal) => {
+    const keep = el.value;
+    el.innerHTML = `<option value="">${placeholder}</option>`;
+    allClasses.forEach(c => {
+      if (c === excludeVal) return;
+      const o = document.createElement('option');
+      o.textContent = c;
+      el.appendChild(o);
+    });
+    if (keep && keep !== excludeVal) el.value = keep;
+  };
+  rebuild(primaryEl,   '— Class —',     secondaryEl.value);
+  rebuild(secondaryEl, '— 2nd Class —', primaryEl.value);
+}
+
+/* Populate the secondary Specialisation dropdown for the selected 2nd class. */
+function updateSpecOptions2(showModal) {
+  _rebuildClassDropdowns();
+  const cls = document.getElementById('class_2').value;
+  const sel = document.getElementById('spec_2');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— 2nd Specialisation —</option>';
+  const opts = CLASS_SPECS[cls] || [];
+  opts.forEach(s => {
+    const o = document.createElement('option');
+    o.textContent = s;
+    sel.appendChild(o);
+  });
+  if (prev && opts.includes(prev)) sel.value = prev;
+  sel.disabled = opts.length === 0;
+  applySpecFeatures();
+}
+
+/* Toggle multiclass on/off. When turning off, wipe the secondary class/spec
+   so there are no orphaned selections, and hide the secondary UI. */
+function toggleMulticlass() {
+  const chk = document.getElementById('multiclass_toggle');
+  _isMulticlass = !!(chk && chk.checked);
+  document.querySelector('.header-drops') ?.classList.toggle('multiclass-on', _isMulticlass);
+  document.querySelector('.header-drops2')?.classList.toggle('multiclass-on', _isMulticlass);
+  if (!_isMulticlass) {
+    const c2 = document.getElementById('class_2'); if (c2) c2.value = '';
+    const s2 = document.getElementById('spec_2');  if (s2) { s2.value = ''; s2.innerHTML = '<option value="">— 2nd Specialisation —</option>'; s2.disabled = true; }
+  } else if (document.getElementById('class_2').value) {
+    updateSpecOptions2(false);
+  }
+  _rebuildClassDropdowns();
+  _saveData();
+}
+
 /* Populate the Specialisation dropdown for the selected class and restore
    the previously saved value. No skill-choice modal is shown here. */
 function updateSpecOptions(showModal) {
+  // Keep both class dropdowns' exclusion rule in sync
+  _rebuildClassDropdowns();
+  // If the rebuild wiped the secondary (primary changed to match it), clear its spec
+  const cls2 = document.getElementById('class_2');
+  if (cls2 && !cls2.value) {
+    const spec2 = document.getElementById('spec_2');
+    if (spec2) { spec2.value = ''; spec2.innerHTML = '<option value="">— 2nd Specialisation —</option>'; spec2.disabled = true; }
+  }
   const cls  = document.getElementById('class_').value;
   const sel  = document.getElementById('spec');
   const prev = sel.value;
@@ -5284,6 +5436,7 @@ function updateKnightImage() {
 /* ── Init ── */
 window.addEventListener('DOMContentLoaded', ()=>{
   buildAimConditionBtns('decent'); // pre-populate condition selector
+  _rebuildClassDropdowns();        // populate class / 2nd-class option lists
   buildAllTables();
   load();
   buildAllTables(); // re-render tables with loaded data
