@@ -2280,7 +2280,7 @@ function unequipItem(slotId) {
   const rows = tableData['st_items'];
   let ri = rows.findIndex(r => !r.name);
   if (ri === -1) { rows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = rows.length - 1; }
-  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'', armorType: d.armorType||'', ammo: Array.isArray(d.ammo) ? d.ammo : [], desc: d.desc||'', resistances: Array.isArray(d.resistances) ? d.resistances : [], vulnerabilities: Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [], condition: d.condition||'decent', pc: d.pc||'g' };
+  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'', armorType: d.armorType||'', ammo: Array.isArray(d.ammo) ? d.ammo : [], desc: d.desc||'', resistances: Array.isArray(d.resistances) ? d.resistances : [], vulnerabilities: Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [], condition: d.condition||'decent', pc: d.pc||'g', cap: d.cap, catalogRef: d.catalogRef };
   sortTableByTag('st_items');
   delete slotData[slotId];
   updateSlotUI(slotId);
@@ -3382,13 +3382,13 @@ const CATALOGS = {
     { name:"Net",             w:"1.5", p:"5",  pc:"s", group:"Martial Ranged" },
   ],
   Shield: [
-    { name:"Light Wooden Round Shield", w:"1", p:"35", pc:"c" },
-    { name:"Hide Covered Round Shield", w:"1", p:"3",  pc:"s" },
-    { name:"Steel Buckler Shield",      w:"1", p:"6",  pc:"s" },
-    { name:"Heater Shield",             w:"2", p:"5",  pc:"g" },
-    { name:"Kite Shield",               w:"2", p:"8",  pc:"g" },
-    { name:"Pavise Shield",             w:"5", p:"8",  pc:"g" },
-    { name:"Hide Covered Pavise Shield", w:"6", p:"14", pc:"g" },
+    { name:"Light Wooden Round Shield", w:"1", p:"35", pc:"c", ac:"1" },
+    { name:"Hide Covered Round Shield", w:"1", p:"3",  pc:"s", ac:"1" },
+    { name:"Steel Buckler Shield",      w:"1", p:"6",  pc:"s", ac:"1" },
+    { name:"Heater Shield",             w:"2", p:"5",  pc:"g", ac:"2" },
+    { name:"Kite Shield",               w:"2", p:"8",  pc:"g", ac:"2" },
+    { name:"Pavise Shield",             w:"5", p:"8",  pc:"g", ac:"2" },
+    { name:"Hide Covered Pavise Shield", w:"6", p:"14", pc:"g", ac:"2" },
   ],
   Quiver: [
     { name:"Sackcloth Quiver",              w:"0.2", p:"20", pc:"c", cap:10 },
@@ -3399,6 +3399,28 @@ const CATALOGS = {
     { name:"Regal Gold Inlaid Quiver",      w:"0.6", p:"15", pc:"g", cap:60 },
   ],
 };
+
+/* ══════════════════════════════════════════════════════════
+   AMMUNITION TYPES — arrows & bolts that go inside a Quiver
+   ----------------------------------------------------------------
+   To adjust, edit the fields below.
+     • dmg      = damage line shown on the chip (e.g. "+1d4 piercing")
+     • props    = array of property tags (e.g. ["Bleeding"])
+     • p / pc   = price amount / currency ('g'/'s'/'c')   [reference only]
+══════════════════════════════════════════════════════════ */
+const AMMO_TYPES = [
+  { name:"Bolt",            dmg:"Regular DMG",   props:[],                    p:"2", pc:"c" },
+  { name:"Steel Bolt",      dmg:"+1d4 piercing", props:[],                    p:"4", pc:"c" },
+  { name:"Arrow",           dmg:"Regular DMG",   props:[],                    p:"1", pc:"c" },
+  { name:"Barbed Arrow",    dmg:"+1d4 slashing", props:["Bleeding"],          p:"4", pc:"s" },
+  { name:"Bodkin Arrow",    dmg:"+1d4 piercing", props:["Armor Piercing"],    p:"4", pc:"s" },
+  { name:"Broadhead Arrow", dmg:"+1d6 piercing", props:[],                    p:"6", pc:"s" },
+];
+
+/* Find an ammo type definition by name */
+function findAmmoType(name) {
+  return AMMO_TYPES.find(a => a.name === name) || null;
+}
 
 /* Tags that use the catalog picker in the Add Item modal */
 const CATALOG_TAGS = new Set(['Weapon','Archery','Shield','Quiver']);
@@ -3434,8 +3456,8 @@ function populateCatalogSelect(tag) {
    too, unless the "Custom name" toggle is on. */
 function setAimCatalogLocked(locked) {
   const customOn = document.getElementById('aim_catalog_customname')?.checked;
-  // weight + price are always locked in catalog mode
-  ['aim_weight','aim_price'].forEach(id => {
+  // weight + price + AC (shields) are always locked in catalog mode
+  ['aim_weight','aim_price','aim_ac'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.readOnly = locked;
@@ -3475,6 +3497,11 @@ function aimCatalogChanged() {
   const wEl = document.getElementById('aim_weight'); if (wEl) wEl.value = entry.w || '';
   const pEl = document.getElementById('aim_price');  if (pEl) pEl.value = entry.p || '';
   selectAimCurrency(entry.pc || 'g');
+  // Shields carry a predetermined AC bonus — fill and lock it
+  if (entry.ac != null) {
+    const acEl = document.getElementById('aim_ac');
+    if (acEl) { acEl.value = '+' + entry.ac; acEl.style.borderColor = ''; }
+  }
   // Fill the name only when not using a custom one
   if (!customOn) {
     const nameEl = document.getElementById('aim_name');
@@ -4285,12 +4312,12 @@ function equipItemFromSlot(slotId, srcTable, rowIdx, modalId) {
     const returnRows = tableData['st_items'];
     let ri = returnRows.findIndex(r => !r.name);
     if (ri === -1) { returnRows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = returnRows.length - 1; }
-    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'', armorType: existing.armorType||'', ammo: Array.isArray(existing.ammo) ? existing.ammo : [], desc: existing.desc||'', resistances: Array.isArray(existing.resistances) ? existing.resistances : [], vulnerabilities: Array.isArray(existing.vulnerabilities) ? existing.vulnerabilities : [], condition: existing.condition||'decent', pc: existing.pc||'g' };
+    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'', armorType: existing.armorType||'', ammo: Array.isArray(existing.ammo) ? existing.ammo : [], desc: existing.desc||'', resistances: Array.isArray(existing.resistances) ? existing.resistances : [], vulnerabilities: Array.isArray(existing.vulnerabilities) ? existing.vulnerabilities : [], condition: existing.condition||'decent', pc: existing.pc||'g', cap: existing.cap, catalogRef: existing.catalogRef };
     sortTableByTag('st_items');
   }
 
   // Equip item into slotData — preserve ammo array for Ammunition items
-  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'', armorType: item.armorType||'', ammo: Array.isArray(item.ammo) ? item.ammo : [], desc: item.desc||'', resistances: Array.isArray(item.resistances) ? item.resistances : [], vulnerabilities: Array.isArray(item.vulnerabilities) ? item.vulnerabilities : [], condition: item.condition||'decent', pc: item.pc||'g' };
+  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'', armorType: item.armorType||'', ammo: Array.isArray(item.ammo) ? item.ammo : [], desc: item.desc||'', resistances: Array.isArray(item.resistances) ? item.resistances : [], vulnerabilities: Array.isArray(item.vulnerabilities) ? item.vulnerabilities : [], condition: item.condition||'decent', pc: item.pc||'g', cap: item.cap, catalogRef: item.catalogRef };
 
   // Remove from source table
   tableData[srcTable][rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
@@ -4682,9 +4709,79 @@ function bookMoveTo(toTable) {
 }
 
 /* ══════════════════════════════════════════════════════════
-   AMMO MODAL  — manage contents of an Ammunition item (inventory)
-   and equipped Quiver slot
+   AMMO MODAL  — manage contents of a Quiver (inventory + equipped)
 ══════════════════════════════════════════════════════════ */
+
+/* Total arrows/bolts currently in an ammo array */
+function _ammoTotal(arr) {
+  return (arr || []).reduce((sum, a) => sum + (parseInt(a.qty, 10) || 0), 0);
+}
+
+/* The quiver's max capacity (from its catalog entry, falling back to the
+   stored `cap`). Returns null when there's no cap (legacy items). */
+function _quiverCap(item) {
+  if (!item) return null;
+  if (item.cap != null) return item.cap;
+  const entry = findCatalogEntry('Quiver', item.catalogRef || item.name);
+  return entry && entry.cap != null ? entry.cap : null;
+}
+
+/* Small property tag chip — same visual language as the item tag badges */
+function ammoPropTagHTML(prop) {
+  return `<span style="display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;font-family:var(--got);font-size:8px;line-height:1;color:#e6c590;background:rgba(90,55,20,.3);border:1px solid #a07235;letter-spacing:.6px;padding:2px 5px 1px;border-radius:2px;white-space:nowrap;">${prop}</span>`;
+}
+
+/* Build the ammo rows for a quiver — toolkit-style inline steppers, IM Fell
+   names, damage line + property tags. `modalId` routes the +/- callbacks.
+   `capReached` disables every + button when the quiver is full. */
+function _buildAmmoRows(arr, modalId, capReached) {
+  if (!arr || arr.length === 0) {
+    return `<div style="padding:10px 6px;font-family:'IM Fell English',serif;font-size:11px;
+      color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No ammunition in quiver yet</div>`;
+  }
+  return arr.map((a, i) => {
+    const def    = findAmmoType(a.name) || {};
+    const qty    = (parseInt(a.qty, 10) || 0);
+    const atZero = qty <= 0;
+    const stepperShared = `width:20px;height:20px;padding:0;margin:0;border-radius:2px;font-family:var(--got);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s,opacity .15s;flex-shrink:0;`;
+    const minusStyle = `${stepperShared}border:1px solid rgba(180,60,60,.55);background:rgba(60,15,15,.45);color:#ff8a8a;` + (atZero ? 'opacity:.35;cursor:not-allowed;' : '');
+    const plusStyle  = `${stepperShared}border:1px solid rgba(60,180,60,.55);background:rgba(15,60,15,.45);color:#8aff8a;` + (capReached ? 'opacity:.35;cursor:not-allowed;' : '');
+    const minusHover = atZero ? '' : `onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''"`;
+    const plusHover  = capReached ? '' : `onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''"`;
+    const dmgStr   = def.dmg ? `<span style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:rgba(232,200,74,.6);">${def.dmg}</span>` : '';
+    const propTags = (def.props || []).map(ammoPropTagHTML).join(' ');
+    const metaLine = (dmgStr || propTags)
+      ? `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px;">${dmgStr}${propTags}</div>`
+      : '';
+    return `
+    <div style="display:flex;gap:6px;align-items:center;padding:6px 8px;margin-bottom:3px;border-radius:2px;background:rgba(0,0,0,.18);border:1px solid rgba(139,106,0,.18);">
+      <button onclick="ammoDelete2(${i},'${modalId}')" title="Remove type"
+        style="width:18px;height:18px;padding:0;margin:0;border:1px solid rgba(150,70,70,.4);background:rgba(40,12,12,.35);color:rgba(255,130,130,.65);font-family:var(--got);font-size:10px;cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;"
+        onmouseover="this.style.background='rgba(120,30,30,.6)';this.style.color='#ff9a9a'" onmouseout="this.style.background='rgba(40,12,12,.35)';this.style.color='rgba(255,130,130,.65)'">✕</button>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+        <span style="font-family:'IM Fell English',serif;font-size:16px;color:#e8d8a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.name}</span>
+        ${metaLine}
+      </div>
+      <div style="width:104px;display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;">
+        <button onclick="ammoAdj(${i},'${modalId}',-1)" ${minusHover} style="${minusStyle}">−</button>
+        <div style="min-width:30px;text-align:center;font-family:var(--got);font-size:20px;color:${atZero?'rgba(232,200,74,.45)':'var(--text-gold)'};font-weight:700;line-height:1;text-shadow:${atZero?'none':'0 0 6px rgba(232,200,74,.25)'};">${qty}</div>
+        <button onclick="ammoAdj(${i},'${modalId}',+1)" ${plusHover} style="${plusStyle}">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* Capacity header line, e.g. "14 / 20 arrows" — turns amber when full */
+function _ammoCapLine(arr, item) {
+  const cap = _quiverCap(item);
+  const total = _ammoTotal(arr);
+  if (cap == null) {
+    return `<span style="font-family:var(--got);font-size:9px;color:rgba(232,200,74,.5);letter-spacing:.5px;">${total} total</span>`;
+  }
+  const full = total >= cap;
+  return `<span style="font-family:var(--got);font-size:9px;letter-spacing:.5px;color:${full?'#e0a83a':'rgba(232,200,74,.55)'};">${total} / ${cap}${full?' · FULL':''}</span>`;
+}
+
 function openAmmoModal(tableId, rowIdx) {
   document.getElementById('ammoModal')?.remove();
   const item = tableData[tableId][rowIdx];
@@ -4711,25 +4808,10 @@ function openAmmoModal(tableId, rowIdx) {
          🐴 → Extra Steed
        </button>` : '';
 
+  const cap = _quiverCap(item);
   const renderAmmoRows = () => {
-    if (item.ammo.length === 0) {
-      return `<div style="padding:10px 6px;font-family:'IM Fell English',serif;font-size:11px;
-        color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No ammunition added yet</div>`;
-    }
-    return item.ammo.map((a, i) => `
-      <div class="inv-tbl-row inv-item-row" onclick="ammoOpenDetail(${i},'ammoModal')"
-        title="Click to manage"
-        style="cursor:pointer;transition:background .12s;"
-        onmouseover="this.style.background='rgba(139,106,0,.15)'"
-        onmouseout="this.style.background=''">
-        <div class="cell-name" style="display:flex;align-items:center;gap:2px;overflow:hidden;">
-          <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${a.name}</span>
-          <span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.45);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">Ammo</span>
-        </div>
-        <div class="cell-q" style="display:flex;align-items:center;justify-content:center;">
-          <span style="font-size:13px;">${a.qty||1}</span>
-        </div>
-      </div>`).join('');
+    const capReached = cap != null && _ammoTotal(item.ammo) >= cap;
+    return _buildAmmoRows(item.ammo, 'ammoModal', capReached);
   };
 
   const metaStr = [item.w ? item.w + ' kg' : '', item.p || ''].filter(Boolean).join(' · ');
@@ -4744,19 +4826,15 @@ function openAmmoModal(tableId, rowIdx) {
       </div>
       ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:16px;">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
 
-      <div style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:8px;">AMMUNITION</div>
-      <div class="inv-tbl-hdr">
-        <div class="inv-tbl-hdr-cell itc-name">Type</div>
-        <div class="inv-tbl-hdr-cell itc-q">Q</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;">AMMUNITION</span>
+        <span id="ammo_caphdr">${_ammoCapLine(item.ammo, item)}</span>
       </div>
-      <div id="ammo_list" style="max-height:220px;overflow-y:auto;margin-bottom:12px;">${renderAmmoRows()}</div>
+      <div id="ammo_list" style="max-height:300px;overflow-y:auto;margin-bottom:12px;">${renderAmmoRows()}</div>
 
-      <div style="display:flex;gap:6px;margin-bottom:16px;padding-top:8px;border-top:1px solid rgba(139,106,0,.25);">
-        <input type="text" id="ammo_new_name" placeholder="Add ammunition type (e.g. Arrows)..."
-          style="flex:1;height:30px;font-size:12px;padding:0 8px;"
-          onkeydown="if(event.key==='Enter') ammoAddType('ammoModal')">
-        <button onclick="ammoAddType('ammoModal')" class="rest-btn"
-          style="padding:4px 12px;font-size:11px;">+ Add</button>
+      <div style="margin-bottom:16px;padding-top:8px;border-top:1px solid rgba(139,106,0,.25);">
+        <button onclick="ammoOpenPicker('ammoModal')" class="rest-btn"
+          style="width:100%;padding:8px;font-size:12px;">+ Add Ammunition</button>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;
@@ -4804,25 +4882,11 @@ function openEquippedQuiverModal() {
   const renderAmmoRows = () => {
     const listEl = document.getElementById('equippedAmmo_list');
     if (!listEl) return;
-    if (d.ammo.length === 0) {
-      listEl.innerHTML = `<div style="padding:10px 6px;font-family:'IM Fell English',serif;font-size:11px;
-        color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No ammunition in quiver</div>`;
-      return;
-    }
-    listEl.innerHTML = d.ammo.map((a, i) => `
-      <div class="inv-tbl-row inv-item-row" onclick="ammoOpenDetail(${i},'equippedQuiverModal')"
-        title="Click to manage"
-        style="cursor:pointer;transition:background .12s;"
-        onmouseover="this.style.background='rgba(139,106,0,.15)'"
-        onmouseout="this.style.background=''">
-        <div class="cell-name" style="display:flex;align-items:center;gap:2px;overflow:hidden;">
-          <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${a.name}</span>
-          <span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.45);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">Ammo</span>
-        </div>
-        <div class="cell-q" style="display:flex;align-items:center;justify-content:center;">
-          <span style="font-size:13px;">${a.qty||1}</span>
-        </div>
-      </div>`).join('');
+    const cap = _quiverCap(d);
+    const capReached = cap != null && _ammoTotal(d.ammo) >= cap;
+    listEl.innerHTML = _buildAmmoRows(d.ammo, 'equippedQuiverModal', capReached);
+    const hdr = document.getElementById('equippedAmmo_caphdr');
+    if (hdr) hdr.innerHTML = _ammoCapLine(d.ammo, d);
   };
 
   const metaStr = [d.w ? d.w + ' kg' : '', d.p || ''].filter(Boolean).join(' · ');
@@ -4837,19 +4901,15 @@ function openEquippedQuiverModal() {
       </div>
       ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:16px;">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
 
-      <div style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:8px;">AMMUNITION</div>
-      <div class="inv-tbl-hdr">
-        <div class="inv-tbl-hdr-cell itc-name">Type</div>
-        <div class="inv-tbl-hdr-cell itc-q">Q</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;">AMMUNITION</span>
+        <span id="equippedAmmo_caphdr"></span>
       </div>
-      <div id="equippedAmmo_list" style="max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>
+      <div id="equippedAmmo_list" style="max-height:300px;overflow-y:auto;margin-bottom:12px;"></div>
 
-      <div style="display:flex;gap:6px;margin-bottom:16px;padding-top:8px;border-top:1px solid rgba(139,106,0,.25);">
-        <input type="text" id="equippedAmmo_new_name" placeholder="Add ammunition type (e.g. Arrows)..."
-          style="flex:1;height:30px;font-size:12px;padding:0 8px;"
-          onkeydown="if(event.key==='Enter') ammoAddType('equippedQuiverModal')">
-        <button onclick="ammoAddType('equippedQuiverModal')" class="rest-btn"
-          style="padding:4px 12px;font-size:11px;">+ Add</button>
+      <div style="margin-bottom:16px;padding-top:8px;border-top:1px solid rgba(139,106,0,.25);">
+        <button onclick="ammoOpenPicker('equippedQuiverModal')" class="rest-btn"
+          style="width:100%;padding:8px;font-size:12px;">+ Add Ammunition</button>
       </div>
 
       <div style="display:flex;gap:8px;">
@@ -4870,130 +4930,123 @@ function openEquippedQuiverModal() {
 
 /* ── Shared ammo helpers (work for both inventory ammoModal and equippedQuiverModal) ── */
 function _getAmmoArray(modalId) {
-  if (modalId === 'equippedQuiverModal') {
-    const d = slotData['ring2'];
-    if (!d) return null;
-    if (!Array.isArray(d.ammo)) d.ammo = [];
-    return d.ammo;
-  }
-  const modal = document.getElementById('ammoModal');
-  if (!modal) return null;
-  const item = tableData[modal._tableId][modal._rowIdx];
+  const item = _getAmmoOwnerItem(modalId);
   if (!item) return null;
   if (!Array.isArray(item.ammo)) item.ammo = [];
   return item.ammo;
 }
 
-function ammoAddType(modalId) {
-  const inputId = modalId === 'equippedQuiverModal' ? 'equippedAmmo_new_name' : 'ammo_new_name';
-  const inp = document.getElementById(inputId);
-  if (!inp) return;
-  const name = inp.value.trim();
-  if (!name) return;
-  const arr = _getAmmoArray(modalId);
-  if (!arr) return;
-  arr.push({ name, qty: 1 });
-  inp.value = '';
+/* The quiver item that owns the ammo for a given modal */
+function _getAmmoOwnerItem(modalId) {
+  if (modalId === 'equippedQuiverModal') {
+    return slotData['ring2'] || null;
+  }
+  const modal = document.getElementById('ammoModal');
+  if (!modal) return null;
+  return tableData[modal._tableId]?.[modal._rowIdx] || null;
+}
+
+/* Re-render the ammo list + capacity header for a modal */
+function _ammoRerenderList(modalId) {
+  const owner = _getAmmoOwnerItem(modalId);
+  const arr   = _getAmmoArray(modalId);
+  if (!owner || !arr) return;
+  const cap = _quiverCap(owner);
+  const capReached = cap != null && _ammoTotal(arr) >= cap;
+  const listId = modalId === 'equippedQuiverModal' ? 'equippedAmmo_list' : 'ammo_list';
+  const hdrId  = modalId === 'equippedQuiverModal' ? 'equippedAmmo_caphdr' : 'ammo_caphdr';
+  const listEl = document.getElementById(listId);
+  if (listEl) listEl.innerHTML = _buildAmmoRows(arr, modalId, capReached);
+  const hdr = document.getElementById(hdrId);
+  if (hdr) hdr.innerHTML = _ammoCapLine(arr, owner);
+}
+
+/* Adjust an ammo type's count. Floors at 0; total can't exceed the quiver cap. */
+function ammoAdj(idx, modalId, delta) {
+  const owner = _getAmmoOwnerItem(modalId);
+  const arr   = _getAmmoArray(modalId);
+  if (!owner || !arr || !arr[idx]) return;
+  if (delta > 0) {
+    const cap = _quiverCap(owner);
+    if (cap != null && _ammoTotal(arr) >= cap) return; // full — block increment
+  }
+  let q = (parseInt(arr[idx].qty, 10) || 0) + delta;
+  if (q < 0) q = 0;
+  arr[idx].qty = q;
   _ammoRerenderList(modalId);
   if (modalId === 'equippedQuiverModal') _saveData();
 }
 
-function ammoOpenDetail(idx, modalId) {
+/* Remove an ammo type entirely */
+function ammoDelete2(idx, modalId) {
   const arr = _getAmmoArray(modalId);
-  const a = arr?.[idx];
-  if (!a) return;
-  const existing = document.getElementById('ammoDetailModal');
-  if (existing) existing.remove();
+  if (!arr) return;
+  arr.splice(idx, 1);
+  _ammoRerenderList(modalId);
+  if (modalId === 'equippedQuiverModal') _saveData();
+}
+
+/* Open the picker to choose an arrow/bolt type to add to the quiver.
+   Types already present are disabled. Adding starts the type at qty 1
+   (or 0 if the quiver is already full). */
+function ammoOpenPicker(modalId) {
+  const owner = _getAmmoOwnerItem(modalId);
+  const arr   = _getAmmoArray(modalId);
+  if (!owner || !arr) return;
+  document.getElementById('ammoPickerModal')?.remove();
+
+  const cap   = _quiverCap(owner);
+  const full  = cap != null && _ammoTotal(arr) >= cap;
+  const have  = new Set(arr.map(a => a.name));
+
+  const rows = AMMO_TYPES.map(def => {
+    const already = have.has(def.name);
+    const propTags = (def.props || []).map(ammoPropTagHTML).join(' ');
+    const disabledStyle = already ? 'opacity:.4;cursor:not-allowed;' : 'cursor:pointer;';
+    const onClick = already ? '' : `onclick="ammoPickType('${modalId}','${def.name.replace(/'/g,"\\'")}')"`;
+    const hover   = already ? '' : `onmouseover="this.style.background='rgba(139,106,0,.18)'" onmouseout="this.style.background='rgba(0,0,0,.18)'"`;
+    return `
+    <div ${onClick} ${hover} title="${already ? 'Already in quiver' : 'Add to quiver'}"
+      style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:3px;border-radius:2px;background:rgba(0,0,0,.18);border:1px solid rgba(139,106,0,.18);transition:background .12s;${disabledStyle}">
+      <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+        <span style="font-family:'IM Fell English',serif;font-size:16px;color:#e8d8a0;">${def.name}${already ? ' <span style=\"font-size:10px;color:rgba(232,200,74,.4);\">(in quiver)</span>' : ''}</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px;">
+          <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:rgba(232,200,74,.6);">${def.dmg||''}</span>
+          ${propTags}
+        </div>
+      </div>
+      ${already ? '' : `<span style="font-family:var(--got);font-size:18px;color:#8aff8a;flex-shrink:0;">+</span>`}
+    </div>`;
+  }).join('');
 
   const o = document.createElement('div');
-  o.className = 'modal-overlay'; o.id = 'ammoDetailModal';
-  o.innerHTML = `<div class="modal" style="max-width:380px;padding:28px 36px;">
-    <div style="display:flex;align-items:baseline;justify-content:center;gap:0;margin-bottom:4px;flex-wrap:wrap;">
-      <h2 style="font-size:19px;margin:0;">${a.name}</h2>
-      <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);margin-left:8px;">Ammo</span>
-    </div>
-
-    <div style="margin:16px 0 14px;border-top:1px solid rgba(139,106,0,.25);padding-top:14px;">
-      <div style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.5px;margin-bottom:10px;text-align:center;">QUANTITY</div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
-        <button onclick="ammoDetailAdjQty(${idx},'${modalId}',-1)"
-          style="width:36px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.45);border:none;color:var(--text-gold);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;"
-          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
-        <div style="text-align:center;min-width:60px;">
-          <div id="ammoDetail_qty" style="font-family:var(--got);font-size:28px;color:var(--text-gold);line-height:1;text-shadow:0 0 10px rgba(232,200,74,.4);">${a.qty||1}</div>
-          <div style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.35);letter-spacing:1px;margin-top:3px;">QUANTITY</div>
-        </div>
-        <button onclick="ammoDetailAdjQty(${idx},'${modalId}',+1)"
-          style="width:36px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.45);border:none;color:var(--text-gold);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;"
-          onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:8px;margin-top:8px;">
-      <button class="rest-btn" onclick="document.getElementById('ammoDetailModal').remove()"
-        style="flex:1;">Close</button>
-      <button class="rest-btn" onclick="ammoDetailDelete(${idx},'${modalId}')"
-        style="background:#3a0000;border-color:#882222;color:#ff6666;">Delete</button>
+  o.className = 'modal-overlay'; o.id = 'ammoPickerModal';
+  o.innerHTML = `<div class="modal" style="max-width:480px;padding:26px 32px;max-height:88vh;overflow-y:auto;">
+    <h2 style="font-size:18px;margin-bottom:4px;text-align:center;">Add Ammunition</h2>
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:${full?'8px':'16px'};">Choose a type to add to ${owner.name}</p>
+    ${full ? `<p style="font-family:var(--got);font-size:9px;color:#e0a83a;text-align:center;letter-spacing:.5px;margin-bottom:14px;">⚠ Quiver is full (${cap}/${cap}) — make room before adding more.</p>` : ''}
+    <div>${rows}</div>
+    <div style="margin-top:14px;">
+      <button class="rest-btn" onclick="document.getElementById('ammoPickerModal').remove()"
+        style="width:100%;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Cancel</button>
     </div>
   </div>`;
-  o._ammoIdx = idx;
-  o._modalId = modalId;
   document.body.appendChild(o);
   o.addEventListener('click', e => { if (e.target === o) o.remove(); });
 }
 
-function ammoDetailAdjQty(idx, modalId, delta) {
-  const arr = _getAmmoArray(modalId);
-  if (!arr?.[idx]) return;
-  arr[idx].qty = Math.max(0, (arr[idx].qty || 1) + delta);
-  const detailQty = document.getElementById('ammoDetail_qty');
-  if (detailQty) detailQty.textContent = arr[idx].qty;
-  // Update list row
-  const listId = modalId === 'equippedQuiverModal' ? 'equippedAmmo_list' : 'ammo_list';
-  const listEl = document.getElementById(listId);
-  if (listEl) {
-    const rows = listEl.querySelectorAll('.inv-tbl-row');
-    if (rows[idx]) {
-      const qSpan = rows[idx].querySelector('.cell-q span');
-      if (qSpan) qSpan.textContent = arr[idx].qty;
-    }
-  }
-  if (modalId === 'equippedQuiverModal') _saveData();
-}
-
-function ammoDetailDelete(idx, modalId) {
-  const arr = _getAmmoArray(modalId);
-  if (!arr) return;
-  arr.splice(idx, 1);
-  document.getElementById('ammoDetailModal')?.remove();
+/* Add a chosen ammo type to the quiver (starts at 1, or 0 if full). */
+function ammoPickType(modalId, name) {
+  const owner = _getAmmoOwnerItem(modalId);
+  const arr   = _getAmmoArray(modalId);
+  if (!owner || !arr) return;
+  if (arr.some(a => a.name === name)) return; // already present
+  const cap = _quiverCap(owner);
+  const startQty = (cap != null && _ammoTotal(arr) >= cap) ? 0 : 1;
+  arr.push({ name, qty: startQty });
+  document.getElementById('ammoPickerModal')?.remove();
   _ammoRerenderList(modalId);
   if (modalId === 'equippedQuiverModal') _saveData();
-}
-
-function _ammoRerenderList(modalId) {
-  const listId = modalId === 'equippedQuiverModal' ? 'equippedAmmo_list' : 'ammo_list';
-  const arr = _getAmmoArray(modalId);
-  const listEl = document.getElementById(listId);
-  if (!listEl || !arr) return;
-  if (arr.length === 0) {
-    listEl.innerHTML = `<div style="padding:10px 6px;font-family:'IM Fell English',serif;font-size:11px;
-      color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No ammunition added yet</div>`;
-    return;
-  }
-  listEl.innerHTML = arr.map((a, i) => `
-    <div class="inv-tbl-row inv-item-row" onclick="ammoOpenDetail(${i},'${modalId}')"
-      title="Click to manage"
-      style="cursor:pointer;transition:background .12s;"
-      onmouseover="this.style.background='rgba(139,106,0,.15)'"
-      onmouseout="this.style.background=''">
-      <div class="cell-name" style="display:flex;align-items:center;gap:2px;overflow:hidden;">
-        <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${a.name}</span>
-        <span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.45);margin-left:4px;letter-spacing:.3px;flex-shrink:0;">Ammo</span>
-      </div>
-      <div class="cell-q" style="display:flex;align-items:center;justify-content:center;">
-        <span style="font-size:13px;">${a.qty||1}</span>
-      </div>
-    </div>`).join('');
 }
 
 function ammoSave() {
