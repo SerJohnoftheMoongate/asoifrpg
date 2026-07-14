@@ -416,6 +416,42 @@ textarea.story-input{resize:vertical;}
 }
 .pw-error{font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#e05a4e;min-height:18px;margin-bottom:4px;}
 
+/* ── MAP ZOOM ── */
+#mapViewport{
+  position:relative;width:90%;height:calc(100vh - 140px);
+  overflow:auto;border:3px solid #b8860b;box-shadow:0 0 40px rgba(0,0,0,.8);
+  background:#0a0901;cursor:grab;scrollbar-width:thin;scrollbar-color:#b8860b #1a1400;
+  display:flex;align-items:flex-start;justify-content:safe center;
+}
+#mapViewport.dragging{cursor:grabbing;}
+#mapViewport::-webkit-scrollbar{width:10px;height:10px;}
+#mapViewport::-webkit-scrollbar-track{background:#1a1400;}
+#mapViewport::-webkit-scrollbar-thumb{background:#b8860b;border-radius:5px;}
+#mapImg{
+  display:block;user-select:none;-webkit-user-drag:none;
+  transform-origin:top left;flex-shrink:0;margin:auto;
+}
+.map-zoom-controls{
+  position:fixed;top:90px;right:32px;z-index:5;
+  display:flex;flex-direction:column;gap:6px;align-items:center;
+  background:rgba(10,9,1,.85);border:2px solid #b8860b;padding:8px;
+}
+.map-zoom-btn{
+  width:40px;height:40px;background:#1a1400;border:1px solid #b8860b;
+  color:#e8c84a;font-size:20px;cursor:pointer;transition:background .2s;
+  font-family:'Cinzel',serif;line-height:1;
+}
+.map-zoom-btn:hover{background:rgba(139,106,0,.5);}
+.map-zoom-reset{font-size:16px;}
+.map-zoom-level{
+  font-family:'GameOfThrones','Cinzel',serif;font-size:10px;color:#e8c84a;
+  letter-spacing:1px;padding:2px 0;
+}
+.map-zoom-hint{
+  font-family:'IM Fell English',serif;font-style:italic;font-size:12px;
+  color:rgba(232,200,74,.45);margin-top:8px;
+}
+
 /* Sheet screen */
 #sheetScreen{display:none;position:relative;}
 #sheetScreen.open{display:block;}
@@ -549,8 +585,6 @@ textarea.story-input{resize:vertical;}
       <div style="display:flex;gap:10px;margin-top:16px;justify-content:center;flex-wrap:wrap;">
         <button class="story-enter-btn" onclick="storySaveCampaign()">💾 Save Campaign</button>
         <button class="back-btn" onclick="storyExportCampaign()">⬇ Export</button>
-        <label class="back-btn" for="storyImportInput" style="display:inline-block;">⬆ Import</label>
-        <input type="file" id="storyImportInput" accept=".json" style="display:none" onchange="storyImportCampaign(this)">
         <button class="back-btn" onclick="storyLock()">✕ Close editor</button>
       </div>
     </div>
@@ -560,15 +594,24 @@ textarea.story-input{resize:vertical;}
 
 <!-- ════════ MAP ════════ -->
 <div id="mapScreen">
-  <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:20px 0 80px;">
-    <div style="font-family:'GameOfThrones','Cinzel',serif;font-size:28px;color:#e8c84a;letter-spacing:3px;text-shadow:0 0 20px rgba(184,134,11,.6);margin-bottom:20px;">Map of Westeros</div>
-    <img src="https://gameofthrones.net/images/Westeros_Maps/Map_Westeros_Political.gif"
-         alt="Map of Westeros"
-         style="max-width:90%;max-height:85vh;border:3px solid #b8860b;box-shadow:0 0 40px rgba(0,0,0,.8);object-fit:contain;"
-         onerror="this.style.display='none';document.getElementById('mapFallback').style.display='block'">
-    <div id="mapFallback" style="display:none;font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:rgba(232,200,74,.5);margin-top:20px;">Map could not be loaded — check your internet connection.</div>
+  <div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 0 0;">
+    <div style="font-family:'GameOfThrones','Cinzel',serif;font-size:28px;color:#e8c84a;letter-spacing:3px;text-shadow:0 0 20px rgba(184,134,11,.6);margin-bottom:16px;">Map of Westeros</div>
+    <div id="mapViewport">
+      <img id="mapImg" src="https://gameofthrones.net/images/Westeros_Maps/Map_Westeros_Political.gif"
+           alt="Map of Westeros" draggable="false"
+           onerror="this.style.display='none';document.getElementById('mapFallback').style.display='block'">
+      <div id="mapFallback" style="display:none;font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:rgba(232,200,74,.5);margin-top:20px;text-align:center;">Map could not be loaded — check your internet connection.</div>
+    </div>
+    <!-- Zoom controls -->
+    <div class="map-zoom-controls">
+      <button class="map-zoom-btn" onclick="mapZoomIn()" title="Zoom in">+</button>
+      <div class="map-zoom-level" id="mapZoomLevel">100%</div>
+      <button class="map-zoom-btn" onclick="mapZoomOut()" title="Zoom out">−</button>
+      <button class="map-zoom-btn map-zoom-reset" onclick="mapZoomReset()" title="Reset view">⟲</button>
+    </div>
+    <div class="map-zoom-hint">Scroll to zoom · drag to pan</div>
   </div>
-  <button class="back-btn" onclick="closeMap()" style="position:fixed;bottom:24px;right:32px;background:rgba(10,9,1,.9);">← Back to Menu</button>
+  <button class="back-btn" onclick="closeMap()" style="position:fixed;bottom:24px;right:32px;background:rgba(10,9,1,.9);z-index:5;">← Back to Menu</button>
 </div>
 
 <!-- ════════ CHARACTER SHEET ════════ -->
@@ -1505,26 +1548,62 @@ function storySaveCampaign(){
   document.body.appendChild(o); o.onclick = e => { if (e.target === o) o.remove(); };
 }
 
-// "Enter your campaign" → campaign password → show notes
+// "Enter your campaign" → campaign password OR import the GM's JSON file
 function storyEnterCampaign(){
   const c = loadCampaign();
-  if (!c || !c.password){
-    const o = document.createElement('div');
-    o.className = 'modal-overlay'; o.style.zIndex = 10050;
-    o.innerHTML = `<div class="modal"><h2 style="font-size:22px;">No Campaign Yet</h2>
-      <p>Your GM has not yet set a campaign password.<br>The chronicle remains unwritten.</p>
-      <button onclick="this.closest('.modal-overlay').remove()">Close</button></div>`;
-    document.body.appendChild(o); o.onclick = e => { if (e.target === o) o.remove(); };
-    return;
-  }
-  askPassword('Enter Your Campaign', 'Give the password your GM has set.', (val, overlay) => {
-    if (val === c.password){
-      overlay.remove();
+  const o = document.createElement('div');
+  o.className = 'modal-overlay';
+  o.style.zIndex = 10050;
+  o.innerHTML = `<div class="modal pw-modal" style="min-width:400px;">
+    <h2 style="font-size:22px;">Enter Your Campaign</h2>
+    <p>Give the password your GM has set.</p>
+    <input type="password" id="pwInput" autocomplete="off">
+    <div class="pw-error" id="pwError"></div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button id="pwOk">Unlock</button>
+      <button id="pwCancel" style="background:none;border:1px solid var(--gold);color:var(--text-gold);">Cancel</button>
+    </div>
+    <div style="margin:14px 0 10px;font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:rgba(232,200,74,.6);">— or —</div>
+    <label class="back-btn" for="campaignEnterImport" style="display:inline-block;font-size:10px;">⬆ Import campaign file from your GM</label>
+    <input type="file" id="campaignEnterImport" accept=".json" style="display:none">
+  </div>`;
+  document.body.appendChild(o);
+  const inp = o.querySelector('#pwInput');
+  inp.focus();
+  const submit = () => {
+    if (!c || !c.password){
+      pwError(o, 'No campaign is stored on this device yet — import the file your GM sent you.');
+      return;
+    }
+    if (inp.value === c.password){
+      o.remove();
       storyShowNotes(c);
     } else {
-      pwError(overlay, 'The door remains shut. Wrong password.');
+      pwError(o, 'The door remains shut. Wrong password.');
     }
-  });
+  };
+  o.querySelector('#pwOk').onclick = submit;
+  inp.onkeydown = e => { if (e.key === 'Enter') submit(); };
+  o.querySelector('#pwCancel').onclick = () => o.remove();
+  o.onclick = e => { if (e.target === o) o.remove(); };
+  // Import path: save the GM's file locally and open the notes right away
+  o.querySelector('#campaignEnterImport').onchange = function(){
+    const file = this.files && this.files[0];
+    if (!file) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const imported = JSON.parse(r.result);
+        saveCampaignData(imported);
+        o.remove();
+        storyShowNotes(imported);
+      } catch(e) {
+        pwError(o, 'That file is not a valid campaign JSON.');
+      }
+    };
+    r.readAsText(file);
+    this.value = '';
+  };
 }
 
 function storyShowNotes(c){
@@ -1557,22 +1636,86 @@ function storyExportCampaign(){
   a.click();
   URL.revokeObjectURL(a.href);
 }
-function storyImportCampaign(input){
-  const file = input.files && input.files[0];
-  if (!file) return;
-  const r = new FileReader();
-  r.onload = () => {
-    try {
-      const c = JSON.parse(r.result);
-      saveCampaignData(c);
-      storyShowEdit(); // refresh form with imported values
-    } catch(e) { alert('That file is not a valid campaign JSON.'); }
-  };
-  r.readAsText(file);
-  input.value = '';
+function openMap()    {
+  document.getElementById('mapScreen').classList.add('open');
+  // Fit the map to the viewport the first time it's shown (viewport has no size while hidden)
+  if (!window._mapFitted) requestAnimationFrame(mapFit);
 }
-function openMap()    { document.getElementById('mapScreen').classList.add('open'); }
 function closeMap()   { document.getElementById('mapScreen').classList.remove('open'); }
+
+// ── MAP ZOOM & PAN ──
+let mapZoom = 1, mapBaseW = 0;
+const MAP_ZOOM_MIN = 0.5, MAP_ZOOM_MAX = 6, MAP_ZOOM_STEP = 1.25;
+
+function mapFit(){
+  const vp  = document.getElementById('mapViewport');
+  const img = document.getElementById('mapImg');
+  if (!vp || !img || !img.naturalWidth) return;
+  const scale = Math.min(vp.clientWidth / img.naturalWidth, vp.clientHeight / img.naturalHeight);
+  mapBaseW = img.naturalWidth * scale;
+  window._mapFitted = true;
+  mapApplyZoom();
+}
+
+function mapApplyZoom(focusX, focusY){
+  const vp  = document.getElementById('mapViewport');
+  const img = document.getElementById('mapImg');
+  if (!vp || !img || !mapBaseW) return;
+  // Point of the image currently under the focus point (viewport coords), as a fraction
+  const oldW = img.clientWidth || mapBaseW;
+  const fx = (focusX !== undefined) ? focusX : vp.clientWidth / 2;
+  const fy = (focusY !== undefined) ? focusY : vp.clientHeight / 2;
+  const imgX = (vp.scrollLeft + fx) / oldW;
+  const imgY = (vp.scrollTop  + fy) / (img.clientHeight || 1);
+  const newW = mapBaseW * mapZoom;
+  img.style.width = newW + 'px';
+  img.style.height = 'auto';
+  // Keep the focus point stable
+  const newH = newW * (img.naturalHeight / img.naturalWidth);
+  vp.scrollLeft = imgX * newW - fx;
+  vp.scrollTop  = imgY * newH - fy;
+  const lvl = document.getElementById('mapZoomLevel');
+  if (lvl) lvl.textContent = Math.round(mapZoom * 100) + '%';
+}
+
+function mapZoomIn(){  mapZoom = Math.min(MAP_ZOOM_MAX, mapZoom * MAP_ZOOM_STEP); mapApplyZoom(); }
+function mapZoomOut(){ mapZoom = Math.max(MAP_ZOOM_MIN, mapZoom / MAP_ZOOM_STEP); mapApplyZoom(); }
+function mapZoomReset(){
+  mapZoom = 1; mapApplyZoom();
+  const vp = document.getElementById('mapViewport');
+  if (vp){ vp.scrollLeft = 0; vp.scrollTop = 0; }
+}
+
+(function initMapZoom(){
+  const vp  = document.getElementById('mapViewport');
+  const img = document.getElementById('mapImg');
+  if (!vp || !img) return;
+  // Re-fit once the image has actually loaded
+  img.addEventListener('load', () => { window._mapFitted = false; if (document.getElementById('mapScreen').classList.contains('open')) mapFit(); });
+  // Scroll wheel → zoom toward the cursor
+  vp.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = vp.getBoundingClientRect();
+    const fx = e.clientX - rect.left, fy = e.clientY - rect.top;
+    mapZoom = (e.deltaY < 0)
+      ? Math.min(MAP_ZOOM_MAX, mapZoom * 1.12)
+      : Math.max(MAP_ZOOM_MIN, mapZoom / 1.12);
+    mapApplyZoom(fx, fy);
+  }, {passive:false});
+  // Drag → pan
+  let dragging = false, sx = 0, sy = 0, sl = 0, st = 0;
+  vp.addEventListener('mousedown', e => {
+    dragging = true; vp.classList.add('dragging');
+    sx = e.clientX; sy = e.clientY; sl = vp.scrollLeft; st = vp.scrollTop;
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    vp.scrollLeft = sl - (e.clientX - sx);
+    vp.scrollTop  = st - (e.clientY - sy);
+  });
+  window.addEventListener('mouseup', () => { dragging = false; vp.classList.remove('dragging'); });
+})();
 
 function openSheet() {
   const menu = document.getElementById('menuScreen');
