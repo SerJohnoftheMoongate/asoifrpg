@@ -561,11 +561,15 @@ textarea.story-input{resize:vertical;}
         <div class="story-lbl">Summary of Last Session</div>
         <div class="story-val story-val-long" id="sv_summary">—</div>
       </div>
-      <button class="back-btn" style="margin-top:14px;" onclick="storyLock()">🔒 Lock notes</button>
+      <button class="back-btn" style="margin-top:14px;" onclick="storyLock()">Exit Recap</button>
     </div>
 
     <!-- GM: edit form (after master password "SerJohn") -->
     <div id="storyEdit" style="display:none;text-align:left;">
+      <div class="story-field">
+        <div class="story-lbl">Campaign Name <span style="opacity:.6;letter-spacing:0;text-transform:none;">(GM only — not shown to players)</span></div>
+        <input type="text" id="se_name" class="story-input" placeholder="e.g. The Blackwater Chronicles">
+      </div>
       <div class="story-field">
         <div class="story-lbl">Campaign Password</div>
         <input type="text" id="se_password" class="story-input" placeholder="Password your players must enter…">
@@ -1522,6 +1526,7 @@ function storyPencilClick(){
 
 function storyShowEdit(){
   const c = loadCampaign() || {};
+  document.getElementById('se_name').value     = c.name     || '';
   document.getElementById('se_password').value = c.password || '';
   document.getElementById('se_location').value = c.location || '';
   document.getElementById('se_quest').value    = c.quest    || '';
@@ -1533,6 +1538,7 @@ function storyShowEdit(){
 
 function storySaveCampaign(){
   const c = {
+    name:     document.getElementById('se_name').value.trim(),
     password: document.getElementById('se_password').value.trim(),
     location: document.getElementById('se_location').value.trim(),
     quest:    document.getElementById('se_quest').value.trim(),
@@ -1579,7 +1585,7 @@ function storyEnterCampaign(){
       o.remove();
       storyShowNotes(c);
     } else {
-      pwError(o, 'The door remains shut. Wrong password.');
+      pwError(o, '“You know nothing…” — that is not your GM\'s password.');
     }
   };
   o.querySelector('#pwOk').onclick = submit;
@@ -1623,16 +1629,21 @@ function storyLock(){
 
 // Export / import so the GM can hand the campaign to players on other devices
 function storyExportCampaign(){
-  const c = loadCampaign() || {
+  const c = {
+    name:     document.getElementById('se_name').value.trim(),
     password: document.getElementById('se_password').value.trim(),
     location: document.getElementById('se_location').value.trim(),
     quest:    document.getElementById('se_quest').value.trim(),
     summary:  document.getElementById('se_summary').value.trim()
   };
+  // Filename: [Current Date] + [campaign name], e.g. "2026-07-14 The Blackwater Chronicles.json"
+  const d = new Date();
+  const dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  const safeName = (c.name || 'Campaign').replace(/[\\/:*?"<>|]/g, '').trim() || 'Campaign';
   const blob = new Blob([JSON.stringify(c, null, 2)], {type: 'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'got_campaign.json';
+  a.download = dateStr + ' ' + safeName + '.json';
   a.click();
   URL.revokeObjectURL(a.href);
 }
