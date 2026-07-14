@@ -376,6 +376,46 @@ textarea{resize:none;font-weight:400;font-size:12px}
 }
 .back-btn:hover{background:rgba(139,106,0,.3);}
 
+/* ── STORY OUTLINE / CAMPAIGN ── */
+.story-box{position:relative;min-width:560px;max-width:680px;max-height:85vh;overflow-y:auto;}
+.story-quote{margin-bottom:20px;}
+.story-pencil{
+  position:absolute;top:12px;right:12px;width:36px;height:36px;
+  background:none;border:1px solid #b8860b;color:#e8c84a;
+  font-size:17px;line-height:1;cursor:pointer;transition:background .2s;
+}
+.story-pencil:hover{background:rgba(139,106,0,.4);}
+.story-enter-btn{
+  font-family:'GameOfThrones','Cinzel',serif;font-size:12px;letter-spacing:2px;
+  background:#b8860b;border:none;color:#1a1000;padding:11px 30px;cursor:pointer;
+  transition:background .2s;
+}
+.story-enter-btn:hover{background:#d4a017;}
+.story-field{margin-bottom:14px;text-align:left;}
+.story-lbl{
+  font-family:'GameOfThrones','Cinzel',serif;font-size:10px;letter-spacing:2px;
+  color:#b8860b;margin-bottom:5px;text-transform:uppercase;
+}
+.story-val{
+  font-family:'IM Fell English',serif;font-size:15px;color:#f5f0e8;
+  background:rgba(139,106,0,.12);border:1px solid rgba(184,134,11,.5);
+  padding:8px 12px;min-height:20px;white-space:pre-wrap;text-align:left;
+}
+.story-val-long{min-height:80px;line-height:1.6;}
+.story-input{
+  width:100%;background:#faf7f0;border:1px solid #b8860b;color:#1a1000;
+  font-family:'IM Fell English',serif;font-size:14px;padding:7px 10px;outline:none;
+}
+.story-input:focus{border-color:#d4a017;box-shadow:0 0 4px rgba(212,160,23,.5);}
+textarea.story-input{resize:vertical;}
+/* password modal */
+.pw-modal input{
+  width:100%;background:#faf7f0;border:1px solid #b8860b;color:#1a1000;
+  font-family:'IM Fell English',serif;font-size:16px;padding:9px 12px;outline:none;
+  text-align:center;letter-spacing:1px;margin-bottom:6px;
+}
+.pw-error{font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#e05a4e;min-height:18px;margin-bottom:4px;}
+
 /* Sheet screen */
 #sheetScreen{display:none;position:relative;}
 #sheetScreen.open{display:block;}
@@ -461,9 +501,59 @@ textarea{resize:none;font-weight:400;font-size:12px}
 
 <!-- ════════ STORY ════════ -->
 <div id="storyScreen">
-  <div class="placeholder-box">
+  <div class="placeholder-box story-box">
+    <button class="story-pencil" onclick="storyPencilClick()" title="GM Edit Mode">✎</button>
     <h2>Story Outline</h2>
-    <p>Your chronicle of events, alliances and betrayals<br>will be written here.</p>
+    <p class="story-quote">“A true knight always finishes a story”<br>~ Ser Arlan of Pennytree</p>
+
+    <!-- PLAYER: locked -->
+    <div id="storyLocked">
+      <button class="story-enter-btn" onclick="storyEnterCampaign()">Enter your campaign</button>
+    </div>
+
+    <!-- PLAYER: campaign notes (after correct campaign password) -->
+    <div id="storyNotes" style="display:none;">
+      <div class="story-field">
+        <div class="story-lbl">Current Location</div>
+        <div class="story-val" id="sv_location">—</div>
+      </div>
+      <div class="story-field">
+        <div class="story-lbl">Current Quest</div>
+        <div class="story-val" id="sv_quest">—</div>
+      </div>
+      <div class="story-field">
+        <div class="story-lbl">Summary of Last Session</div>
+        <div class="story-val story-val-long" id="sv_summary">—</div>
+      </div>
+      <button class="back-btn" style="margin-top:14px;" onclick="storyLock()">🔒 Lock notes</button>
+    </div>
+
+    <!-- GM: edit form (after master password "SerJohn") -->
+    <div id="storyEdit" style="display:none;text-align:left;">
+      <div class="story-field">
+        <div class="story-lbl">Campaign Password</div>
+        <input type="text" id="se_password" class="story-input" placeholder="Password your players must enter…">
+      </div>
+      <div class="story-field">
+        <div class="story-lbl">Current Location</div>
+        <input type="text" id="se_location" class="story-input" placeholder="e.g. Harrenhal, the Riverlands">
+      </div>
+      <div class="story-field">
+        <div class="story-lbl">Current Quest</div>
+        <input type="text" id="se_quest" class="story-input" placeholder="e.g. Escort Lady Stark to the Twins">
+      </div>
+      <div class="story-field">
+        <div class="story-lbl">Summary of Last Session</div>
+        <textarea id="se_summary" class="story-input" rows="6" placeholder="What happened last time…"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:center;flex-wrap:wrap;">
+        <button class="story-enter-btn" onclick="storySaveCampaign()">💾 Save Campaign</button>
+        <button class="back-btn" onclick="storyExportCampaign()">⬇ Export</button>
+        <label class="back-btn" for="storyImportInput" style="display:inline-block;">⬆ Import</label>
+        <input type="file" id="storyImportInput" accept=".json" style="display:none" onchange="storyImportCampaign(this)">
+        <button class="back-btn" onclick="storyLock()">✕ Close editor</button>
+      </div>
+    </div>
   </div>
   <button class="back-btn" onclick="closeStory()">← Back to Menu</button>
 </div>
@@ -1331,7 +1421,156 @@ let currentSheetName = '';
 function openPicker() { buildPickerList(); document.getElementById('sheetPicker').classList.add('open'); }
 function closePicker() { document.getElementById('sheetPicker').classList.remove('open'); }
 function openStory()  { document.getElementById('storyScreen').classList.add('open'); }
-function closeStory() { document.getElementById('storyScreen').classList.remove('open'); }
+function closeStory() { storyLock(); document.getElementById('storyScreen').classList.remove('open'); }
+
+// ── STORY OUTLINE / CAMPAIGN ──
+const CAMPAIGN_KEY = 'got_campaign_v1';
+const GM_MASTER_PW = 'SerJohn';
+
+function loadCampaign(){
+  try { return JSON.parse(localStorage.getItem(CAMPAIGN_KEY)) || null; } catch(e){ return null; }
+}
+function saveCampaignData(c){
+  try { localStorage.setItem(CAMPAIGN_KEY, JSON.stringify(c)); } catch(e){}
+}
+
+// Themed password prompt. onOk(value) is called when the user confirms.
+function askPassword(title, subtitle, onOk){
+  const o = document.createElement('div');
+  o.className = 'modal-overlay';
+  o.style.zIndex = 10050;
+  o.innerHTML = `<div class="modal pw-modal" style="min-width:380px;">
+    <h2 style="font-size:22px;">${title}</h2>
+    <p>${subtitle}</p>
+    <input type="password" id="pwInput" autocomplete="off">
+    <div class="pw-error" id="pwError"></div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button id="pwOk">Unlock</button>
+      <button id="pwCancel" style="background:none;border:1px solid var(--gold);color:var(--text-gold);">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  const inp = o.querySelector('#pwInput');
+  inp.focus();
+  const submit = () => onOk(inp.value, o);
+  o.querySelector('#pwOk').onclick = submit;
+  inp.onkeydown = e => { if (e.key === 'Enter') submit(); };
+  o.querySelector('#pwCancel').onclick = () => o.remove();
+  o.onclick = e => { if (e.target === o) o.remove(); };
+}
+function pwError(overlay, msg){
+  const el = overlay.querySelector('#pwError');
+  if (el) el.textContent = msg;
+  const inp = overlay.querySelector('#pwInput');
+  if (inp){ inp.value = ''; inp.focus(); }
+}
+
+// Pencil → GM master password → edit form
+function storyPencilClick(){
+  askPassword('GM Edit Mode', 'Speak the master password, maester.', (val, overlay) => {
+    if (val === GM_MASTER_PW){
+      overlay.remove();
+      storyShowEdit();
+    } else {
+      pwError(overlay, '“You know nothing…” — that is not the master password.');
+    }
+  });
+}
+
+function storyShowEdit(){
+  const c = loadCampaign() || {};
+  document.getElementById('se_password').value = c.password || '';
+  document.getElementById('se_location').value = c.location || '';
+  document.getElementById('se_quest').value    = c.quest    || '';
+  document.getElementById('se_summary').value  = c.summary  || '';
+  document.getElementById('storyLocked').style.display = 'none';
+  document.getElementById('storyNotes').style.display  = 'none';
+  document.getElementById('storyEdit').style.display   = 'block';
+}
+
+function storySaveCampaign(){
+  const c = {
+    password: document.getElementById('se_password').value.trim(),
+    location: document.getElementById('se_location').value.trim(),
+    quest:    document.getElementById('se_quest').value.trim(),
+    summary:  document.getElementById('se_summary').value.trim()
+  };
+  saveCampaignData(c);
+  // small confirmation modal in house style
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.style.zIndex = 10050;
+  o.innerHTML = `<div class="modal"><h2 style="font-size:22px;">📜 Chronicle Saved</h2>
+    <p>Your campaign notes are sealed and stored.<br>Players may now enter with the campaign password.</p>
+    <button onclick="this.closest('.modal-overlay').remove()">Close</button></div>`;
+  document.body.appendChild(o); o.onclick = e => { if (e.target === o) o.remove(); };
+}
+
+// "Enter your campaign" → campaign password → show notes
+function storyEnterCampaign(){
+  const c = loadCampaign();
+  if (!c || !c.password){
+    const o = document.createElement('div');
+    o.className = 'modal-overlay'; o.style.zIndex = 10050;
+    o.innerHTML = `<div class="modal"><h2 style="font-size:22px;">No Campaign Yet</h2>
+      <p>Your GM has not yet set a campaign password.<br>The chronicle remains unwritten.</p>
+      <button onclick="this.closest('.modal-overlay').remove()">Close</button></div>`;
+    document.body.appendChild(o); o.onclick = e => { if (e.target === o) o.remove(); };
+    return;
+  }
+  askPassword('Enter Your Campaign', 'Give the password your GM has set.', (val, overlay) => {
+    if (val === c.password){
+      overlay.remove();
+      storyShowNotes(c);
+    } else {
+      pwError(overlay, 'The door remains shut. Wrong password.');
+    }
+  });
+}
+
+function storyShowNotes(c){
+  document.getElementById('sv_location').textContent = c.location || '—';
+  document.getElementById('sv_quest').textContent    = c.quest    || '—';
+  document.getElementById('sv_summary').textContent  = c.summary  || '—';
+  document.getElementById('storyLocked').style.display = 'none';
+  document.getElementById('storyEdit').style.display   = 'none';
+  document.getElementById('storyNotes').style.display  = 'block';
+}
+
+function storyLock(){
+  document.getElementById('storyEdit').style.display   = 'none';
+  document.getElementById('storyNotes').style.display  = 'none';
+  document.getElementById('storyLocked').style.display = 'block';
+}
+
+// Export / import so the GM can hand the campaign to players on other devices
+function storyExportCampaign(){
+  const c = loadCampaign() || {
+    password: document.getElementById('se_password').value.trim(),
+    location: document.getElementById('se_location').value.trim(),
+    quest:    document.getElementById('se_quest').value.trim(),
+    summary:  document.getElementById('se_summary').value.trim()
+  };
+  const blob = new Blob([JSON.stringify(c, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'got_campaign.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function storyImportCampaign(input){
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const c = JSON.parse(r.result);
+      saveCampaignData(c);
+      storyShowEdit(); // refresh form with imported values
+    } catch(e) { alert('That file is not a valid campaign JSON.'); }
+  };
+  r.readAsText(file);
+  input.value = '';
+}
 function openMap()    { document.getElementById('mapScreen').classList.add('open'); }
 function closeMap()   { document.getElementById('mapScreen').classList.remove('open'); }
 
