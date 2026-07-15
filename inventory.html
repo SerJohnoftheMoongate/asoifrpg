@@ -1054,6 +1054,12 @@ textarea{resize:none;font-weight:400;font-size:12px}
       <div id="aim_toolkit_preview" style="display:none;margin-top:8px;padding:8px 10px;background:rgba(139,106,0,.08);border:1px solid rgba(139,106,0,.25);border-radius:2px;font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:rgba(232,200,74,.7);line-height:1.5;"></div>
     </div>
 
+    <!-- Properties of the armor being added ("Warm,Breezy") — set from the catalog -->
+    <input type="hidden" id="aim_props">
+    <!-- ── Armor stat preview (auto-filled from the catalog) ── -->
+    <div id="aim_armor_preview" style="display:none;margin-top:10px;margin-bottom:4px;padding:10px 12px;
+         background:rgba(139,106,0,.08);border:1px solid rgba(139,106,0,.3);border-radius:3px;"></div>
+
     <!-- ── Armor Type row (Helmet / Gauntlets / Body Armor / Sabatons only) ── -->
     <div id="aim_armortype_row" style="display:none;margin-bottom:4px;margin-top:4px;">
       <label class="aim-lbl" style="font-size:10px;">Armor Type</label>
@@ -1144,6 +1150,18 @@ textarea{resize:none;font-weight:400;font-size:12px}
             style="accent-color:var(--gold);" onchange="aimResVulnChanged('resistance')">
           Bludgeoning
         </label>
+        <label id="aim_res_lbl_fire"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+                 padding:8px 6px;border:1.5px solid rgba(139,106,0,.4);cursor:pointer;
+                 background:rgba(0,0,0,.25);font-family:var(--got);font-size:10px;
+                 color:rgba(232,200,74,.7);letter-spacing:.5px;border-radius:2px;
+                 transition:background .15s,border-color .15s;"
+          onmouseover="this.style.background='rgba(139,106,0,.2)'"
+          onmouseout="this.style.background=this.querySelector('input').checked?'rgba(139,106,0,.3)':'rgba(0,0,0,.25)'">
+          <input type="checkbox" name="aim_resistance" value="Fire"
+            style="accent-color:var(--gold);" onchange="aimResVulnChanged('resistance')">
+          Fire
+        </label>
       </div>
     </div>
 
@@ -1187,6 +1205,18 @@ textarea{resize:none;font-weight:400;font-size:12px}
             style="accent-color:var(--gold);" onchange="aimResVulnChanged('vulnerability')">
           Bludgeoning
         </label>
+        <label id="aim_vuln_lbl_fire"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+                 padding:8px 6px;border:1.5px solid rgba(139,106,0,.4);cursor:pointer;
+                 background:rgba(0,0,0,.25);font-family:var(--got);font-size:10px;
+                 color:rgba(232,200,74,.7);letter-spacing:.5px;border-radius:2px;
+                 transition:background .15s,border-color .15s;"
+          onmouseover="this.style.background='rgba(139,106,0,.2)'"
+          onmouseout="this.style.background=this.querySelector('input').checked?'rgba(139,106,0,.3)':'rgba(0,0,0,.25)'">
+          <input type="checkbox" name="aim_vulnerability" value="Fire"
+            style="accent-color:var(--gold);" onchange="aimResVulnChanged('vulnerability')">
+          Fire
+        </label>
       </div>
     </div>
 
@@ -1210,19 +1240,29 @@ textarea{resize:none;font-weight:400;font-size:12px}
         </div>
         <div>
           <label class="aim-lbl" style="font-size:10px;">Price</label>
-          <div style="display:flex;gap:0;height:36px;">
-            <input type="text" id="aim_price" placeholder="—"
-              style="flex:1;height:100%;font-size:15px;text-align:center;border-right:none;min-width:0;">
-            <div style="display:flex;border:1px solid var(--gold);border-left:none;">
-              <button type="button" id="aim_pc_g" onclick="selectAimCurrency('g')"
-                style="width:28px;height:100%;border:none;border-right:1px solid rgba(184,134,11,.4);background:rgba(184,134,11,.5);cursor:pointer;font-family:var(--got);font-size:9px;color:#ffd700;letter-spacing:.3px;transition:all .15s;"
+          <!-- Canonical price string ("2G 3S") — kept in sync with the dropdowns below -->
+          <input type="hidden" id="aim_price">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;">
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <button type="button" id="aim_pc_g" onclick="focusAimPrice('g')"
+                style="height:18px;border:1px solid rgba(184,134,11,.5);background:rgba(184,134,11,.5);cursor:pointer;font-family:var(--got);font-size:9px;color:#ffd700;letter-spacing:.3px;transition:all .15s;padding:0;line-height:1;"
                 title="Gold Dragons">G</button>
-              <button type="button" id="aim_pc_s" onclick="selectAimCurrency('s')"
-                style="width:28px;height:100%;border:none;border-right:1px solid rgba(184,134,11,.4);background:rgba(30,25,10,.4);cursor:pointer;font-family:var(--got);font-size:9px;color:rgba(192,192,192,.5);letter-spacing:.3px;transition:all .15s;"
+              <select id="aim_pq_g" onchange="aimPriceChanged()" title="Gold Dragons"
+                style="height:32px;font-size:14px;text-align:center;width:100%;"></select>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <button type="button" id="aim_pc_s" onclick="focusAimPrice('s')"
+                style="height:18px;border:1px solid rgba(184,134,11,.5);background:rgba(140,150,170,.4);cursor:pointer;font-family:var(--got);font-size:9px;color:#d0d8e4;letter-spacing:.3px;transition:all .15s;padding:0;line-height:1;"
                 title="Silver Stags">S</button>
-              <button type="button" id="aim_pc_c" onclick="selectAimCurrency('c')"
-                style="width:28px;height:100%;border:none;background:rgba(30,25,10,.4);cursor:pointer;font-family:var(--got);font-size:9px;color:rgba(180,100,40,.5);letter-spacing:.3px;transition:all .15s;"
+              <select id="aim_pq_s" onchange="aimPriceChanged()" title="Silver Stags"
+                style="height:32px;font-size:14px;text-align:center;width:100%;"></select>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <button type="button" id="aim_pc_c" onclick="focusAimPrice('c')"
+                style="height:18px;border:1px solid rgba(184,134,11,.5);background:rgba(140,80,30,.4);cursor:pointer;font-family:var(--got);font-size:9px;color:#e09060;letter-spacing:.3px;transition:all .15s;padding:0;line-height:1;"
                 title="Copper Pennies">C</button>
+              <select id="aim_pq_c" onchange="aimPriceChanged()" title="Copper Pennies"
+                style="height:32px;font-size:14px;text-align:center;width:100%;"></select>
             </div>
           </div>
         </div>
@@ -1990,11 +2030,7 @@ function buildTable(containerId, cols) {
         </div>`;
       }
       if (c === 'p' && r.p) {
-        const cur = CURRENCIES[r.pc || 'g'] || CURRENCIES.g;
-        return `<div class="cell-p" style="display:flex;align-items:center;justify-content:flex-start;gap:3px;padding-left:3px;">
-          <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${cur.color};box-shadow:0 0 3px ${cur.color}88;flex-shrink:0;"></span>
-          <span style="font-size:15px;">${r.p}</span>
-        </div>`;
+        return priceCellHTML(r.p, r.pc, 15);
       }
       return `<div class="cell-${c}" style="display:flex;align-items:center;justify-content:center;">
         <span style="font-size:15px;">${r[c]||''}</span>
@@ -2068,8 +2104,15 @@ function buildEquippedColumn() {
       const noProfNote  = occupied && !profOk
         ? `<div style="font-family:var(--got);font-size:7.5px;color:#ff5555;letter-spacing:.3px;margin-top:1px;">⚠ Not Proficient</div>`
         : '';
+      const _slotProps = (occupied && Array.isArray(d.props)) ? d.props : [];
+      const propBadge = _slotProps.length
+        ? `<div style="display:flex;gap:3px;margin-top:2px;flex-wrap:wrap;">${_slotProps.map(p => {
+             const pd = ARMOR_PROPERTIES[p] || { color:'rgba(232,200,74,.7)' };
+             return `<span title="${pd.setEffect||p}" style="font-family:var(--got);font-size:6.5px;letter-spacing:.3px;padding:1px 4px;border-radius:2px;border:1px solid ${pd.color}88;color:${pd.color};line-height:1.3;">${p}</span>`;
+           }).join('')}</div>`
+        : '';
       const atBadge = occupied && d.armorType
-        ? `<div style="font-family:var(--got);font-size:7px;color:rgba(232,200,74,.4);margin-top:1px;">${d.armorType}</div>`
+        ? `<div style="font-family:var(--got);font-size:7px;color:rgba(232,200,74,.4);margin-top:1px;">${d.armorType}</div>${propBadge}`
         : '';
       // Per-piece resistance (green) / vulnerability (red) tags — stacked vertically
       // in a centered middle column, top-aligned with the label/name/AC row.
@@ -2120,7 +2163,7 @@ function openEquippedItemDetail(slotId) {
   const hasAC = AC_BONUS_TAGS.has(d.tag);
   const cond  = conditionInfo(d.condition || 'decent');
   const effAC = effectiveItemAC(d);
-  const metaStr = [d.ac ? `AC +${d.ac}` : '', d.w ? d.w + ' kg' : '', d.p || ''].filter(Boolean).join(' · ');
+  const metaStr = [d.ac ? `AC +${d.ac}` : '', d.w ? d.w + ' kg' : '', priceText(d.p, d.pc)].filter(Boolean).join(' · ');
   const condBadge = hasAC
     ? `<div style="display:inline-flex;align-items:center;gap:5px;margin-bottom:10px;padding:3px 10px;border-radius:3px;border:1px solid ${cond.color}40;background:${cond.bg};">
         <span style="width:8px;height:8px;border-radius:50%;background:${cond.color};display:inline-block;box-shadow:0 0 4px ${cond.color};"></span>
@@ -2151,8 +2194,10 @@ function openEquippedItemDetail(slotId) {
   // Per-piece resistance / vulnerability summary (now an individual-piece trait)
   const _resArr  = Array.isArray(d.resistances)    ? d.resistances    : [];
   const _vulnArr = Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [];
-  const rvBlock = (_resArr.length || _vulnArr.length)
+  const _propArr = Array.isArray(d.props)           ? d.props           : [];
+  const rvBlock = (_resArr.length || _vulnArr.length || _propArr.length)
     ? `<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px;">
+        ${_propArr.map(p => armorPropChipHTML(p, 9)).join('')}
         ${_resArr.map(r => `<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--got);font-size:9px;letter-spacing:.4px;padding:3px 9px;border-radius:3px;border:1px solid rgba(90,191,90,.6);background:rgba(20,60,20,.4);color:#9ce69c;">▲ Resistant: ${r}</span>`).join('')}
         ${_vulnArr.map(v => `<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--got);font-size:9px;letter-spacing:.4px;padding:3px 9px;border-radius:3px;border:1px solid rgba(223,90,90,.6);background:rgba(70,15,15,.4);color:#f0a0a0;">▼ Vulnerable: ${v}</span>`).join('')}
       </div>`
@@ -2305,7 +2350,7 @@ function unequipItem(slotId) {
   const rows = tableData['st_items'];
   let ri = rows.findIndex(r => !r.name);
   if (ri === -1) { rows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = rows.length - 1; }
-  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'', armorType: d.armorType||'', ammo: Array.isArray(d.ammo) ? d.ammo : [], desc: d.desc||'', resistances: Array.isArray(d.resistances) ? d.resistances : [], vulnerabilities: Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [], condition: d.condition||'decent', pc: d.pc||'g', cap: d.cap, catalogRef: d.catalogRef };
+  rows[ri] = { name: d.name, tag: d.tag||'', q:'1', w: d.w||'', p: d.p||'', a: d.ac||'', armorType: d.armorType||'', ammo: Array.isArray(d.ammo) ? d.ammo : [], desc: d.desc||'', resistances: Array.isArray(d.resistances) ? d.resistances : [], vulnerabilities: Array.isArray(d.vulnerabilities) ? d.vulnerabilities : [], condition: d.condition||'decent', pc: d.pc||'g', cap: d.cap, catalogRef: d.catalogRef, props: Array.isArray(d.props) ? d.props : [] };
   sortTableByTag('st_items');
   delete slotData[slotId];
   updateSlotUI(slotId);
@@ -2888,6 +2933,7 @@ function buildTable2(containerId, cols) {
     const badge = tagBadgeHTML(tag);
     const colsHTML = cols.map(c => {
       if (c === 'name') return `<div class="cell-name" style="display:flex;align-items:center;gap:2px;overflow:hidden;"><span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${r.name||''}</span>${badge}</div>`;
+      if (c === 'p' && r.p) return priceCellHTML(r.p, r.pc, 15);
       return `<div class="cell-${c}" style="display:flex;align-items:center;justify-content:center;"><span style="font-size:15px;">${r[c]||''}</span></div>`;
     }).join('');
     const zebra2 = (displayIdx % 2 === 1) ? 'rgba(139,106,0,.06)' : 'transparent';
@@ -3297,29 +3343,144 @@ function currencyDot(pc) {
   return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${cur.color};box-shadow:0 0 3px ${cur.color}88;flex-shrink:0;" title="${cur.title}"></span>`;
 }
 
-function selectAimCurrency(key) {
-  ['g','s','c'].forEach(k => {
-    const btn = document.getElementById('aim_pc_' + k);
-    if (!btn) return;
+/* ══════════════════════════════════════════════════════════
+   PRICE HELPERS — multi-currency prices ("2G 3S")
+   ----------------------------------------------------------------
+   An item's price lives in a single string field `p`. Two formats
+   are understood so older saves keep working:
+     • Tagged  (current) : "2G 3S"  → 2 Gold + 3 Silver
+     • Legacy            : "5" with a separate `pc` currency field
+══════════════════════════════════════════════════════════ */
+const CURRENCY_ORDER = ['g','s','c'];
+
+/* Split a price into { g, s, c } string amounts. */
+function parsePrice(p, pc) {
+  const out = { g:'', s:'', c:'' };
+  const str = (p == null ? '' : String(p)).trim();
+  if (!str) return out;
+  const tagged = str.match(/\d+(?:[.,]\d+)?\s*[gsc]/gi);
+  if (tagged) {
+    tagged.forEach(t => {
+      const m = t.match(/(\d+(?:[.,]\d+)?)\s*([gsc])/i);
+      if (m) out[m[2].toLowerCase()] = m[1].replace(',', '.');
+    });
+    return out;
+  }
+  const bare = str.match(/\d+(?:[.,]\d+)?/);
+  if (bare) out[(pc || 'g').toLowerCase()] = bare[0].replace(',', '.');
+  return out;
+}
+
+/* Which currencies actually carry an amount, in G → S → C order. */
+function priceKeys(parts) {
+  return CURRENCY_ORDER.filter(k => parts[k] !== '' && parts[k] != null && parseFloat(parts[k]) > 0);
+}
+
+/* Build the canonical stored string from { g, s, c } → "2G 3S" */
+function formatPrice(parts) {
+  return priceKeys(parts).map(k => parts[k] + CURRENCIES[k].label).join(' ');
+}
+
+/* Plain-text price for meta lines → "2G 3S" (empty when unpriced). */
+function priceText(p, pc) {
+  return formatPrice(parsePrice(p, pc));
+}
+
+/* Coloured-dot price for inventory cells. One dot per currency used. */
+function priceCellHTML(p, pc, fontSize) {
+  const parts = parsePrice(p, pc);
+  const keys  = priceKeys(parts);
+  if (!keys.length) return '';
+  const multi = keys.length > 1;
+  const fs = fontSize || 15;
+  const rows = keys.map(k => {
     const cur = CURRENCIES[k];
-    if (k === key) {
-      btn.style.background = cur.activeBg;
-      btn.style.color = cur.activeColor;
-      btn.dataset.selected = '1';
-    } else {
-      btn.style.background = cur.inactiveBg;
-      btn.style.color = cur.inactiveColor;
-      btn.dataset.selected = '0';
-    }
+    return `<span style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap;" title="${cur.title}">
+      <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${cur.color};box-shadow:0 0 3px ${cur.color}88;flex-shrink:0;"></span>
+      <span style="font-size:${multi ? Math.max(11, fs - 3) : fs}px;line-height:1.25;">${parts[k]}${multi ? cur.label : ''}</span>
+    </span>`;
+  }).join('');
+  return `<div class="cell-p" style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;padding-left:3px;">${rows}</div>`;
+}
+
+/* ── Add-Item price dropdowns (one per currency) ────────────────
+   The hidden #aim_price field always holds the canonical string
+   ("2G 3S"); the three dropdowns are its editable face.
+
+   Currency system: 1 Gold Dragon = 7 Silver Stags = 49 Copper Stars.
+   Each lesser coin stops one short of a Gold Dragon: Silver at 6
+   (7 = 1 Gold), Copper at 48 (49 = 1 Gold). ──────────────────── */
+const AIM_PRICE_MAX = { g: 99, s: 6, c: 48 };
+
+/* Build the option lists once. Safe to call repeatedly. */
+function buildAimPriceSelects() {
+  CURRENCY_ORDER.forEach(k => {
+    const sel = document.getElementById('aim_pq_' + k);
+    if (!sel || sel.dataset.built === '1') return;
+    let html = '<option value="">—</option>';
+    for (let i = 1; i <= (AIM_PRICE_MAX[k] || 99); i++) html += `<option value="${i}">${i}</option>`;
+    sel.innerHTML = html;
+    sel.dataset.built = '1';
   });
 }
 
-function getAimCurrency() {
-  for (const k of ['g','s','c']) {
-    const btn = document.getElementById('aim_pc_' + k);
-    if (btn && btn.dataset.selected === '1') return k;
+/* Set a dropdown's value, adding the option first if it's off-list
+   (e.g. a legacy 150 G heirloom) so nothing is silently lost. */
+function _setAimPriceSelect(sel, val) {
+  if (!sel) return;
+  const v = (val == null || val === '') ? '' : String(val);
+  if (v !== '' && !Array.from(sel.options).some(o => o.value === v)) {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
   }
-  return 'g';
+  sel.value = v;
+}
+
+/* Read the dropdowns → { g, s, c } */
+function getAimPriceParts() {
+  const parts = { g:'', s:'', c:'' };
+  CURRENCY_ORDER.forEach(k => {
+    const sel = document.getElementById('aim_pq_' + k);
+    parts[k] = sel ? sel.value : '';
+  });
+  return parts;
+}
+
+/* Push the dropdowns into the hidden canonical field. */
+function aimPriceChanged() {
+  const hidden = document.getElementById('aim_price');
+  if (hidden) hidden.value = formatPrice(getAimPriceParts());
+}
+
+/* Pull the hidden field into the dropdowns, then re-normalise it so a
+   legacy "5" + Gold becomes "5G". Called after every price auto-fill. */
+function syncAimPriceDropdowns(pc) {
+  buildAimPriceSelects();
+  const hidden = document.getElementById('aim_price');
+  const parts  = parsePrice(hidden ? hidden.value : '', pc || 'g');
+  CURRENCY_ORDER.forEach(k => _setAimPriceSelect(document.getElementById('aim_pq_' + k), parts[k]));
+  aimPriceChanged();
+}
+
+/* Kept for compatibility: every auto-fill sets #aim_price then calls this.
+   There is no single "selected" currency any more, so this just re-syncs
+   the dropdowns (using `key` to interpret legacy untagged prices). */
+function selectAimCurrency(key) {
+  syncAimPriceDropdowns(key);
+}
+
+/* Clicking a G/S/C header opens its dropdown. */
+function focusAimPrice(k) {
+  const sel = document.getElementById('aim_pq_' + k);
+  if (sel && !sel.disabled) sel.focus();
+}
+
+/* The highest denomination actually used — stored as the legacy `pc`
+   field so anything still reading it keeps behaving sensibly. */
+function getAimCurrency() {
+  const keys = priceKeys(getAimPriceParts());
+  return keys[0] || 'g';
 }
 
 function selectItemMgmtCurrency(key) {
@@ -3407,6 +3568,73 @@ const CATALOGS = {
     { name:"Longbow",         w:"1",   p:"3",     pc:"g", group:"Martial Ranged" },
     { name:"Net",             w:"1.5", p:"2",     pc:"s", group:"Martial Ranged" },
   ],
+  /* ── ARMOR ──────────────────────────────────────────────────
+     Extra fields on armor entries:
+       • ac    = Armor Class bonus
+       • at    = armor type: 'Light' | 'Medium' | 'Heavy'
+       • props = wearable properties, e.g. ["Warm"] / ["Breezy"]
+       • res   = damage types resisted      (Slashing/Piercing/Bludgeoning/Fire)
+       • vuln  = damage types vulnerable to
+  ───────────────────────────────────────────────────────────── */
+  Helmet: [
+    { name:"Straw Hat",           ac:"1", w:"0.5", p:"5",     pc:"c", at:"Light",  props:["Breezy"], res:[],                          vuln:["Piercing","Fire"], group:"Light" },
+    { name:"Hood",                ac:"1", w:"0.5", p:"5",     pc:"c", at:"Light",  props:["Warm"],   res:[],                          vuln:["Fire"],            group:"Light" },
+    { name:"Merchant's Hat",      ac:"1", w:"0.5", p:"3",     pc:"s", at:"Light",  props:["Warm"],   res:[],                          vuln:["Fire"],            group:"Light" },
+    { name:"Padded Coif",         ac:"1", w:"0.5", p:"1",     pc:"s", at:"Light",  props:["Warm"],   res:["Bludgeoning"],             vuln:["Fire"],            group:"Light" },
+    { name:"Leather Cap",         ac:"1", w:"1",   p:"2",     pc:"s", at:"Light",  props:[],         res:[],                          vuln:[],                  group:"Light" },
+    { name:"Arming Cap",          ac:"1", w:"1",   p:"1",     pc:"s", at:"Light",  props:[],         res:["Bludgeoning"],             vuln:["Fire"],            group:"Light" },
+    { name:"Cuir Bouilli Cap",    ac:"1", w:"0.5", p:"3",     pc:"s", at:"Light",  props:[],         res:["Slashing"],                vuln:[],                  group:"Light" },
+    { name:"Skullcap",            ac:"1", w:"1.5", p:"4",     pc:"s", at:"Light",  props:["Breezy"], res:["Slashing"],                vuln:[],                  group:"Light" },
+    { name:"Mail Coif",           ac:"2", w:"2",   p:"1",     pc:"g", at:"Medium", props:[],         res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
+    { name:"Nasal Helmet",        ac:"2", w:"2",   p:"1G 3S", pc:"g", at:"Medium", props:[],         res:["Slashing"],                vuln:[],                  group:"Medium" },
+    { name:"Kettle Helmet",       ac:"2", w:"2",   p:"2",     pc:"g", at:"Medium", props:["Breezy"], res:["Slashing"],                vuln:[],                  group:"Medium" },
+    { name:"Spangenhelm",         ac:"2", w:"2",   p:"8",     pc:"g", at:"Medium", props:[],         res:["Slashing","Piercing"],     vuln:[],                  group:"Medium" },
+    { name:"Bascinet",            ac:"3", w:"2.5", p:"4",     pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+    { name:"Hounskull Bascinet",  ac:"3", w:"3",   p:"10",    pc:"g", at:"Heavy",  props:["Warm"],   res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+    { name:"Full Helm",           ac:"3", w:"2.5", p:"5",     pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+    { name:"Great Helmet",        ac:"3", w:"2.5", p:"6",     pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+  ],
+  'Body Armor': [
+    { name:"Tunic",               ac:"1", w:"1",   p:"3",     pc:"c", at:"Light",  props:["Breezy"], res:[],                          vuln:["Fire"],            group:"Light" },
+    { name:"Coat",                ac:"1", w:"1",   p:"1",     pc:"s", at:"Light",  props:["Warm"],   res:[],                          vuln:["Fire"],            group:"Light" },
+    { name:"Fur Coat",            ac:"1", w:"1",   p:"3",     pc:"s", at:"Light",  props:["Warm"],   res:[],                          vuln:["Fire"],            group:"Light" },
+    { name:"Tabard",              ac:"1", w:"1",   p:"1",     pc:"s", at:"Light",  props:["Breezy"], res:[],                          vuln:["Fire"],            group:"Light" },
+    { name:"Cuirie",              ac:"1", w:"2",   p:"1G 2S", pc:"g", at:"Light",  props:[],         res:["Slashing"],                vuln:[],                  group:"Light" },
+    { name:"Leather Vest",        ac:"1", w:"1",   p:"3",     pc:"s", at:"Light",  props:["Breezy"], res:[],                          vuln:[],                  group:"Light" },
+    { name:"Gambeson",            ac:"1", w:"1",   p:"5",     pc:"s", at:"Light",  props:["Warm"],   res:[],                          vuln:[],                  group:"Light" },
+    { name:"Padded Vest",         ac:"1", w:"1",   p:"4",     pc:"s", at:"Light",  props:["Warm"],   res:["Bludgeoning"],             vuln:["Fire"],            group:"Light" },
+    { name:"Padded Leather Vest", ac:"1", w:"1",   p:"1",     pc:"g", at:"Light",  props:["Warm"],   res:["Bludgeoning"],             vuln:[],                  group:"Light" },
+    { name:"Brigandine",          ac:"2", w:"2",   p:"8",     pc:"g", at:"Medium", props:[],         res:["Slashing","Piercing"],     vuln:[],                  group:"Medium" },
+    { name:"Mail Shirt",          ac:"2", w:"3",   p:"5",     pc:"g", at:"Medium", props:["Breezy"], res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
+    { name:"Hauberk",             ac:"2", w:"3",   p:"7",     pc:"g", at:"Medium", props:[],         res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
+    { name:"Mail with Overcoat",  ac:"2", w:"4",   p:"8",     pc:"g", at:"Medium", props:["Warm"],   res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
+    { name:"Scale Armor",         ac:"2", w:"5",   p:"6",     pc:"g", at:"Medium", props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Medium" },
+    { name:"Plate Coat",          ac:"3", w:"6",   p:"12",    pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+    { name:"Cuirass",             ac:"3", w:"7.5", p:"20",    pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+    { name:"Plate Armor",         ac:"3", w:"9",   p:"25",    pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+    { name:"Cuirass with Falds",  ac:"3", w:"10",  p:"35",    pc:"g", at:"Heavy",  props:["Warm"],   res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+  ],
+  Gauntlets: [
+    { name:"Leather Gloves",      ac:"1", w:"0.5", p:"5",     pc:"c", at:"Light",  props:["Breezy"], res:[],                          vuln:[],                  group:"Light" },
+    { name:"Padded Mittens",      ac:"1", w:"0.5", p:"4",     pc:"s", at:"Light",  props:["Warm"],   res:["Bludgeoning"],             vuln:["Fire"],            group:"Light" },
+    { name:"Fur Gloves",          ac:"1", w:"0.5", p:"1",     pc:"s", at:"Light",  props:["Warm"],   res:[],                          vuln:["Fire"],            group:"Light" },
+    { name:"Mail Gauntlets",      ac:"2", w:"1",   p:"4",     pc:"s", at:"Medium", props:[],         res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
+    { name:"Splinted Vambraces",  ac:"2", w:"1",   p:"6",     pc:"s", at:"Medium", props:["Breezy"], res:["Slashing"],                vuln:[],                  group:"Medium" },
+    { name:"Brigadines Gauntlets",ac:"2", w:"1",   p:"1",     pc:"g", at:"Medium", props:["Warm"],   res:["Slashing"],                vuln:[],                  group:"Medium" },
+    { name:"Scale Gauntlets",     ac:"3", w:"1",   p:"1G 4S", pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+    { name:"Plate Gauntlets",     ac:"3", w:"1.5", p:"2G 3S", pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+    { name:"Hourglass Gauntlets", ac:"3", w:"2.5", p:"4",     pc:"g", at:"Heavy",  props:["Warm"],   res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+  ],
+  Sabatons: [
+    { name:"Leather Boots",       ac:"1", w:"0.5", p:"2",     pc:"s", at:"Light",  props:[],         res:[],                          vuln:[],                  group:"Light" },
+    { name:"Legate's Shoes",      ac:"1", w:"0.3", p:"5",     pc:"s", at:"Light",  props:["Breezy"], res:[],                          vuln:["Piercing","Fire"], group:"Light" },
+    { name:"Fur Boots",           ac:"1", w:"0.5", p:"3",     pc:"s", at:"Light",  props:["Warm"],   res:[],                          vuln:["Fire"],            group:"Light" },
+    { name:"Mail Boots",          ac:"2", w:"1",   p:"6",     pc:"s", at:"Medium", props:[],         res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
+    { name:"Mail Chausses",       ac:"2", w:"1",   p:"1G 2S", pc:"g", at:"Medium", props:["Warm"],   res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
+    { name:"Iron Greaves",        ac:"2", w:"1",   p:"1G 3S", pc:"g", at:"Medium", props:[],         res:["Slashing"],                vuln:[],                  group:"Medium" },
+    { name:"Plate Boots",         ac:"3", w:"2",   p:"2",     pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+    { name:"Full Leg Harness",    ac:"3", w:"4",   p:"4",     pc:"g", at:"Heavy",  props:["Warm"],   res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+  ],
   Shield: [
     { name:"Light Wooden Round Shield", w:"1", p:"4",     pc:"c", ac:"1" },
     { name:"Hide Covered Round Shield", w:"1", p:"1",     pc:"s", ac:"1" },
@@ -3450,7 +3678,9 @@ function findAmmoType(name) {
 }
 
 /* Tags that use the catalog picker in the Add Item modal */
-const CATALOG_TAGS = new Set(['Weapon','Archery','Shield','Quiver']);
+const CATALOG_TAGS = new Set(['Weapon','Archery','Shield','Quiver','Helmet','Gauntlets','Body Armor','Sabatons']);
+/* Catalog tags that are armor pieces — these auto-fill type/res/vuln/props too. */
+const ARMOR_CATALOG_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons']);
 
 /* Find a catalog entry by tag + item name */
 function findCatalogEntry(tag, name) {
@@ -3499,14 +3729,106 @@ function setAimCatalogLocked(locked) {
     nameEl.style.cursor = nameLocked ? 'default' : '';
     nameEl.style.opacity = nameLocked ? '.85' : '';
   }
-  // currency buttons are locked in catalog mode (price currency comes from the catalog)
-  ['g','s','c'].forEach(k => {
+  // price dropdowns are locked in catalog mode (the price comes from the catalog)
+  setAimPriceLocked(locked);
+}
+
+/* Lock/unlock the three price dropdowns (and their headers). */
+function setAimPriceLocked(locked) {
+  CURRENCY_ORDER.forEach(k => {
+    const sel = document.getElementById('aim_pq_' + k);
+    if (sel) {
+      sel.disabled = !!locked;
+      sel.style.cursor = locked ? 'default' : '';
+      sel.style.opacity = locked ? '.85' : '';
+    }
     const btn = document.getElementById('aim_pc_' + k);
-    if (!btn) return;
-    btn.disabled = !!locked;
-    btn.style.pointerEvents = locked ? 'none' : '';
-    btn.style.opacity = locked ? (btn.dataset.selected === '1' ? '.9' : '.4') : '';
+    if (btn) {
+      btn.style.pointerEvents = locked ? 'none' : '';
+      btn.style.opacity = locked ? '.7' : '';
+    }
   });
+}
+
+/* ══════════════════════════════════════════════════════════
+   ARMOR CATALOG AUTO-FILL
+   ----------------------------------------------------------------
+   Selecting a catalog armor piece fills in everything the player
+   used to tick by hand: armor type, AC, resistances, vulnerabilities
+   and properties. The manual rows are hidden and replaced by a
+   compact read-only preview card.
+   The hidden inputs are still set, so confirmAddItem() reads the
+   values exactly as it always has.
+══════════════════════════════════════════════════════════ */
+
+/* Properties an armor piece can carry, and what a full set of 3+ does. */
+const ARMOR_PROPERTIES = {
+  'Warm':   { color:'#e0884a', label:'Warm',   setEffect:'Resistance to cold environments; disadvantage in extreme heat' },
+  'Breezy': { color:'#7ac4e0', label:'Breezy', setEffect:'Resistance to hot environments; disadvantage in extreme cold' },
+};
+
+/* Tick the checkboxes / radio for a catalog armor entry (null = clear). */
+function applyArmorCatalogEntry(entry) {
+  // Armor type radio
+  document.querySelectorAll('input[name="aim_armortype"]').forEach(r => {
+    r.checked = !!entry && r.value === entry.at;
+  });
+  // Resistance / vulnerability checkboxes
+  const res  = (entry && Array.isArray(entry.res))  ? entry.res  : [];
+  const vuln = (entry && Array.isArray(entry.vuln)) ? entry.vuln : [];
+  document.querySelectorAll('input[name="aim_resistance"]').forEach(c    => { c.checked = res.includes(c.value); });
+  document.querySelectorAll('input[name="aim_vulnerability"]').forEach(c => { c.checked = vuln.includes(c.value); });
+  // Properties live in a hidden field (no checkbox equivalent)
+  const propEl = document.getElementById('aim_props');
+  if (propEl) propEl.value = (entry && Array.isArray(entry.props)) ? entry.props.join(',') : '';
+  aimArmorTypeChanged();
+  aimResVulnChanged('resistance');
+  aimResVulnChanged('vulnerability');
+  renderArmorPreview(entry);
+}
+
+/* Read the properties chosen for the item being added. */
+function getAimProps() {
+  const v = document.getElementById('aim_props')?.value || '';
+  return v.split(',').map(s => s.trim()).filter(Boolean);
+}
+
+/* Small coloured chip used in the preview card and item details. */
+function armorPropChipHTML(p, size) {
+  const def = ARMOR_PROPERTIES[p];
+  const col = def ? def.color : 'rgba(232,200,74,.7)';
+  const fs  = size || 8.5;
+  return `<span title="${def ? def.setEffect : p}" style="display:inline-flex;align-items:center;font-family:var(--got);font-size:${fs}px;line-height:1;letter-spacing:.5px;padding:3px 7px 2px;border-radius:2px;border:1px solid ${col}99;background:${col}22;color:${col};white-space:nowrap;">${p}</span>`;
+}
+
+/* The compact read-only stat card shown instead of the manual rows. */
+function renderArmorPreview(entry) {
+  const box = document.getElementById('aim_armor_preview');
+  if (!box) return;
+  if (!entry) { box.style.display = 'none'; box.innerHTML = ''; return; }
+
+  const AT_COL = { Light:'#8ecf6a', Medium:'#e0b040', Heavy:'#d47a4a' };
+  const atCol  = AT_COL[entry.at] || 'var(--text-gold)';
+  const chip = (txt, col) =>
+    `<span style="display:inline-flex;align-items:center;font-family:var(--got);font-size:8.5px;line-height:1;letter-spacing:.5px;padding:3px 7px 2px;border-radius:2px;border:1px solid ${col}99;background:${col}22;color:${col};white-space:nowrap;">${txt}</span>`;
+
+  const res  = (entry.res  || []).map(r => chip('▲ ' + r, '#5abf5a')).join('');
+  const vuln = (entry.vuln || []).map(v => chip('▼ ' + v, '#df5a5a')).join('');
+  const props = (entry.props || []).map(p => armorPropChipHTML(p)).join('');
+  const rv = (res || vuln)
+    ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${res}${vuln}</div>`
+    : `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.35);margin-top:6px;">No resistances or vulnerabilities</div>`;
+
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-right:2px;">AUTO-FILLED</span>
+      ${chip(entry.at, atCol)}
+      ${chip('AC +' + entry.ac, '#e8c84a')}
+      ${chip(entry.w + ' kg', '#9aa0a8')}
+      ${props}
+    </div>
+    ${rv}`;
 }
 
 /* Called when the catalog dropdown changes — auto-fill name, weight, price. */
@@ -3518,17 +3840,21 @@ function aimCatalogChanged() {
   if (!entry) {
     // Clear the auto-filled stat fields (leave a custom name intact if typed)
     ['aim_weight','aim_price'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    syncAimPriceDropdowns('g');
+    if (ARMOR_CATALOG_TAGS.has(tag)) applyArmorCatalogEntry(null);
     if (!customOn) { const n = document.getElementById('aim_name'); if (n) n.value = ''; }
     return;
   }
   const wEl = document.getElementById('aim_weight'); if (wEl) wEl.value = entry.w || '';
   const pEl = document.getElementById('aim_price');  if (pEl) pEl.value = entry.p || '';
   selectAimCurrency(entry.pc || 'g');
-  // Shields carry a predetermined AC bonus — fill and lock it
+  // Shields & armor carry a predetermined AC bonus — fill and lock it
   if (entry.ac != null) {
     const acEl = document.getElementById('aim_ac');
     if (acEl) { acEl.value = '+' + entry.ac; acEl.style.borderColor = ''; }
   }
+  // Armor pieces additionally carry type / resistances / vulnerabilities / properties
+  if (ARMOR_CATALOG_TAGS.has(tag)) applyArmorCatalogEntry(entry);
   // Fill the name only when not using a custom one
   if (!customOn) {
     const nameEl = document.getElementById('aim_name');
@@ -3813,14 +4139,8 @@ function setAimToolsLocked(locked) {
       el.style.opacity = '';
     }
   });
-  // Lock currency buttons too — toolkit price is always Gold
-  ['g','s','c'].forEach(k => {
-    const btn = document.getElementById('aim_pc_' + k);
-    if (!btn) return;
-    btn.disabled = !!locked;
-    btn.style.pointerEvents = locked ? 'none' : '';
-    btn.style.opacity = locked ? (btn.dataset.selected === '1' ? '.9' : '.4') : '';
-  });
+  // Lock the price dropdowns too — the toolkit price is preset
+  setAimPriceLocked(locked);
 }
 
 /* Called when the toolkit dropdown changes — auto-fill all fields */
@@ -3835,6 +4155,7 @@ function aimToolkitChanged() {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
+    syncAimPriceDropdowns('g');
     return;
   }
   // Auto-fill all the fields
@@ -3934,9 +4255,12 @@ function aimTagChanged() {
   const isIng     = tag === 'Ingredient';
   const isArmor   = ARMOR_PROF_TAGS.has(tag); // Helmet/Gauntlets/Body Armor/Sabatons
   const isTools   = tag === 'Tools';
-  const isCatalog = CATALOG_TAGS.has(tag);    // Weapon/Archery/Shield/Quiver
-  acRow.style.display   = AC_BONUS_TAGS.has(tag) ? 'block' : 'none';
-  if(atRow)   atRow.style.display   = isArmor ? 'block' : 'none';
+  const isCatalog = CATALOG_TAGS.has(tag);    // Weapon/Archery/Shield/Quiver/armor
+  // Armor pieces now come from a catalog, so their stat fields are auto-filled
+  // and hidden rather than ticked by hand.
+  const isCatArmor = ARMOR_CATALOG_TAGS.has(tag);
+  acRow.style.display   = (AC_BONUS_TAGS.has(tag) && !isCatArmor) ? 'block' : 'none';
+  if(atRow)   atRow.style.display   = (isArmor && !isCatArmor) ? 'block' : 'none';
   if(!isArmor) document.querySelectorAll('input[name="aim_armortype"]').forEach(r => r.checked = false);
   if(wRow)    wRow.style.display    = isIng ? 'none'  : '';
   if(destRow) destRow.style.display = isIng ? 'none'  : '';
@@ -3978,12 +4302,21 @@ function aimTagChanged() {
   // Show/hide resistance and vulnerability rows for armor items
   const resRow  = document.getElementById('aim_resistance_row');
   const vulnRow = document.getElementById('aim_vulnerability_row');
-  if(resRow)  resRow.style.display  = isArmor ? 'block' : 'none';
-  if(vulnRow) vulnRow.style.display = isArmor ? 'block' : 'none';
+  if(resRow)  resRow.style.display  = (isArmor && !isCatArmor) ? 'block' : 'none';
+  if(vulnRow) vulnRow.style.display = (isArmor && !isCatArmor) ? 'block' : 'none';
   if(!isArmor) {
     document.querySelectorAll('input[name="aim_resistance"]').forEach(c => { c.checked = false; });
     document.querySelectorAll('input[name="aim_vulnerability"]').forEach(c => { c.checked = false; });
     aimResVulnChanged('resistance'); aimResVulnChanged('vulnerability');
+  }
+  // The armor preview belongs to catalog armor only — clear it otherwise
+  if (!isCatArmor) {
+    const prev = document.getElementById('aim_armor_preview');
+    if (prev) { prev.style.display = 'none'; prev.innerHTML = ''; }
+    const propEl = document.getElementById('aim_props');
+    if (propEl) propEl.value = '';
+  } else {
+    applyArmorCatalogEntry(null); // fresh start until a piece is picked
   }
   // Show/hide condition row for Shield + all Armor tags
   const condRow = document.getElementById('aim_condition_row');
@@ -4083,23 +4416,28 @@ function aimResVulnChanged(type) {
 ─────────────────────────────────────────────────────────────────────── */
 function buildResVulnDisplay() {
   const armorSlots = ['head','gloves','boots','armor'];
-  // Count armor types among equipped armor pieces
+  // Count armor types AND properties among equipped armor pieces
   const typeCounts = {};
+  const propCounts = {};
   armorSlots.forEach(slotId => {
     const d = slotData[slotId];
-    if (d && d.name && d.armorType) {
-      typeCounts[d.armorType] = (typeCounts[d.armorType] || 0) + 1;
-    }
+    if (!d || !d.name) return;
+    if (d.armorType) typeCounts[d.armorType] = (typeCounts[d.armorType] || 0) + 1;
+    (Array.isArray(d.props) ? d.props : []).forEach(p => {
+      propCounts[p] = (propCounts[p] || 0) + 1;
+    });
   });
 
   // Find the armor type with 3 or more pieces
   const activeType = Object.entries(typeCounts).find(([t, n]) => n >= 3)?.[0] || null;
+  // Same threshold for properties: 3+ matching pieces turns the property on
+  const activeProps = Object.entries(propCounts).filter(([p, n]) => n >= 3).map(([p]) => p);
 
   const block   = document.getElementById('resVulnBlock');
   const content = document.getElementById('resVulnContent');
   if (!block || !content) return;
 
-  if (!activeType) {
+  if (!activeType && activeProps.length === 0) {
     block.style.display = 'none';
     return;
   }
@@ -4116,15 +4454,18 @@ function buildResVulnDisplay() {
   const hasRangedDisadv       = eff && eff.rangedDisadv;
   const hasStealthCombatDisadv = eff && eff.stealthCombatDisadv;
 
-  // Nothing to show for this set (e.g. a Light set with no penalties)
-  if (!hasMoveEffect && !hasRangedDisadv && !hasStealthCombatDisadv) {
+  // Nothing to show at all (e.g. a Light set with no penalties and no properties)
+  if (!hasMoveEffect && !hasRangedDisadv && !hasStealthCombatDisadv && activeProps.length === 0) {
     block.style.display = 'none';
     return;
   }
 
   block.style.display = 'block';
   const totalPieces = Object.values(typeCounts).reduce((a,b)=>a+b,0);
-  let html = `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:4px;">${activeType.toUpperCase()} ARMOR SET (${totalPieces} / 4 pieces)</div>`;
+  let html = '';
+  if (activeType) {
+    html += `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:4px;">${activeType.toUpperCase()} ARMOR SET (${totalPieces} / 4 pieces)</div>`;
+  }
 
   if (hasMoveEffect) {
     html += `<div style="margin-bottom:3px;">
@@ -4144,6 +4485,20 @@ function buildResVulnDisplay() {
       <span style="font-family:'IM Fell English',serif;font-size:12px;color:#e8c07a;">Disadvantage on ranged weapon attacks</span>
     </div>`;
   }
+
+  // ── Property sets (Warm / Breezy) — 3+ matching pieces turns one on ──
+  activeProps.forEach(p => {
+    const def = ARMOR_PROPERTIES[p] || { color:'var(--text-gold)', setEffect:'' };
+    html += `<div style="margin-top:7px;padding-top:6px;border-top:1px solid rgba(139,106,0,.25);">
+      <div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:3px;">
+        ${p.toUpperCase()} SET (${propCounts[p]} / 4 pieces)
+      </div>
+      <div>
+        <span style="font-family:var(--got);font-size:9px;color:${def.color};letter-spacing:.4px;">✦ ${p}: </span>
+        <span style="font-family:'IM Fell English',serif;font-size:12px;color:#e8c07a;">${def.setEffect}</span>
+      </div>
+    </div>`;
+  });
   content.innerHTML = html;
 }
 
@@ -4199,6 +4554,7 @@ function confirmAddItem() {
     ? [...document.querySelectorAll('input[name="aim_vulnerability"]:checked')].map(c => c.value)
     : [];
   const condition = AC_BONUS_TAGS.has(tag) ? getAimCondition() : 'decent';
+  const props = ARMOR_PROF_TAGS.has(tag) ? getAimProps() : [];
   const dest  = document.querySelector('input[name="aim_dest"]:checked')?.value || 'backpack';
   // Ingredients go directly to the pouch
   if(tag === 'Ingredient') {
@@ -4218,7 +4574,7 @@ function confirmAddItem() {
   }
   let idx=rows.findIndex(r=>!r.name);
   if(idx===-1){ rows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); idx=rows.length-1; }
-  const newItem = {name, tag, q:qty, w:wt, p:prc, pc, a:ac, armorType, desc, resistances, vulnerabilities, condition};
+  const newItem = {name, tag, q:qty, w:wt, p:prc, pc, a:ac, armorType, desc, resistances, vulnerabilities, condition, props};
   // For catalog items, remember which catalog entry it came from (and quiver capacity)
   if (CATALOG_TAGS.has(tag)) {
     const catSel = document.getElementById('aim_catalog');
@@ -4352,12 +4708,12 @@ function equipItemFromSlot(slotId, srcTable, rowIdx, modalId) {
     const returnRows = tableData['st_items'];
     let ri = returnRows.findIndex(r => !r.name);
     if (ri === -1) { returnRows.push({name:'',tag:'',q:'1',w:'',p:'',a:''}); ri = returnRows.length - 1; }
-    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'', armorType: existing.armorType||'', ammo: Array.isArray(existing.ammo) ? existing.ammo : [], desc: existing.desc||'', resistances: Array.isArray(existing.resistances) ? existing.resistances : [], vulnerabilities: Array.isArray(existing.vulnerabilities) ? existing.vulnerabilities : [], condition: existing.condition||'decent', pc: existing.pc||'g', cap: existing.cap, catalogRef: existing.catalogRef };
+    returnRows[ri] = { name: existing.name, tag: existing.tag||'', q:'1', w: existing.w||'', p: existing.p||'', a: existing.ac||'', armorType: existing.armorType||'', ammo: Array.isArray(existing.ammo) ? existing.ammo : [], desc: existing.desc||'', resistances: Array.isArray(existing.resistances) ? existing.resistances : [], vulnerabilities: Array.isArray(existing.vulnerabilities) ? existing.vulnerabilities : [], condition: existing.condition||'decent', pc: existing.pc||'g', cap: existing.cap, catalogRef: existing.catalogRef, props: Array.isArray(existing.props) ? existing.props : [] };
     sortTableByTag('st_items');
   }
 
   // Equip item into slotData — preserve ammo array for Ammunition items
-  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'', armorType: item.armorType||'', ammo: Array.isArray(item.ammo) ? item.ammo : [], desc: item.desc||'', resistances: Array.isArray(item.resistances) ? item.resistances : [], vulnerabilities: Array.isArray(item.vulnerabilities) ? item.vulnerabilities : [], condition: item.condition||'decent', pc: item.pc||'g', cap: item.cap, catalogRef: item.catalogRef };
+  slotData[slotId] = { name: item.name, tag: item.tag||'', ac: item.a||'', w: item.w||'', p: item.p||'', armorType: item.armorType||'', ammo: Array.isArray(item.ammo) ? item.ammo : [], desc: item.desc||'', resistances: Array.isArray(item.resistances) ? item.resistances : [], vulnerabilities: Array.isArray(item.vulnerabilities) ? item.vulnerabilities : [], condition: item.condition||'decent', pc: item.pc||'g', cap: item.cap, catalogRef: item.catalogRef, props: Array.isArray(item.props) ? item.props : [] };
 
   // Remove from source table
   tableData[srcTable][rowIdx] = {name:'',tag:'',q:'',w:'',p:'',a:''};
@@ -4565,7 +4921,7 @@ function openBookModal(tableId, rowIdx) {
     const pgNum  = currentPage + 1;
     const hasPrev = currentPage > 0;
     const hasNext = currentPage < total - 1;
-    const metaStr = [item.w ? item.w + ' kg' : '', item.p || ''].filter(Boolean).join(' · ');
+    const metaStr = [item.w ? item.w + ' kg' : '', priceText(item.p, item.pc)].filter(Boolean).join(' · ');
 
     const modal = document.getElementById('bookModal');
     if (!modal) return;
@@ -4854,7 +5210,7 @@ function openAmmoModal(tableId, rowIdx) {
     return _buildAmmoRows(item.ammo, 'ammoModal', capReached);
   };
 
-  const metaStr = [item.w ? item.w + ' kg' : '', item.p || ''].filter(Boolean).join(' · ');
+  const metaStr = [item.w ? item.w + ' kg' : '', priceText(item.p, item.pc)].filter(Boolean).join(' · ');
 
   const o = document.createElement('div');
   o.id = 'ammoModal'; o.className = 'modal-overlay';
@@ -4929,7 +5285,7 @@ function openEquippedQuiverModal() {
     if (hdr) hdr.innerHTML = _ammoCapLine(d.ammo, d);
   };
 
-  const metaStr = [d.w ? d.w + ' kg' : '', d.p || ''].filter(Boolean).join(' · ');
+  const metaStr = [d.w ? d.w + ' kg' : '', priceText(d.p, d.pc)].filter(Boolean).join(' · ');
 
   const o = document.createElement('div');
   o.id = 'equippedQuiverModal'; o.className = 'modal-overlay';
@@ -5196,7 +5552,7 @@ function openToolkitModal(tableId, rowIdx) {
     }).join('');
   };
 
-  const metaStr = [item.w ? item.w + ' kg' : '', item.p || ''].filter(Boolean).join(' · ');
+  const metaStr = [item.w ? item.w + ' kg' : '', priceText(item.p, item.pc)].filter(Boolean).join(' · ');
   // If this item is linked to a known kit definition, derive the description from
   // the live data so wording changes (e.g. "Contains:" → "Permanent Assets:") apply
   // to items added under the old wording too. Fall back to whatever was stored.
@@ -5806,6 +6162,7 @@ function updateKnightImage() {
 /* ── Init ── */
 window.addEventListener('DOMContentLoaded', ()=>{
   buildAimConditionBtns('decent'); // pre-populate condition selector
+  buildAimPriceSelects();          // fill the G/S/C price dropdowns
   _rebuildClassDropdowns();        // populate class / 2nd-class option lists
   buildAllTables();
   load();
