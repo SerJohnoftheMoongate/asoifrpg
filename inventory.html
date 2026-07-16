@@ -2250,14 +2250,21 @@ function detailCardHTML(d, entry, o) {
   const isWeapon = WEAPON_CARD_TAGS.has(tag);
   const isCloak  = tag === 'Cloak';
   const isArmor  = ARMOR_CATALOG_TAGS.has(tag);
+  const isQuiver = tag === 'Quiver' || tag === 'Ammunition';
+  // Everything else (Ring, Food, Camping, Misc, Ingredient…) uses the plain
+  // variant: name, description, quantity editable; weight and price locked.
+  const isGeneric = !isWeapon && !isCloak && !isArmor && !isQuiver && tag !== 'Shield';
   const e        = entry || {};
   const dmgCol   = WPN_DMG_COLORS[e.dmg] || 'var(--text-gold)';
-  const atCol    = ARMOR_TYPE_COLORS[d.armorType || e.at] || (isWeapon ? dmgCol : 'var(--text-gold)');
+  const tagCol   = (TAG_COLORS[tag] && TAG_COLORS[tag].text) || 'var(--text-gold)';
+  const atCol    = ARMOR_TYPE_COLORS[d.armorType || e.at]
+                   || (isWeapon ? dmgCol : (isGeneric || isQuiver ? tagCol : 'var(--text-gold)'));
 
-  let sub = tag.toUpperCase();
+  let sub = tag.toUpperCase() || 'ITEM';
   if (isArmor && (d.armorType || e.at)) sub = `${tag.toUpperCase()} · ${(d.armorType || e.at).toUpperCase()} ARMOR`;
   if (isWeapon)  sub = `${(e.group || tag).toUpperCase()}${e.versDie ? ' · VERSATILE' : ''}`;
   if (isCloak)   sub = 'CAPE · NO ARMOR VALUE';
+  if (isQuiver && (d.cap != null || e.cap != null)) sub = `QUIVER · HOLDS ${d.cap != null ? d.cap : e.cap} ARROWS`;
   if (o.subSuffix) sub += o.subSuffix;
 
   // chips: set props from the item itself; weapon traits + res/vuln
@@ -2297,7 +2304,14 @@ function detailCardHTML(d, entry, o) {
       <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${d.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
       <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${priceHTML}</div></div>`;
     gridCols = '1fr 1fr 1fr 1.2fr';
-  } else if (isCloak) {
+  } else if (isQuiver) {
+    const capVal = d.cap != null ? d.cap : (e.cap != null ? e.cap : '—');
+    boxes = `
+      <div class="aic-box"><span class="aic-box-lbl">CAPACITY</span><div class="aic-box-val">${capVal}<span style="font-size:9px;opacity:.7;"> max</span></div></div>
+      <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${d.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
+      <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${priceHTML}</div></div>`;
+    gridCols = '1fr 1fr 1.2fr';
+  } else if (isCloak || isGeneric) {
     boxes = `
       <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${d.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
       <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${priceHTML}</div></div>`;
@@ -2327,6 +2341,7 @@ function detailCardHTML(d, entry, o) {
       ${nameRow}
     </div>
     <div class="aic-sub">${sub}</div>
+    ${o.descHTML || ''}
     <div class="aic-stats" style="grid-template-columns:${gridCols};">${boxes}</div>
     ${versNote}
     <div class="aic-tags">${tagsHTML}</div>
@@ -2726,6 +2741,16 @@ function unequipItem(slotId) {
 
 /* ── Card-styled detail modal for inventory rows of armor / shields / capes / weapons.
      Locked stats live on the card; description (✎), quantity and condition are editable. ── */
+/* The extra-steed wrapper (openItemModal2) keeps its rows in tableData2 and
+   flags the modal with _useTableData2. Always resolve rows through this. */
+function _cardRows(o) {
+  return (o && o._useTableData2 ? tableData2 : tableData)[o._tableId];
+}
+function _cardItem(o) {
+  const rows = _cardRows(o);
+  return rows ? rows[o._rowIdx] : null;
+}
+
 function openItemCardModal(tableId, rowIdx) {
   const item = tableData[tableId][rowIdx];
   if (!item || !item.name) return;
@@ -2743,10 +2768,12 @@ function openItemCardModal(tableId, rowIdx) {
 function _renderInvCard() {
   const o = document.getElementById('itemMgmtModal');
   if (!o) return;
-  const item = tableData[o._tableId][o._rowIdx];
+  const item = _cardItem(o);
+  if (!item) return;
   const isWeapon = WEAPON_CARD_TAGS.has(item.tag);
-  const isCloak  = item.tag === 'Cloak';
-  const hasCond  = !isCloak;
+  const hasCond  = CONDITION_CARD_TAGS.has(item.tag); // capes, quivers & plain items have none
+  // Plain items (Ring, Food, Camping, Misc…) show the description under the title
+  const isGeneric = !ARMOR_CARD_TAGS.has(item.tag);
   const entry    = detailCardEntry(item);
   const cond     = item.condition || 'decent';
   const modLabel = isWeapon ? 'AR' : 'AC';
@@ -2784,12 +2811,15 @@ function _renderInvCard() {
       </div>` : '';
   const optsHTML = `<div class="aic-opts">${qtyHTML}${condHTML}</div>`;
 
+  const descBlock = detailDescHTML(item.desc, 'invCard', 'invCardDescStartEdit()');
   const cardHTML = detailCardHTML(item, entry, {
     idp: 'invCard',
     editingName: o._editingName,
     nameEditFn: 'invCardEditName()',
     nameCommitFn: 'invCardCommitName(true)',
     nameKeyFn: 'invCardNameKey(event)',
+    // Plain items carry the description inside the card, right under the title
+    descHTML: isGeneric ? descBlock : '',
     optsHTML,
   });
 
@@ -2804,7 +2834,7 @@ function _renderInvCard() {
 
   o.innerHTML = `<div class="modal" style="max-width:560px;padding:24px 30px;text-align:left;">
     ${cardHTML}
-    ${detailDescHTML(item.desc, 'invCard', 'invCardDescStartEdit()')}
+    ${isGeneric ? '' : descBlock}
     ${moveBtns ? `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">${moveBtns}</div>` : ''}
     <div style="display:flex;gap:8px;margin-top:10px;">
       <button class="rest-btn" onclick="invCardSave()" style="flex:1;">Save & Close</button>
@@ -2832,7 +2862,7 @@ function invCardEditName() {
 function invCardCommitName(save) {
   const o = document.getElementById('itemMgmtModal');
   if (!o) return;
-  const item = tableData[o._tableId][o._rowIdx];
+  const item = _cardItem(o);
   const inp = document.getElementById('invCard_name_input');
   if (save && inp && item) {
     const v = inp.value.trim();
@@ -2858,7 +2888,7 @@ function invCardSelectCondition(btn) {
   btn.style.color = c.color; btn.style.boxShadow = `0 0 6px ${c.color}55`;
   btn.querySelector('div').style.opacity = '1';
   const o = document.getElementById('itemMgmtModal');
-  const item = o && tableData[o._tableId][o._rowIdx];
+  const item = o && _cardItem(o);
   if (item) {
     const eff = document.getElementById('invCard_eff');
     if (eff) eff.textContent = WEAPON_CARD_TAGS.has(item.tag)
@@ -2872,7 +2902,7 @@ function invCardDescCancel(){ _descStopEdit('invCard', false); }
 function invCardSave() {
   const o = document.getElementById('itemMgmtModal');
   if (!o) return;
-  const item = tableData[o._tableId][o._rowIdx];
+  const item = _cardItem(o);
   if (item) {
     // capture in-progress edits
     const ed = document.getElementById('invCard_desc_edit');
@@ -2887,7 +2917,12 @@ function invCardSave() {
     if (condBtn) item.condition = condBtn.dataset.cond;
   }
   o.remove();
-  buildTable(o._tableId, ['name','q','w','p']);
+  if (o._useTableData2) {
+    sortTableByTag2(o._tableId);
+    buildTable2(o._tableId, ['name','q','w','p']);
+  } else {
+    buildTable(o._tableId, ['name','q','w','p']);
+  }
   calcWeights(); _saveData();
 }
 
@@ -2899,270 +2934,9 @@ function openItemModal(tableId, rowIdx) {
   if (item.tag === 'Book')       { openBookModal(tableId, rowIdx);    return; }
   if (item.tag === 'Tools')      { openToolkitModal(tableId, rowIdx); return; }
   if (item.tag === 'Quiver' || item.tag === 'Ammunition') { openAmmoModal(tableId, rowIdx); return; }
-  // Armor, shields, capes and weapons render as an item card
-  if (ARMOR_CARD_TAGS.has(item.tag)) { openItemCardModal(tableId, rowIdx); return; }
-
-  const existing = document.getElementById('itemMgmtModal');
-  if (existing) existing.remove();
-
-  const isBackpack = tableId === 'bp_items';
-  const isSteed    = tableId === 'st_items';
-  const hasAC      = item.a !== undefined && item.a !== '';
-
-  const tagLabel = item.tag ? `<span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);margin-left:8px;">${item.tag}</span>` : '';
-
-  const isExtra     = tableId === 'st2_items';
-  const moveToBpBtn = (isSteed || isExtra)
-    ? `<button class="rest-btn" onclick="moveItemTo('${tableId}',${rowIdx},'bp_items')"
-         style="flex:1;background:rgba(30,40,60,.4);border-color:rgba(80,100,180,.45);color:rgba(180,200,255,.8);">
-         🎒 → Backpack
-       </button>` : '';
-
-  const moveToStBtn = (isBackpack || isExtra)
-    ? `<button class="rest-btn" onclick="moveItemTo('${tableId}',${rowIdx},'st_items')"
-         style="flex:1;background:rgba(30,20,60,.4);border-color:rgba(100,80,180,.45);color:rgba(200,180,255,.8);">
-         🐴 → Steed
-       </button>` : '';
-
-  const moveToSt2Btn = extraSteedActive && !isExtra
-    ? `<button class="rest-btn" onclick="moveItemTo('${tableId}',${rowIdx},'st2_items')"
-         style="flex:1;background:rgba(20,30,60,.4);border-color:rgba(80,60,200,.45);color:rgba(160,150,255,.8);">
-         🐴 → Extra Steed
-       </button>` : '';
-
-  const o = document.createElement('div');
-  o.className = 'modal-overlay';
-  o.id = 'itemMgmtModal';
-  o.innerHTML = `<div class="modal" style="max-width:700px;padding:28px 48px;">
-    <div style="display:flex;align-items:baseline;justify-content:center;gap:0;margin-bottom:16px;flex-wrap:wrap;">
-      <h2 style="font-size:19px;margin:0;">${item.name}</h2>
-      ${tagLabel}
-    </div>
-
-    <!-- Description as centrepiece -->
-    <div id="itemDesc_display" style="cursor:pointer;margin-bottom:20px;" onclick="itemDescStartEdit()" title="Click to edit description">
-      ${item.desc
-        ? `<div style="position:relative;text-align:center;padding:14px 24px;">
-            <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:80%;height:1px;background:linear-gradient(to right,transparent,rgba(200,184,122,.45),transparent);"></div>
-            <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:17px;color:#e8d8a0;line-height:1.7;letter-spacing:.2px;">${item.desc}</span>
-            <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:80%;height:1px;background:linear-gradient(to right,transparent,rgba(200,184,122,.45),transparent);"></div>
-          </div>`
-        : `<div style="text-align:center;padding:8px 0;">
-            <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:rgba(232,200,74,.2);letter-spacing:.3px;border-bottom:1px dashed rgba(232,200,74,.12);transition:border-color .15s;"
-              onmouseover="this.style.borderColor='rgba(232,200,74,.35)'" onmouseout="this.style.borderColor='rgba(232,200,74,.12)'">+ add description…</span>
-          </div>`}
-    </div>
-    <div id="itemDesc_edit" style="display:none;margin-bottom:18px;">
-      <textarea id="itemMgmt_desc_edit" placeholder="Describe the item…"
-        style="width:100%;height:80px;font-size:15px;font-family:'IM Fell English',serif;font-style:italic;padding:10px 14px;resize:none;line-height:1.6;border-color:rgba(200,184,122,.4);text-align:center;background:rgba(200,184,122,.04);color:#e8d8a0;">${item.desc||''}</textarea>
-      <div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end;">
-        <button onclick="itemDescConfirm()" class="rest-btn" style="font-size:11px;padding:3px 12px;">✓ Done</button>
-        <button onclick="itemDescCancel()" class="rest-btn" style="font-size:11px;padding:3px 10px;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">✕</button>
-      </div>
-    </div>
-    <!-- Hidden sync field so itemModalSave always reads correctly -->
-    <textarea id="itemMgmt_desc" style="display:none;">${item.desc||''}</textarea>
-
-    <div style="border-top:1px solid rgba(139,106,0,.25);padding-top:16px;margin-top:0;">
-      <div style="font-family:var(--got);font-size:13px;color:var(--text-gold);letter-spacing:1.6px;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid rgba(139,106,0,.4);">DETAILS</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr${hasAC?' 1fr':''};gap:6px;margin-bottom:8px;">
-        <div>
-          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Weight (kg)</label>
-          <input type="text" id="itemMgmt_w" value="${item.w||''}" placeholder="—"
-            style="width:100%;height:28px;font-size:13px;text-align:center;">
-        </div>
-        <div>
-          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Price</label>
-          <input type="text" id="itemMgmt_p" value="${item.p||''}" placeholder="—"
-            style="width:100%;height:28px;font-size:13px;text-align:center;box-sizing:border-box;">
-          <div style="display:flex;justify-content:center;margin-top:4px;gap:4px;">
-            ${['g','s','c'].map(k => { const cur = CURRENCIES[k]; const sel = (item.pc||'g')===k; return `<button type="button" id="itemMgmt_pc_${k}" onclick="selectItemMgmtCurrency('${k}')" data-selected="${sel?'1':'0'}" title="${cur.title}" style="width:22px;height:22px;padding:0;margin:0;border:1px solid ${sel?cur.color:'rgba(139,106,0,.3)'};background:${sel?cur.activeBg:cur.inactiveBg};cursor:pointer;font-family:var(--got);font-size:12px;color:${sel?cur.activeColor:cur.inactiveColor};letter-spacing:0;transition:all .15s;border-radius:2px;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;">${cur.label}</button>`; }).join('')}
-          </div>
-        </div>
-        <div>
-          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Quantity</label>
-          <div style="display:flex;align-items:center;height:28px;gap:4px;">
-            <button onclick="itemModalAdjQty(-1)"
-              style="width:20px;height:20px;padding:0;margin:0;border:1px solid rgba(180,60,60,.55);background:rgba(60,15,15,.45);color:#ff8a8a;font-family:var(--got);font-size:15px;font-weight:700;cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;flex-shrink:0;"
-              onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
-            <div style="flex:1;height:100%;display:flex;align-items:center;justify-content:center;background:var(--input-bg);border:1px solid var(--gold);min-width:0;">
-              <span id="itemMgmt_qty_display" style="font-family:'IM Fell English',serif;font-size:14px;font-weight:700;color:#1a1000;">${item.q||'1'}</span>
-            </div>
-            <button onclick="itemModalAdjQty(+1)"
-              style="width:20px;height:20px;padding:0;margin:0;border:1px solid rgba(60,180,60,.55);background:rgba(15,60,15,.45);color:#8aff8a;font-family:var(--got);font-size:15px;font-weight:700;cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;line-height:1;transition:filter .15s;flex-shrink:0;"
-              onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
-          </div>
-        </div>
-        ${hasAC ? `<div>
-          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">AC Bonus</label>
-          <input type="text" id="itemMgmt_ac" value="${item.a||''}" placeholder="—"
-            style="width:100%;height:28px;font-size:13px;text-align:center;">
-        </div>` : ''}
-      </div>
-      ${hasAC ? (() => {
-        const cond = item.condition || 'decent';
-        const effAC = Math.max(0, (parseFloat(item.a)||0) + conditionInfo(cond).mod);
-        return `<div style="margin-top:26px;">
-          <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;gap:10px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(139,106,0,.4);">
-            <span></span>
-            <span style="font-family:var(--got);font-size:13px;color:var(--text-gold);letter-spacing:1.6px;">CONDITION</span>
-            <span id="itemMgmt_cond_effAC" style="font-family:var(--got);font-size:10px;color:rgba(136,221,136,.85);letter-spacing:.6px;justify-self:end;">→ Effective AC: ${effAC}</span>
-          </div>
-          <div style="display:flex;gap:5px;" id="itemMgmt_cond_btns">
-            ${ITEM_CONDITIONS.map(c => {
-              const sel = cond === c.key;
-              return `<button type="button" data-cond="${c.key}" onclick="selectItemMgmtCondition(this)"
-                style="flex:1;padding:5px 3px;font-family:var(--got);font-size:8.5px;letter-spacing:.3px;
-                       cursor:pointer;border-radius:2px;transition:all .15s;
-                       border:2px solid ${sel ? c.color : 'rgba(139,106,0,.3)'};
-                       background:${sel ? c.bg : 'rgba(0,0,0,.2)'};
-                       color:${sel ? c.color : 'rgba(232,200,74,.45)'};
-                       box-shadow:${sel ? `0 0 6px ${c.color}55` : 'none'};">
-                <div style="width:7px;height:7px;border-radius:50%;background:${c.color};margin:0 auto 3px;opacity:${sel?'1':'.4'}"></div>
-                ${c.label}<br><span style="font-size:7.5px;opacity:.8;">${c.mod > 0 ? '+' : ''}${c.mod} AC</span>
-              </button>`;
-            }).join('')}
-          </div>
-        </div>`;
-      })() : ''}
-    </div>
-
-    ${(moveToBpBtn || moveToStBtn || moveToSt2Btn) ? `
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-      ${moveToBpBtn}${moveToStBtn}${moveToSt2Btn}
-    </div>` : ''}
-
-    <div style="display:flex;gap:8px;margin-top:10px;">
-      <button class="rest-btn" onclick="itemModalSave()" style="flex:1;">Save & Close</button>
-      <button class="rest-btn" onclick="itemModalDelete()"
-        style="background:#3a0000;border-color:#882222;color:#ff6666;flex:1;">Delete Item</button>
-      <button class="rest-btn" onclick="document.getElementById('itemMgmtModal').remove()"
-        style="background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
-    </div>
-  </div>`;
-
-  o._tableId    = tableId;
-  o._rowIdx     = rowIdx;
-  o._hasAC      = hasAC;
-  o._currentQty = parseInt(item.q) || 1;
-
-  document.body.appendChild(o);
-  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
-}
-
-function itemModalAdjQty(delta) {
-  const modal = document.getElementById('itemMgmtModal');
-  if (!modal) return;
-  modal._currentQty = Math.max(1, (modal._currentQty || 1) + delta);
-  const disp = document.getElementById('itemMgmt_qty_display');
-  if (disp) disp.textContent = modal._currentQty;
-}
-
-function selectItemMgmtCondition(btn) {
-  const container = document.getElementById('itemMgmt_cond_btns');
-  if (!container) return;
-  container.querySelectorAll('[data-cond]').forEach(b => {
-    const c = conditionInfo(b.dataset.cond);
-    b.style.border     = `2px solid rgba(139,106,0,.3)`;
-    b.style.background = 'rgba(0,0,0,.2)';
-    b.style.color      = 'rgba(232,200,74,.45)';
-    b.style.boxShadow  = 'none';
-    b.querySelector('div').style.opacity = '.4';
-  });
-  const c = conditionInfo(btn.dataset.cond);
-  btn.style.border     = `2px solid ${c.color}`;
-  btn.style.background = c.bg;
-  btn.style.color      = c.color;
-  btn.style.boxShadow  = `0 0 6px ${c.color}55`;
-  btn.querySelector('div').style.opacity = '1';
-  // Update effective AC preview
-  const modal = document.getElementById('itemMgmtModal');
-  const acInput = document.getElementById('itemMgmt_ac');
-  const effEl   = document.getElementById('itemMgmt_cond_effAC');
-  if (effEl && acInput) {
-    const base = parseFloat(acInput.value) || 0;
-    const effAC = Math.max(0, base + c.mod);
-    effEl.textContent = `→ Effective AC: ${effAC}`;
-  }
-}
-
-function itemDescStartEdit() {
-  const display = document.getElementById('itemDesc_display');
-  const edit    = document.getElementById('itemDesc_edit');
-  const editTA  = document.getElementById('itemMgmt_desc_edit');
-  const hidden  = document.getElementById('itemMgmt_desc');
-  if (!display || !edit) return;
-  // Populate edit area from hidden field
-  if (editTA && hidden) editTA.value = hidden.value;
-  display.style.display = 'none';
-  edit.style.display = 'block';
-  if (editTA) { editTA.focus(); editTA.setSelectionRange(editTA.value.length, editTA.value.length); }
-}
-
-function itemDescConfirm() {
-  const display = document.getElementById('itemDesc_display');
-  const edit    = document.getElementById('itemDesc_edit');
-  const editTA  = document.getElementById('itemMgmt_desc_edit');
-  const hidden  = document.getElementById('itemMgmt_desc');
-  if (!display || !edit || !editTA || !hidden) return;
-  const newDesc = editTA.value.trim();
-  // Sync to hidden field (read by itemModalSave)
-  hidden.value = newDesc;
-  // Update display text
-  const span = display.querySelector('span');
-  if (span) {
-    if (newDesc) {
-      span.style.color = '#c8b87a';
-      span.style.fontSize = '13px';
-      span.style.borderBottomColor = 'rgba(200,184,122,.3)';
-      span.textContent = newDesc;
-    } else {
-      span.style.color = 'rgba(232,200,74,.25)';
-      span.style.fontSize = '12px';
-      span.style.borderBottomColor = 'rgba(232,200,74,.15)';
-      span.textContent = '+ add description…';
-    }
-  }
-  edit.style.display = 'none';
-  display.style.display = 'block';
-}
-
-function itemDescCancel() {
-  const display = document.getElementById('itemDesc_display');
-  const edit    = document.getElementById('itemDesc_edit');
-  if (!display || !edit) return;
-  edit.style.display = 'none';
-  display.style.display = 'block';
-}
-
-function itemModalSave() {
-  const modal = document.getElementById('itemMgmtModal');
-  if (!modal) return;
-  const {_tableId, _rowIdx, _hasAC, _currentQty} = modal;
-  const item = tableData[_tableId][_rowIdx];
-  if (!item) return;
-  item.q = String(_currentQty);
-  item.w = document.getElementById('itemMgmt_w')?.value.trim() || item.w;
-  item.p  = document.getElementById('itemMgmt_p')?.value.trim() || item.p;
-  item.pc = getItemMgmtCurrency();
-  // If edit area is open, confirm it first so hidden field is up to date
-  const editVisible = document.getElementById('itemDesc_edit')?.style.display !== 'none';
-  if (editVisible) itemDescConfirm();
-  item.desc = document.getElementById('itemMgmt_desc')?.value.trim() ?? (item.desc || '');
-  if (_hasAC) item.a = document.getElementById('itemMgmt_ac')?.value.trim() || '';
-  // Save condition if present
-  if (_hasAC) {
-    const condBtns = document.getElementById('itemMgmt_cond_btns');
-    if (condBtns) {
-      const selBtn = [...condBtns.querySelectorAll('[data-cond]')].find(b => b.style.boxShadow && b.style.boxShadow !== 'none');
-      item.condition = selBtn ? selBtn.dataset.cond : (item.condition || 'decent');
-    }
-  }
-  modal.remove();
-  if (_tableId === 'bp_items' || _tableId === 'st_items') sortTableByTag(_tableId);
-  buildAllTables();
-  calcWeights();
-  calcDC();
+  // Everything else uses the item card: armor / shields / capes / weapons get the
+  // full stat card, and all remaining tags get the plain variant.
+  openItemCardModal(tableId, rowIdx);
 }
 
 function itemModalDelete() {
@@ -3490,41 +3264,10 @@ function openItemModal2(tableId, rowIdx) {
   // Patch save/delete callbacks to write to tableData2
   const modal = document.getElementById('itemMgmtModal');
   if (!modal) return;
+  // The card modal reads and writes through _cardRows(), which honours this flag,
+  // so its own Save handler already commits to tableData2. Only Delete needs
+  // redirecting, since itemModalDelete() always targets tableData.
   modal._useTableData2 = true;
-  // Override save so it commits to tableData2
-  const origSave = window.itemModalSave;
-  modal._patchedSave = function() {
-    const {_tableId, _rowIdx, _hasAC, _currentQty} = modal;
-    const item2 = tableData2[_tableId][_rowIdx];
-    if (!item2) return;
-    item2.q = String(_currentQty);
-    const wEl = document.getElementById('itemMgmt_w');
-    const pEl = document.getElementById('itemMgmt_p');
-    if (wEl) item2.w = wEl.value.trim() || item2.w;
-    if (pEl) item2.p = pEl.value.trim() || item2.p;
-    item2.pc = getItemMgmtCurrency();
-    const editVisible = document.getElementById('itemDesc_edit')?.style.display !== 'none';
-    if (editVisible) itemDescConfirm();
-    item2.desc = document.getElementById('itemMgmt_desc')?.value.trim() ?? (item2.desc || '');
-    if (_hasAC) item2.a = document.getElementById('itemMgmt_ac')?.value.trim() || '';
-    if (_hasAC) {
-      const condBtns = document.getElementById('itemMgmt_cond_btns');
-      if (condBtns) {
-        const selBtn = [...condBtns.querySelectorAll('[data-cond]')].find(b => b.style.boxShadow && b.style.boxShadow !== 'none');
-        item2.condition = selBtn ? selBtn.dataset.cond : (item2.condition || 'decent');
-      }
-    }
-    modal.remove();
-    sortTableByTag2(_tableId);
-    buildTable2(_tableId, ['name','q','w','p']);
-    calcWeights();
-    _saveData();
-  };
-  // Patch the Save & Close button
-  const saveBtn = modal.querySelector('.rest-btn');
-  if (saveBtn && saveBtn.textContent.includes('Save')) {
-    saveBtn.onclick = () => modal._patchedSave();
-  }
   // Patch Delete button
   const deleteBtn = [...modal.querySelectorAll('.rest-btn')].find(b => b.textContent.includes('Delete'));
   if (deleteBtn) {
@@ -4016,25 +3759,6 @@ function getAimCurrency() {
   return keys[0] || 'g';
 }
 
-function selectItemMgmtCurrency(key) {
-  ['g','s','c'].forEach(k => {
-    const btn = document.getElementById('itemMgmt_pc_' + k);
-    if (!btn) return;
-    const cur = CURRENCIES[k];
-    btn.style.background  = k === key ? cur.activeBg    : cur.inactiveBg;
-    btn.style.color       = k === key ? cur.activeColor  : cur.inactiveColor;
-    btn.dataset.selected  = k === key ? '1' : '0';
-  });
-}
-
-function getItemMgmtCurrency() {
-  for (const k of ['g','s','c']) {
-    const btn = document.getElementById('itemMgmt_pc_' + k);
-    if (btn && btn.dataset.selected === '1') return k;
-  }
-  return 'g';
-}
-
 /* ══════════════════════════════════════════════════════════
    ITEM CATALOGS — prebuilt Weapon / Archery / Shield / Quiver lists
    ----------------------------------------------------------------
@@ -4167,7 +3891,7 @@ const CATALOGS = {
     { name:"Leather Boots",       ac:"1", w:"0.5", p:"2",     pc:"s", at:"Light",  props:["Fire Resistance"],         res:[],                          vuln:[],                  group:"Light" },
     { name:"Legate's Shoes",      ac:"1", w:"0.3", p:"5",     pc:"s", at:"Light",  props:["Breezy"], res:[],                          vuln:["Piercing","Fire"], group:"Light" },
     { name:"Fur Boots",           ac:"1", w:"0.5", p:"3",     pc:"s", at:"Light",  props:["Warm"],   res:[],                          vuln:["Fire"],            group:"Light" },
-    { name:"Mail Boots",          ac:"2", w:"1",   p:"6",     pc:"s", at:"Medium", props:[],         res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
+    { name:"Mail Boots",          ac:"2", w:"1",   p:"6",     pc:"s", at:"Medium", props:["Breezy"],         res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
     { name:"Mail Chausses",       ac:"2", w:"1",   p:"1G 2S", pc:"g", at:"Medium", props:["Warm"],   res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
     { name:"Iron Greaves",        ac:"2", w:"1",   p:"1G 3S", pc:"g", at:"Medium", props:["Fire Resistance"],         res:["Slashing"],                vuln:[],                  group:"Medium" },
     { name:"Plate Boots",         ac:"3", w:"2",   p:"2",     pc:"g", at:"Heavy",  props:["Fire Resistance"],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
@@ -4189,11 +3913,12 @@ const CATALOGS = {
     { name:"Crofter's Mantle",          w:"1",   p:"3",     pc:"s", props:["Warm"] },
     { name:"Light Linen Hooded Cloak",  w:"0.5", p:"1",     pc:"g", props:["Breezy"] },
     { name:"Septon's Cloak",            w:"1",   p:"5",     pc:"s", props:["Warm"] },
-    { name:"Sailor's Cape",             w:"2.5", p:"1G 3S", pc:"g", props:["Fire Resistance"] },
+    { name:"Sailor's Cape",             w:"2.5", p:"2G 3S", pc:"g", props:["Warm","Fire Resistance"] },
     { name:"Hunter's Cape",             w:"0.5", p:"6",     pc:"s", props:["Breezy"] },
     { name:"Fur-Lined Mantle",          w:"2",   p:"2",     pc:"g", props:["Warm"] },
-    { name:"Hooded Semi-Circle Cloak",  w:"0.5", p:"2G 3S", pc:"g", props:["Breezy"] },
+    { name:"Light Woolen Hooded Semi-Circle Cloak", w:"0.5", p:"3G 3S", pc:"g", props:["Breezy","Fire Resistance"] },
     { name:"Noble's Velvet Mantle",     w:"3.5", p:"5",     pc:"g", props:["Fire Resistance"] },
+    { name:"Merchant's Asbestos Mantle", w:"1.5", p:"8G 2S", pc:"g", props:["Breezy","Fire Resistance"] },
   ],
   Quiver: [
     { name:"Sackcloth Quiver",              w:"0.2", p:"3", pc:"c", cap:10 },
@@ -4366,10 +4091,17 @@ function armorPropChipHTML(p, size) {
    editable things are the name (via the ✎) and the condition.
 ══════════════════════════════════════════════════════════ */
 /* Tags that render as an item card rather than manual fields. */
-const ARMOR_CARD_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons','Shield','Cloak','Weapon','Archery']);
+const ARMOR_CARD_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons','Shield','Cloak','Weapon','Archery','Quiver']);
 /* Card tags whose condition modifies ATTACK rolls rather than AC. */
 const WEAPON_CARD_TAGS = new Set(['Weapon','Archery']);
-const ARMOR_CARD_ICONS = { 'Helmet':'⛑', 'Body Armor':'🎽', 'Gauntlets':'🧤', 'Sabatons':'🥾', 'Shield':'🛡', 'Cloak':'🧥', 'Weapon':'⚔', 'Archery':'🏹' };
+/* Only gear with an AC or attack bonus carries a condition rating.
+   Capes and quivers have neither, so their cards show no condition strip. */
+const CONDITION_CARD_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons','Shield','Weapon','Archery']);
+const ARMOR_CARD_ICONS = {
+  'Helmet':'⛑', 'Body Armor':'🎽', 'Gauntlets':'🧤', 'Sabatons':'🥾', 'Shield':'🛡',
+  'Cloak':'🧥', 'Weapon':'⚔', 'Archery':'🏹', 'Quiver':'🏹', 'Ammunition':'🏹',
+  'Ring':'💍', 'Ingredient':'🌿', 'Tools':'🧰', 'Book':'📖', 'Food':'🍖', 'Camping':'⛺', 'Misc':'🎒',
+};
 /* Damage-type colours for weapon cards (matches the character sheet palette). */
 const WPN_DMG_COLORS = { 'Slashing':'#ff7777', 'Piercing':'#ffaa55', 'Bludgeoning':'#aaaacc', 'Fire':'#e05a3a' };
 /* Single source of truth for armor-type colouring. Used by the item cards,
@@ -4454,7 +4186,8 @@ function renderArmorCard(entry, tag) {
   const isArmor  = ARMOR_CATALOG_TAGS.has(_aicTag);
   const isWeapon = WEAPON_CARD_TAGS.has(_aicTag);
   const isCloak  = _aicTag === 'Cloak';
-  const hasCond  = !isCloak; // capes carry no AC/AR, so no condition selector
+  const isQuiver = _aicTag === 'Quiver';
+  const hasCond  = CONDITION_CARD_TAGS.has(_aicTag); // capes & quivers have no AC/AR
   const curCond  = (hasCond && document.getElementById('aim_condition_btns')) ? getAimCondition() : 'decent';
   const title    = _aicCustomName || entry.name;
 
@@ -4466,6 +4199,7 @@ function renderArmorCard(entry, tag) {
   if (isArmor && entry.at) sub = `${_aicTag.toUpperCase()} · ${entry.at.toUpperCase()} ARMOR`;
   if (isWeapon)            sub = `${(entry.group || _aicTag).toUpperCase()}${entry.versDie ? ' · VERSATILE' : ''}`;
   if (isCloak)             sub = 'CAPE · NO ARMOR VALUE';
+  if (isQuiver)            sub = `QUIVER · HOLDS ${entry.cap} ARROWS`;
 
   // ── chips ──
   const setProps  = (entry.props || []).filter(p => ARMOR_PROPERTIES[p]).map(p => armorPropChipHTML(p)).join('');
@@ -4496,6 +4230,11 @@ function renderArmorCard(entry, tag) {
     boxes = `
       <div class="aic-box"><span class="aic-box-lbl">DAMAGE</span><div class="aic-box-val">${dmgVal}</div></div>
       <div class="aic-box"><span class="aic-box-lbl">RANGE</span><div class="aic-box-val" style="font-size:${String(rangeVal).length>7?'10.5':'12'}px;">${rangeVal}</div></div>
+      <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${entry.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
+      <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${_aicPriceHTML(entry)}</div></div>`;
+  } else if (isQuiver) {
+    boxes = `
+      <div class="aic-box"><span class="aic-box-lbl">CAPACITY</span><div class="aic-box-val">${entry.cap}<span style="font-size:9px;opacity:.7;"> max</span></div></div>
       <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${entry.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
       <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${_aicPriceHTML(entry)}</div></div>`;
   } else if (isCloak) {
