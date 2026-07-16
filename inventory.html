@@ -586,6 +586,68 @@ textarea{resize:none;font-weight:400;font-size:12px}
 /* Add-Item Modal label style */
 .aim-lbl{font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;}
 
+/* ── Armor / Shield item card (styled after the weapon-configuration card) ── */
+.aic{
+  background:linear-gradient(140deg, rgba(28,18,2,.85), rgba(10,5,0,.92));
+  border:1px solid rgba(139,106,0,.5);
+  border-left:3px solid var(--gold);
+  border-radius:3px;padding:12px 14px;
+}
+.aic.empty{
+  border-left-color:rgba(139,106,0,.3);
+  text-align:center;padding:26px 14px;
+  font-family:'IM Fell English',serif;font-style:italic;
+  color:rgba(232,200,74,.35);font-size:13px;
+}
+.aic-icon{
+  width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--gold);border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, rgba(232,200,74,.22), rgba(0,0,0,.5));
+  font-size:13px;line-height:1;
+}
+.aic-name{
+  font-family:'Cinzel',serif;font-weight:600;font-size:15px;color:var(--text-gold);
+  letter-spacing:.6px;text-shadow:0 0 6px rgba(232,200,74,.3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.aic-sub{
+  font-family:var(--got);font-size:9px;letter-spacing:.8px;color:rgba(232,200,74,.55);
+  margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(139,106,0,.3);
+}
+.aic-pencil{
+  width:22px;height:22px;flex-shrink:0;padding:0;line-height:1;
+  border:1px solid rgba(139,106,0,.5);border-radius:2px;
+  background:rgba(0,0,0,.3);color:var(--text-gold);font-size:11px;
+  cursor:pointer;transition:all .15s;
+}
+.aic-pencil:hover{background:rgba(139,106,0,.35);border-color:var(--gold);}
+.aic-name-input{
+  flex:1;min-width:0;height:28px;font-size:14px;padding:0 8px;
+  font-family:'Cinzel',serif;font-weight:600;letter-spacing:.4px;
+}
+.aic-stats{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:5px;margin-bottom:8px;}
+.aic-box{
+  background:linear-gradient(to bottom, rgba(0,0,0,.5), rgba(20,12,0,.6));
+  border:1px solid rgba(139,106,0,.5);
+  border-radius:2px;padding:2px 2px 4px;text-align:center;position:relative;
+}
+.aic-box::before{
+  content:'';position:absolute;top:0;left:6px;right:6px;height:1px;
+  background:linear-gradient(to right, transparent, rgba(232,200,74,.4), transparent);
+}
+.aic-box-lbl{
+  display:block;font-family:var(--got);font-size:7px;
+  color:rgba(232,200,74,.55);letter-spacing:.8px;line-height:2;margin-bottom:1px;
+}
+.aic-box-val{
+  font-family:'Cinzel',serif;font-weight:600;font-size:13px;color:var(--text-gold);
+  line-height:1.15;letter-spacing:.3px;text-shadow:0 0 6px rgba(232,200,74,.4);
+  display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;
+}
+.aic-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:2px;}
+.aic-tags:empty{display:none;}
+.aic-opts{margin-top:8px;border-top:1px solid rgba(139,106,0,.3);padding-top:8px;}
+
 /* ── Static Equipped Slot Cards ── */
 .eq-static-slot{
   display:flex;align-items:center;gap:7px;padding:5px 7px;
@@ -979,8 +1041,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <h2 style="font-family:var(--got);font-size:20px;color:var(--text-gold);letter-spacing:1.5px;margin-bottom:6px;text-align:center;">Add Item to Inventory</h2>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:16px;color:#888;text-align:center;margin-bottom:24px;">“Some battles are won with swords and spears, others with quills and ravens.” ~ Tywin Lannister</p>
 
-    <!-- ── Row 1: Name ── -->
-    <div style="margin-bottom:16px;">
+    <!-- ── Row 1: Name (hidden for Armor/Shield — the item card owns the name) ── -->
+    <div id="aim_name_row" style="margin-bottom:16px;">
       <label class="aim-lbl" style="font-size:10px;">Item Name</label>
       <input type="text" id="aim_name" placeholder="e.g. Iron Sword, Cloak of Stars, Healing Herbs…"
         style="width:100%;height:36px;font-size:14px;padding:0 10px;">
@@ -1056,9 +1118,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
 
     <!-- Properties of the armor being added ("Warm,Breezy") — set from the catalog -->
     <input type="hidden" id="aim_props">
-    <!-- ── Armor stat preview (auto-filled from the catalog) ── -->
-    <div id="aim_armor_preview" style="display:none;margin-top:10px;margin-bottom:4px;padding:10px 12px;
-         background:rgba(139,106,0,.08);border:1px solid rgba(139,106,0,.3);border-radius:3px;"></div>
+    <!-- ── Armor / Shield item card (auto-filled from the catalog) ── -->
+    <div id="aim_armor_preview" style="display:none;margin-top:12px;margin-bottom:4px;"></div>
 
     <!-- ── Armor Type row (Helmet / Gauntlets / Body Armor / Sabatons only) ── -->
     <div id="aim_armortype_row" style="display:none;margin-bottom:4px;margin-top:4px;">
@@ -1104,12 +1165,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
     </div>
 
     <!-- ── Resistance row (armor items only) ── -->
-    <!-- ── Condition row (Shield + Armor items only) ── -->
-    <div id="aim_condition_row" style="display:none;margin-bottom:4px;margin-top:4px;">
-      <label class="aim-lbl" style="font-size:10px;">Condition</label>
-      <div style="display:flex;gap:5px;margin-top:4px;" id="aim_condition_btns">
-      </div>
-    </div>
+    <!-- Condition now lives inside the Armor/Shield item card (#aim_condition_btns) -->
 
     <div id="aim_resistance_row" style="display:none;margin-bottom:4px;margin-top:4px;">
       <label class="aim-lbl" style="font-size:10px;">Resistances</label>
@@ -1227,18 +1283,18 @@ textarea{resize:none;font-weight:400;font-size:12px}
 
     <!-- ── Row 3: Qty / Weight / Price inline + Description ── -->
     <div id="aim_weight_row" style="margin-bottom:16px;margin-top:18px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
-        <div>
+      <div id="aim_qwp_grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div id="aim_qty_cell">
           <label class="aim-lbl" style="font-size:10px;">Quantity</label>
           <input type="text" id="aim_qty" placeholder="1"
             style="width:100%;height:36px;font-size:15px;text-align:center;font-weight:700;">
         </div>
-        <div>
+        <div id="aim_weight_cell">
           <label class="aim-lbl" style="font-size:10px;">Weight (kg)</label>
           <input type="text" id="aim_weight" placeholder="—"
             style="width:100%;height:36px;font-size:15px;text-align:center;">
         </div>
-        <div>
+        <div id="aim_price_cell">
           <label class="aim-lbl" style="font-size:10px;">Price</label>
           <!-- Canonical price string ("2G 3S") — kept in sync with the dropdowns below -->
           <input type="hidden" id="aim_price">
@@ -3784,7 +3840,6 @@ function applyArmorCatalogEntry(entry) {
   aimArmorTypeChanged();
   aimResVulnChanged('resistance');
   aimResVulnChanged('vulnerability');
-  renderArmorPreview(entry);
 }
 
 /* Read the properties chosen for the item being added. */
@@ -3801,36 +3856,140 @@ function armorPropChipHTML(p, size) {
   return `<span title="${def ? def.setEffect : p}" style="display:inline-flex;align-items:center;font-family:var(--got);font-size:${fs}px;line-height:1;letter-spacing:.5px;padding:3px 7px 2px;border-radius:2px;border:1px solid ${col}99;background:${col}22;color:${col};white-space:nowrap;">${p}</span>`;
 }
 
-/* The compact read-only stat card shown instead of the manual rows. */
-function renderArmorPreview(entry) {
-  const box = document.getElementById('aim_armor_preview');
-  if (!box) return;
-  if (!entry) { box.style.display = 'none'; box.innerHTML = ''; return; }
+/* ══════════════════════════════════════════════════════════
+   ARMOR / SHIELD ITEM CARD
+   ----------------------------------------------------------------
+   Every stat of these items is fixed by the catalog, so instead of
+   a stack of inputs the modal shows one read-only card (modelled on
+   the weapon-configuration card in the character sheet). The only
+   editable things are the name (via the ✎) and the condition.
+══════════════════════════════════════════════════════════ */
+/* Tags that render as an item card rather than manual fields. */
+const ARMOR_CARD_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons','Shield']);
+const ARMOR_CARD_ICONS = { 'Helmet':'⛑', 'Body Armor':'🎽', 'Gauntlets':'🧤', 'Sabatons':'🥾', 'Shield':'🛡' };
+const ARMOR_TYPE_COLORS = { 'Light':'#8ecf6a', 'Medium':'#e0b040', 'Heavy':'#d47a4a' };
 
-  const AT_COL = { Light:'#8ecf6a', Medium:'#e0b040', Heavy:'#d47a4a' };
-  const atCol  = AT_COL[entry.at] || 'var(--text-gold)';
-  const chip = (txt, col) =>
-    `<span style="display:inline-flex;align-items:center;font-family:var(--got);font-size:8.5px;line-height:1;letter-spacing:.5px;padding:3px 7px 2px;border-radius:2px;border:1px solid ${col}99;background:${col}22;color:${col};white-space:nowrap;">${txt}</span>`;
+let _aicEntry = null;      // catalog entry currently shown on the card
+let _aicTag = '';          // its tag
+let _aicCustomName = null; // player-renamed title, null = use catalog name
+let _aicLastKey = null;    // last catalog key, to detect a genuine selection change
+let _aicEditing = false;   // is the name input open?
 
-  const res  = (entry.res  || []).map(r => chip('▲ ' + r, '#5abf5a')).join('');
-  const vuln = (entry.vuln || []).map(v => chip('▼ ' + v, '#df5a5a')).join('');
-  const props = (entry.props || []).map(p => armorPropChipHTML(p)).join('');
-  const rv = (res || vuln)
-    ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${res}${vuln}</div>`
-    : `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.35);margin-top:6px;">No resistances or vulnerabilities</div>`;
-
-  box.style.display = 'block';
-  box.innerHTML = `
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-      <span style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-right:2px;">AUTO-FILLED</span>
-      ${chip(entry.at, atCol)}
-      ${chip('AC +' + entry.ac, '#e8c84a')}
-      ${chip(entry.w + ' kg', '#9aa0a8')}
-      ${props}
-    </div>
-    ${rv}`;
+/* Reset the card state — call when the tag changes. */
+function resetArmorCard() {
+  _aicEntry = null; _aicTag = ''; _aicCustomName = null; _aicLastKey = null; _aicEditing = false;
 }
 
+/* Small chip helper used across the card. */
+function _aicChip(txt, col, title) {
+  return `<span${title ? ` title="${title}"` : ''} style="display:inline-flex;align-items:center;font-family:var(--got);font-size:8.5px;line-height:1;letter-spacing:.5px;padding:3px 7px 2px;border-radius:2px;border:1px solid ${col}99;background:${col}22;color:${col};white-space:nowrap;">${txt}</span>`;
+}
+
+/* Price shown inside a stat box — one coloured dot per currency. */
+function _aicPriceHTML(entry) {
+  const parts = parsePrice(entry.p, entry.pc);
+  const keys  = priceKeys(parts);
+  if (!keys.length) return '—';
+  return keys.map(k => {
+    const cur = CURRENCIES[k];
+    return `<span style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap;" title="${cur.title}">
+      <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${cur.color};box-shadow:0 0 3px ${cur.color}88;"></span>
+      <span style="font-size:${keys.length > 1 ? 11 : 13}px;">${parts[k]}${cur.label}</span>
+    </span>`;
+  }).join('');
+}
+
+/* Open the inline name editor. */
+function aicEditName() {
+  _aicEditing = true;
+  renderArmorCard(_aicEntry, _aicTag);
+  const inp = document.getElementById('aic_name_input');
+  if (inp) { inp.focus(); inp.select(); }
+}
+
+/* Commit (or cancel) the inline name editor. */
+function aicCommitName(save) {
+  const inp = document.getElementById('aic_name_input');
+  if (save && inp) {
+    const v = inp.value.trim();
+    // Falling back to the catalog name keeps an empty box from wiping the title
+    _aicCustomName = (v && _aicEntry && v !== _aicEntry.name) ? v : null;
+    const nameEl = document.getElementById('aim_name');
+    if (nameEl) { nameEl.value = v || (_aicEntry ? _aicEntry.name : ''); nameEl.style.borderColor = ''; }
+  }
+  _aicEditing = false;
+  renderArmorCard(_aicEntry, _aicTag);
+}
+
+function aicNameKey(e) {
+  if (e.key === 'Enter')  { e.preventDefault(); aicCommitName(true); }
+  if (e.key === 'Escape') { e.preventDefault(); aicCommitName(false); }
+}
+
+/* Render the card. `entry` null → the empty prompt. */
+function renderArmorCard(entry, tag) {
+  const box = document.getElementById('aim_armor_preview');
+  if (!box) return;
+  _aicEntry = entry || null;
+  _aicTag   = tag || _aicTag;
+
+  if (!entry) {
+    box.style.display = 'block';
+    box.innerHTML = `<div class="aic empty">Select ${/^[AEIOU]/i.test(_aicTag||'') ? 'an' : 'a'} ${(_aicTag||'item').toLowerCase()} above to see its stats.</div>`;
+    return;
+  }
+
+  // Keep the condition already chosen when the card re-renders (e.g. name edit)
+  const curCond = document.getElementById('aim_condition_btns') ? getAimCondition() : 'decent';
+  const title   = _aicCustomName || entry.name;
+  const isArmor = ARMOR_CATALOG_TAGS.has(_aicTag);
+  const atCol   = ARMOR_TYPE_COLORS[entry.at] || 'var(--text-gold)';
+  const sub     = isArmor && entry.at
+    ? `${_aicTag.toUpperCase()} · ${entry.at.toUpperCase()} ARMOR`
+    : _aicTag.toUpperCase();
+
+  const props = (entry.props || []).map(p => armorPropChipHTML(p)).join('');
+  const res   = (entry.res   || []).map(r => _aicChip('▲ ' + r, '#5abf5a', 'Resistant to ' + r)).join('');
+  const vuln  = (entry.vuln  || []).map(v => _aicChip('▼ ' + v, '#df5a5a', 'Vulnerable to ' + v)).join('');
+  const typeChip = (isArmor && entry.at) ? _aicChip(entry.at, atCol, entry.at + ' armor') : '';
+  const tagsHTML = typeChip + props + res + vuln;
+  const noRV = isArmor && !res && !vuln
+    ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.35);margin-top:2px;">No resistances or vulnerabilities</div>`
+    : '';
+
+  const nameRow = _aicEditing
+    ? `<input type="text" id="aic_name_input" class="aic-name-input" value="${String(title).replace(/"/g,'&quot;')}"
+         onkeydown="aicNameKey(event)" onblur="aicCommitName(true)" autocomplete="off">
+       <button type="button" class="aic-pencil" title="Save name" onclick="aicCommitName(true)">✓</button>`
+    : `<div class="aic-name" style="flex:1;min-width:0;" title="${String(title).replace(/"/g,'&quot;')}">${title}</div>
+       <button type="button" class="aic-pencil" title="Rename this item" onclick="aicEditName()">✎</button>`;
+
+  box.style.display = 'block';
+  box.innerHTML = `<div class="aic">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+      <span class="aic-icon" style="border-color:${atCol};color:${atCol};">${ARMOR_CARD_ICONS[_aicTag] || '🛡'}</span>
+      ${nameRow}
+    </div>
+    <div class="aic-sub">${sub}</div>
+
+    <div class="aic-stats">
+      <div class="aic-box"><span class="aic-box-lbl">ARMOR</span><div class="aic-box-val">+${entry.ac}</div></div>
+      <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${entry.w}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
+      <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${_aicPriceHTML(entry)}</div></div>
+    </div>
+
+    <div class="aic-tags">${tagsHTML}</div>
+    ${noRV}
+
+    <div class="aic-opts">
+      <span class="aim-lbl" style="font-size:9.5px;">Condition</span>
+      <div style="display:flex;gap:5px;" id="aim_condition_btns"></div>
+    </div>
+  </div>`;
+  buildAimConditionBtns(curCond);
+}
+
+/* Called when the catalog dropdown changes — auto-fill name, weight, price. */
 /* Called when the catalog dropdown changes — auto-fill name, weight, price. */
 function aimCatalogChanged() {
   const tag = document.getElementById('aim_tag').value;
@@ -3842,6 +4001,7 @@ function aimCatalogChanged() {
     ['aim_weight','aim_price'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     syncAimPriceDropdowns('g');
     if (ARMOR_CATALOG_TAGS.has(tag)) applyArmorCatalogEntry(null);
+    if (ARMOR_CARD_TAGS.has(tag)) { _aicLastKey = ''; _aicCustomName = null; renderArmorCard(null, tag); }
     if (!customOn) { const n = document.getElementById('aim_name'); if (n) n.value = ''; }
     return;
   }
@@ -3855,8 +4015,15 @@ function aimCatalogChanged() {
   }
   // Armor pieces additionally carry type / resistances / vulnerabilities / properties
   if (ARMOR_CATALOG_TAGS.has(tag)) applyArmorCatalogEntry(entry);
-  // Fill the name only when not using a custom one
-  if (!customOn) {
+  // Armor & shields render as an item card. A new pick clears any renaming;
+  // re-entrant calls (e.g. from confirmAddItem) must NOT clobber it.
+  if (ARMOR_CARD_TAGS.has(tag)) {
+    const key = sel?.value || '';
+    if (key !== _aicLastKey) { _aicLastKey = key; _aicCustomName = null; _aicEditing = false; }
+    renderArmorCard(entry, tag);
+  }
+  // Fill the name only when not using a custom one (checkbox or pencil rename)
+  if (!customOn && !(ARMOR_CARD_TAGS.has(tag) && _aicCustomName)) {
     const nameEl = document.getElementById('aim_name');
     if (nameEl) { nameEl.value = entry.name; nameEl.style.borderColor = ''; }
   }
@@ -4213,9 +4380,21 @@ function openAddItemModal() {
   const vulnRow = document.getElementById('aim_vulnerability_row');
   if(resRow)  resRow.style.display  = 'none';
   if(vulnRow) vulnRow.style.display = 'none';
-  const condRow = document.getElementById('aim_condition_row');
-  if(condRow) condRow.style.display = 'none';
-  buildAimConditionBtns('decent');
+  // Tear down any item card left over from a previous open
+  const aicBox = document.getElementById('aim_armor_preview');
+  if (aicBox) { aicBox.style.display = 'none'; aicBox.innerHTML = ''; }
+  resetArmorCard();
+  const nameRow0 = document.getElementById('aim_name_row');
+  if (nameRow0) nameRow0.style.display = 'block';
+  ['aim_weight_cell','aim_price_cell'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'block';
+  });
+  const grid0 = document.getElementById('aim_qwp_grid');
+  if (grid0) grid0.style.gridTemplateColumns = '1fr 1fr 1fr';
+  const cnLbl0 = document.getElementById('aim_catalog_customname')?.closest('label');
+  if (cnLbl0) cnLbl0.style.display = 'flex';
+  const props0 = document.getElementById('aim_props');
+  if (props0) props0.value = '';
   document.querySelectorAll('input[name="aim_resistance"]').forEach(c => c.checked = false);
   document.querySelectorAll('input[name="aim_vulnerability"]').forEach(c => c.checked = false);
   aimArmorTypeChanged();
@@ -4259,7 +4438,22 @@ function aimTagChanged() {
   // Armor pieces now come from a catalog, so their stat fields are auto-filled
   // and hidden rather than ticked by hand.
   const isCatArmor = ARMOR_CATALOG_TAGS.has(tag);
-  acRow.style.display   = (AC_BONUS_TAGS.has(tag) && !isCatArmor) ? 'block' : 'none';
+  // Armor + Shield present as a read-only item card instead of input rows
+  const isCardTag  = ARMOR_CARD_TAGS.has(tag);
+  acRow.style.display   = (AC_BONUS_TAGS.has(tag) && !isCardTag) ? 'block' : 'none';
+  // The card owns the item name, so its input row folds away
+  const nameRow = document.getElementById('aim_name_row');
+  if (nameRow) nameRow.style.display = isCardTag ? 'none' : 'block';
+  // Weight & price are shown on the card — hide their inputs (values still read from them)
+  const wCell = document.getElementById('aim_weight_cell');
+  const pCell = document.getElementById('aim_price_cell');
+  const qwpGrid = document.getElementById('aim_qwp_grid');
+  if (wCell) wCell.style.display = isCardTag ? 'none' : 'block';
+  if (pCell) pCell.style.display = isCardTag ? 'none' : 'block';
+  if (qwpGrid) qwpGrid.style.gridTemplateColumns = isCardTag ? '150px' : '1fr 1fr 1fr';
+  // The custom-name checkbox is replaced by the card's ✎ button
+  const cnLbl = document.getElementById('aim_catalog_customname')?.closest('label');
+  if (cnLbl) cnLbl.style.display = isCardTag ? 'none' : 'flex';
   if(atRow)   atRow.style.display   = (isArmor && !isCatArmor) ? 'block' : 'none';
   if(!isArmor) document.querySelectorAll('input[name="aim_armortype"]').forEach(r => r.checked = false);
   if(wRow)    wRow.style.display    = isIng ? 'none'  : '';
@@ -4309,20 +4503,20 @@ function aimTagChanged() {
     document.querySelectorAll('input[name="aim_vulnerability"]').forEach(c => { c.checked = false; });
     aimResVulnChanged('resistance'); aimResVulnChanged('vulnerability');
   }
-  // The armor preview belongs to catalog armor only — clear it otherwise
-  if (!isCatArmor) {
+  // The item card belongs to armor & shields only — tear it down otherwise
+  if (!isCardTag) {
     const prev = document.getElementById('aim_armor_preview');
     if (prev) { prev.style.display = 'none'; prev.innerHTML = ''; }
     const propEl = document.getElementById('aim_props');
     if (propEl) propEl.value = '';
+    resetArmorCard();
   } else {
-    applyArmorCatalogEntry(null); // fresh start until a piece is picked
+    if (isCatArmor) applyArmorCatalogEntry(null); // clear the hidden type/res/vuln inputs
+    resetArmorCard();
+    _aicTag = tag;
+    renderArmorCard(null, tag);  // empty prompt until a piece is picked
   }
-  // Show/hide condition row for Shield + all Armor tags
-  const condRow = document.getElementById('aim_condition_row');
-  const hasCondition = AC_BONUS_TAGS.has(tag);
-  if(condRow) condRow.style.display = hasCondition ? 'block' : 'none';
-  if(!hasCondition) buildAimConditionBtns('decent');
+  // Condition now lives inside the item card (rendered by renderArmorCard)
   aimArmorTypeChanged();
 }
 
