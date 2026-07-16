@@ -614,13 +614,19 @@ textarea{resize:none;font-weight:400;font-size:12px}
   font-family:var(--got);font-size:9px;letter-spacing:.8px;color:rgba(232,200,74,.55);
   margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(139,106,0,.3);
 }
-.aic-pencil{
-  width:22px;height:22px;flex-shrink:0;padding:0;line-height:1;
+/* `button.aic-pencil` (not just `.aic-pencil`) so it out-specifies the
+   generic `.modal button` rule, which would otherwise force gold fill,
+   32px side padding and an 8px top margin onto these icon buttons. */
+button.aic-pencil{
+  width:22px;height:22px;flex-shrink:0;
+  padding:0;margin:0;line-height:1;letter-spacing:0;
+  display:inline-flex;align-items:center;justify-content:center;
   border:1px solid rgba(139,106,0,.5);border-radius:2px;
-  background:rgba(0,0,0,.3);color:var(--text-gold);font-size:11px;
+  background:rgba(0,0,0,.3);color:var(--text-gold);
+  font-family:var(--got);font-size:11px;
   cursor:pointer;transition:all .15s;
 }
-.aic-pencil:hover{background:rgba(139,106,0,.35);border-color:var(--gold);}
+button.aic-pencil:hover{background:rgba(139,106,0,.35);border-color:var(--gold);color:var(--text-gold);}
 .aic-name-input{
   flex:1;min-width:0;height:28px;font-size:14px;padding:0 8px;
   font-family:'Cinzel',serif;font-weight:600;letter-spacing:.4px;
@@ -668,6 +674,11 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .eq-slot-item{font-size:15px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;}
 .eq-slot-item.empty{color:rgba(255,255,255,.2);font-style:italic;font-size:13px;}
 .eq-slot-stats{display:flex;flex-direction:column;align-items:stretch;flex-shrink:0;margin-left:6px;gap:4px;}
+/* Resistance / vulnerability tag column. The min-width gives every tag in
+   every slot an identical width (align-items:stretch fills it), instead of
+   each slot shrink-wrapping to its own longest label. */
+.eq-rv-col{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
+  gap:3px;flex-shrink:0;padding-top:1px;margin-right:8px;min-width:92px;}
 .eq-slot-ac{font-size:14px;color:var(--text-gold);line-height:1.2;white-space:nowrap;letter-spacing:.5px;}
 .eq-slot-wp{font-size:13px;color:rgba(232,200,74,.55);line-height:1.2;white-space:nowrap;}
 /* ── PAGE-TAB NAV ── */
@@ -895,6 +906,10 @@ textarea{resize:none;font-weight:400;font-size:12px}
         <img src="Images/Shield Icon.webp" alt="Shield" onerror="this.style.display='none';this.parentNode.innerHTML='🛡'">
       </div>
     </div><!-- /knight-wrap -->
+    <button class="rest-btn" onclick="openRuleBook()" 
+      style="margin:10px auto 4px;display:block;padding:8px 26px;font-size:11px;letter-spacing:1.5px;">
+      📖 Item Rule Book
+    </button>
   </div><!-- /inv-knight-panel -->
 
 
@@ -1278,7 +1293,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 
     <!-- ── Ingredient note ── -->
     <div id="aim_ingredient_note" style="display:none;margin-bottom:14px;margin-top:8px;padding:10px 14px;background:rgba(20,60,20,.35);border:1px solid rgba(60,180,60,.35);border-radius:3px;font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#8ecf6a;line-height:1.5;">
-      🌿 Ingredients are automatically stored in your <strong style="font-style:normal;">Ingredient Pouch</strong> — no weight or destination needed.
+      🌿 Ingredients are automatically stored in your <strong style="font-style:normal;">Ingredient Pouch</strong>. No weight or destination needed.
     </div>
 
     <!-- ── Row 3: Qty / Weight / Price inline + Description ── -->
@@ -1325,7 +1340,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div>
       <div>
         <label class="aim-lbl" style="font-size:10px;">Description</label>
-        <textarea id="aim_desc" placeholder="Describe the item — material, history, properties…"
+        <textarea id="aim_desc" placeholder="Describe the item: material, history, properties…"
           style="width:100%;height:72px;font-size:13px;font-family:'IM Fell English',serif;
                  font-style:italic;padding:8px 10px;resize:none;line-height:1.5;"></textarea>
       </div>
@@ -1966,7 +1981,7 @@ function doRest(type) {
   const title=isShort?'⚔ Short Rest':'🌙 Long Rest';
   const quote=isShort
     ?`<em>"Sleep is good. And books are better."</em><br><span style="font-size:13px;opacity:.85">~ Tyrion Lannister</span>`
-    :`<em>"I think mothers and fathers made up the Gods because they wanted their children to sleep through the night."</em><br><span style="font-size:13px;opacity:.85">— Davos Seaworth</span>`;
+    :`<em>"I think mothers and fathers made up the Gods because they wanted their children to sleep through the night."</em><br><span style="font-size:13px;opacity:.85">~ Davos Seaworth</span>`;
   const srRemaining=MAX_SHORT_RESTS-_shortRestCount;
   const srNote=isShort?`<p style="font-family:var(--got);font-size:9px;color:${srRemaining===0?'#ff4444':'rgba(232,200,74,.5)'};letter-spacing:.5px;margin-bottom:6px;">${srRemaining===0?'⚠ No short rests remaining today':'Short rests remaining today: '+srRemaining}</p>`:''  ;
 
@@ -2106,7 +2121,7 @@ function buildTable(containerId, cols) {
 
   // Empty state for dynamic tables
   if (isDynamic && visibleRows.length === 0) {
-    container.innerHTML = `<div style="padding:8px 6px;font-family:'IM Fell English',serif;font-size:11px;color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No items — use Add Item</div>`;
+    container.innerHTML = `<div style="padding:8px 6px;font-family:'IM Fell English',serif;font-size:11px;color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No items. Use Add Item</div>`;
   }
 }
 /* ── Static Equipped Column: slot definitions grouped by subheader ── */
@@ -2124,9 +2139,9 @@ const EQUIPPED_GROUPS = [
   ]},
   { sectionId: 'eq_armor_section',   slots: [
     { id: 'head',   label: 'Helmet',     icon: 'Images/Helmet Icon.webp' },
+    { id: 'armor',  label: 'Body Armor', icon: 'Images/Armor Icon.webp' },
     { id: 'gloves', label: 'Gauntlets',  icon: 'Images/Gauntlet Icon.webp' },
     { id: 'boots',  label: 'Sabatons',   icon: 'Images/Boots Icon.webp' },
-    { id: 'armor',  label: 'Body Armor', icon: 'Images/Armor Icon.webp' },
   ]},
   { sectionId: 'eq_acc_section',     slots: [
     { id: 'cloak', label: 'Cloak',  icon: 'Images/Cloak Icon.webp' },
@@ -2160,15 +2175,21 @@ function buildEquippedColumn() {
       const noProfNote  = occupied && !profOk
         ? `<div style="font-family:var(--got);font-size:7.5px;color:#ff5555;letter-spacing:.3px;margin-top:1px;">⚠ Not Proficient</div>`
         : '';
-      const _slotProps = (occupied && Array.isArray(d.props)) ? d.props : [];
-      const propBadge = _slotProps.length
-        ? `<div style="display:flex;gap:3px;margin-top:2px;flex-wrap:wrap;">${_slotProps.map(p => {
-             const pd = ARMOR_PROPERTIES[p] || { color:'rgba(232,200,74,.7)' };
-             return `<span title="${pd.setEffect||p}" style="font-family:var(--got);font-size:6.5px;letter-spacing:.3px;padding:1px 4px;border-radius:2px;border:1px solid ${pd.color}88;color:${pd.color};line-height:1.3;">${p}</span>`;
-           }).join('')}</div>`
-        : '';
-      const atBadge = occupied && d.armorType
-        ? `<div style="font-family:var(--got);font-size:7px;color:rgba(232,200,74,.4);margin-top:1px;">${d.armorType}</div>${propBadge}`
+      // Armor type + set properties share one line of tags, armor type always first.
+      // Shields and capes have no armor type, so they show properties only.
+      const _slotChip = (txt, col, title) =>
+        `<span title="${title||txt}" style="font-family:var(--got);font-size:6.5px;letter-spacing:.3px;
+           padding:1px 4px;border-radius:2px;border:1px solid ${col}88;background:${col}1a;
+           color:${col};line-height:1.3;white-space:nowrap;">${txt}</span>`;
+      const _atCol   = ARMOR_TYPE_COLORS[d && d.armorType] || 'rgba(232,200,74,.7)';
+      const _atChip  = (occupied && d.armorType) ? _slotChip(d.armorType, _atCol, d.armorType + ' armor') : '';
+      const _slotProps = (occupied && Array.isArray(d.props)) ? d.props.filter(p => ARMOR_PROPERTIES[p]) : [];
+      const _propChips = _slotProps.map(p => {
+        const pd = ARMOR_PROPERTIES[p] || { color:'rgba(232,200,74,.7)' };
+        return _slotChip(p, pd.color, pd.setEffect || p);
+      }).join('');
+      const atBadge = (occupied && (_atChip || _propChips))
+        ? `<div style="display:flex;gap:3px;margin-top:2px;flex-wrap:wrap;align-items:center;">${_atChip}${_propChips}</div>`
         : '';
       // Per-piece resistance (green) / vulnerability (red) tags — stacked vertically
       // in a centered middle column, top-aligned with the label/name/AC row.
@@ -2179,12 +2200,12 @@ function buildEquippedColumn() {
       const resCol  = { bd:'rgba(90,191,90,.6)',  bg:'rgba(20,60,20,.45)', fg:'#9ce69c' };
       const vulnCol = { bd:'rgba(223,90,90,.6)',   bg:'rgba(70,15,15,.45)', fg:'#f0a0a0' };
       const rvTags = (resArr.length || vulnArr.length)
-        ? `<div style="display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:3px;flex-shrink:0;padding-top:1px;margin-right:8px;">
+        ? `<div class="eq-rv-col">
             ${resArr.map(r => `<span title="Resistant to ${r}" style="${rvTagStyle(resCol)}">▲ ${r}</span>`).join('')}
             ${vulnArr.map(v => `<span title="Vulnerable to ${v}" style="${rvTagStyle(vulnCol)}">▼ ${v}</span>`).join('')}
           </div>`
         : '';
-      return `<div class="eq-static-slot${occupied ? ' occupied' : ''}" onclick="clickEquippedSlot('${si.id}')" title="${occupied ? d.name : 'Click to equip — ' + si.label}" style="${slotBorder}align-items:flex-start;">
+      return `<div class="eq-static-slot${occupied ? ' occupied' : ''}" onclick="clickEquippedSlot('${si.id}')" title="${occupied ? d.name : 'Click to equip: ' + si.label}" style="${slotBorder}align-items:flex-start;">
         <img src="${si.icon}" class="eq-slot-thumb${occupied ? ' occupied' : ''}" alt="${si.label}" onerror="this.style.opacity='.3'" style="${occupied && !profOk ? 'border-color:rgba(220,50,50,.7);' : ''}">
         <div class="eq-slot-body" style="flex:0 1 auto;min-width:0;max-width:50%;">
           <div class="eq-slot-label">${si.label}</div>
@@ -2209,6 +2230,148 @@ function clickEquippedSlot(slotId) {
   else openSlotModal(slotId);
 }
 
+/* ══════════════════════════════════════════════════════════
+   ITEM DETAIL CARD — shared by the inventory row pop-up and the
+   equipped item pop-up for armor, shields, capes and weapons.
+   Locked stats come from the catalog (via catalogRef, which survives
+   renames); editable bits are name (✎), description (✎), quantity
+   and condition.
+══════════════════════════════════════════════════════════ */
+function detailCardEntry(d) {
+  if (!d || !d.tag || !ARMOR_CARD_TAGS.has(d.tag)) return null;
+  return findCatalogEntry(d.tag, d.catalogRef || d.name) || null;
+}
+
+/* The header + stat section of a detail card (no condition/qty — the host
+   modal appends those into the returned .aic via the optsHTML argument). */
+function detailCardHTML(d, entry, o) {
+  o = o || {};
+  const tag      = d.tag || '';
+  const isWeapon = WEAPON_CARD_TAGS.has(tag);
+  const isCloak  = tag === 'Cloak';
+  const isArmor  = ARMOR_CATALOG_TAGS.has(tag);
+  const e        = entry || {};
+  const dmgCol   = WPN_DMG_COLORS[e.dmg] || 'var(--text-gold)';
+  const atCol    = ARMOR_TYPE_COLORS[d.armorType || e.at] || (isWeapon ? dmgCol : 'var(--text-gold)');
+
+  let sub = tag.toUpperCase();
+  if (isArmor && (d.armorType || e.at)) sub = `${tag.toUpperCase()} · ${(d.armorType || e.at).toUpperCase()} ARMOR`;
+  if (isWeapon)  sub = `${(e.group || tag).toUpperCase()}${e.versDie ? ' · VERSATILE' : ''}`;
+  if (isCloak)   sub = 'CAPE · NO ARMOR VALUE';
+  if (o.subSuffix) sub += o.subSuffix;
+
+  // chips: set props from the item itself; weapon traits + res/vuln
+  const propsArr = Array.isArray(d.props) ? d.props : (e.props || []);
+  const setProps = propsArr.filter(p => ARMOR_PROPERTIES[p]).map(p => armorPropChipHTML(p)).join('');
+  const wpnProps = isWeapon
+    ? propsArr.filter(p => !ARMOR_PROPERTIES[p]).map(p => {
+        const label = (p === 'Thrown' && e.throwRange) ? `Thrown ${e.throwRange}` : p;
+        return _aicChip(label, 'rgba(232,200,74,.65)');
+      }).join('')
+    : '';
+  const dmgChip = (isWeapon && e.dmg) ? _aicChip(e.dmg, dmgCol, e.dmg + ' damage') : '';
+  const resArr  = Array.isArray(d.resistances)     ? d.resistances     : (e.res  || []);
+  const vulnArr = Array.isArray(d.vulnerabilities) ? d.vulnerabilities : (e.vuln || []);
+  const res  = resArr.map(r  => _aicChip('▲ ' + r, '#5abf5a', 'Resistant to ' + r)).join('');
+  const vuln = vulnArr.map(v => _aicChip('▼ ' + v, '#df5a5a', 'Vulnerable to ' + v)).join('');
+  const typeChip = (isArmor && (d.armorType || e.at)) ? _aicChip(d.armorType || e.at, atCol) : '';
+  const tagsHTML = typeChip + dmgChip + setProps + wpnProps + res + vuln;
+
+  // stat boxes — item's own stored stats first, catalog for combat data
+  const priceHTML = (() => {
+    const parts = parsePrice(d.p, d.pc); const keys = priceKeys(parts);
+    if (!keys.length) return '—';
+    return keys.map(k => { const cur = CURRENCIES[k];
+      return `<span style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap;" title="${cur.title}">
+        <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${cur.color};box-shadow:0 0 3px ${cur.color}88;"></span>
+        <span style="font-size:${keys.length>1?11:13}px;">${parts[k]}${cur.label}</span></span>`; }).join('');
+  })();
+  const acVal = d.ac !== undefined && d.ac !== '' ? d.ac : (d.a !== undefined && d.a !== '' ? d.a : e.ac);
+  let boxes, gridCols;
+  if (isWeapon) {
+    const dmgVal = e.die ? `<span style="color:${dmgCol};">${e.die}${e.die2 ? ' / ' + e.die2 : ''}</span>` : '<span style="opacity:.4;">—</span>';
+    const rangeVal = e.range ? e.range : (e.throwRange ? '↪ ' + e.throwRange : '5 ft');
+    boxes = `
+      <div class="aic-box"><span class="aic-box-lbl">DAMAGE</span><div class="aic-box-val">${dmgVal}</div></div>
+      <div class="aic-box"><span class="aic-box-lbl">RANGE</span><div class="aic-box-val" style="font-size:${String(rangeVal).length>7?'10.5':'12'}px;">${rangeVal}</div></div>
+      <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${d.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
+      <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${priceHTML}</div></div>`;
+    gridCols = '1fr 1fr 1fr 1.2fr';
+  } else if (isCloak) {
+    boxes = `
+      <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${d.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
+      <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${priceHTML}</div></div>`;
+    gridCols = '1fr 1.2fr';
+  } else {
+    boxes = `
+      <div class="aic-box"><span class="aic-box-lbl">ARMOR</span><div class="aic-box-val">${(String(acVal||'').startsWith('+')?'':'+')}${acVal||'0'}</div></div>
+      <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${d.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
+      <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${priceHTML}</div></div>`;
+    gridCols = '1fr 1fr 1.2fr';
+  }
+  const versNote = (isWeapon && e.versDie)
+    ? `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.55);letter-spacing:.4px;margin-bottom:6px;text-align:center;">Two-handed (versatile): <strong style="color:${dmgCol};">${e.versDie}</strong></div>`
+    : '';
+
+  const nameSafe = String(d.name||'').replace(/"/g,'&quot;');
+  const nameRow = o.editingName
+    ? `<input type="text" id="${o.idp}_name_input" class="aic-name-input" value="${nameSafe}"
+         onkeydown="${o.nameKeyFn}" onblur="${o.nameCommitFn}" autocomplete="off">
+       <button type="button" class="aic-pencil" title="Save name" onclick="${o.nameCommitFn}">✓</button>`
+    : `<div class="aic-name" style="flex:1;min-width:0;" title="${nameSafe}">${d.name||''}</div>
+       ${o.nameEditFn ? `<button type="button" class="aic-pencil" title="Rename this item" onclick="${o.nameEditFn}">✎</button>` : ''}`;
+
+  return `<div class="aic" style="text-align:left;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+      <span class="aic-icon" style="border-color:${atCol};color:${atCol};">${ARMOR_CARD_ICONS[tag] || '🛡'}</span>
+      ${nameRow}
+    </div>
+    <div class="aic-sub">${sub}</div>
+    <div class="aic-stats" style="grid-template-columns:${gridCols};">${boxes}</div>
+    ${versNote}
+    <div class="aic-tags">${tagsHTML}</div>
+    ${o.optsHTML || ''}
+  </div>`;
+}
+
+/* Description block with its own ✎ — shared by both detail modals. */
+function detailDescHTML(desc, idp, editFn) {
+  return `<div id="${idp}_desc_wrap" style="margin-top:10px;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+      <span class="aim-lbl" style="font-size:9.5px;margin:0;">Description</span>
+      <button type="button" class="aic-pencil" style="width:19px;height:19px;font-size:10px;" title="Edit description" onclick="${editFn}">✎</button>
+    </div>
+    <div id="${idp}_desc_display" style="${desc?'':'display:none;'}font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:#e8d8a0;line-height:1.6;padding:6px 2px;">${desc||''}</div>
+    ${desc ? '' : `<div id="${idp}_desc_empty" style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:rgba(232,200,74,.25);padding:4px 2px;">No description yet. Press the pencil to write one.</div>`}
+    <div id="${idp}_desc_edit" style="display:none;">
+      <textarea id="${idp}_desc_ta" style="width:100%;height:66px;font-size:14px;font-family:'IM Fell English',serif;font-style:italic;padding:8px 10px;resize:none;line-height:1.5;">${desc||''}</textarea>
+      <div style="display:flex;gap:6px;margin-top:3px;justify-content:flex-end;">
+        <button type="button" class="rest-btn" style="font-size:10px;padding:2px 10px;" onclick="${editFn.replace('StartEdit','Confirm')}">✓ Done</button>
+        <button type="button" class="rest-btn" style="font-size:10px;padding:2px 8px;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);" onclick="${editFn.replace('StartEdit','Cancel')}">✕</button>
+      </div>
+    </div>
+  </div>`;
+}
+function _descStartEdit(idp){
+  ['_desc_display','_desc_empty'].forEach(s=>{const el=document.getElementById(idp+s); if(el) el.style.display='none';});
+  const ed=document.getElementById(idp+'_desc_edit'); if(ed) ed.style.display='block';
+  const ta=document.getElementById(idp+'_desc_ta'); if(ta){ ta.focus(); }
+}
+function _descStopEdit(idp, save){
+  const ta=document.getElementById(idp+'_desc_ta');
+  const disp=document.getElementById(idp+'_desc_display');
+  const empty=document.getElementById(idp+'_desc_empty');
+  const ed=document.getElementById(idp+'_desc_edit');
+  let val=null;
+  if(save && ta){ val=ta.value.trim(); if(disp) disp.textContent=val; }
+  if(!save && ta && disp) ta.value=disp.textContent;
+  if(ed) ed.style.display='none';
+  const has=(disp && disp.textContent.trim());
+  if(disp) disp.style.display = has ? 'block':'none';
+  if(empty) empty.style.display = has ? 'none':'block';
+  return val;
+}
+
 /* Management modal for an already-equipped item */
 function openEquippedItemDetail(slotId) {
   const d = slotData[slotId];
@@ -2216,6 +2379,8 @@ function openEquippedItemDetail(slotId) {
   // Quiver slot gets its own ammo management modal
   if (slotId === 'ring2') { openEquippedQuiverModal(); return; }
   document.getElementById('equippedDetailModal')?.remove();
+  // Armor, shields, capes and weapons render as an item card
+  if (ARMOR_CARD_TAGS.has(d.tag)) { openEquippedCardDetail(slotId); return; }
   const hasAC = AC_BONUS_TAGS.has(d.tag);
   const cond  = conditionInfo(d.condition || 'decent');
   const effAC = effectiveItemAC(d);
@@ -2282,6 +2447,149 @@ function openEquippedItemDetail(slotId) {
   </div>`;
   document.body.appendChild(o);
   o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+/* ── Card-styled detail modal for equipped armor / shields / capes / weapons ── */
+function openEquippedCardDetail(slotId) {
+  const d = slotData[slotId];
+  if (!d || !d.name) return;
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'equippedDetailModal';
+  o._slotId = slotId;
+  o._editingName = false;
+  document.body.appendChild(o);
+  _renderEqCard();
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function _renderEqCard() {
+  const o = document.getElementById('equippedDetailModal');
+  if (!o) return;
+  const slotId = o._slotId;
+  const d = slotData[slotId];
+  const isWeapon = WEAPON_CARD_TAGS.has(d.tag);
+  const isCloak  = d.tag === 'Cloak';
+  const hasCond  = !isCloak;
+  const entry    = detailCardEntry(d);
+  const cond     = d.condition || 'decent';
+
+  // condition buttons + effective value, rendered inside the card
+  const modLabel = isWeapon ? 'AR' : 'AC';
+  const effLine  = isWeapon
+    ? `Condition modifier: ${conditionInfo(cond).mod >= 0 ? '+' : ''}${conditionInfo(cond).mod} to attack rolls`
+    : `Effective AC: ${effectiveItemAC(d)}`;
+  const optsHTML = hasCond ? `<div class="aic-opts">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;">
+        <span class="aim-lbl" style="font-size:9.5px;margin:0;">Condition</span>
+        <span id="eqCard_eff" style="font-family:var(--got);font-size:9px;color:rgba(136,221,136,.85);letter-spacing:.4px;">${effLine}</span>
+      </div>
+      <div style="display:flex;gap:5px;" id="eqCard_cond_btns">
+        ${ITEM_CONDITIONS.map(c => {
+          const sel = cond === c.key;
+          return `<button type="button" data-cond="${c.key}" onclick="eqCardSelectCondition(this)"
+            style="flex:1;padding:5px 3px;font-family:var(--got);font-size:8.5px;letter-spacing:.3px;cursor:pointer;border-radius:2px;transition:all .15s;
+                   border:2px solid ${sel ? c.color : 'rgba(139,106,0,.3)'};background:${sel ? c.bg : 'rgba(0,0,0,.2)'};
+                   color:${sel ? c.color : 'rgba(232,200,74,.45)'};box-shadow:${sel ? `0 0 6px ${c.color}55` : 'none'};">
+            <div style="width:7px;height:7px;border-radius:50%;background:${c.color};margin:0 auto 3px;opacity:${sel?'1':'.4'}"></div>
+            ${c.label}<br><span style="font-size:7.5px;opacity:.8;">${c.mod > 0 ? '+' : ''}${c.mod} ${modLabel}</span>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>` : '';
+
+  // Only append the slot name when it adds something the tag doesn't already
+  // say (e.g. "Main Weapon"); otherwise it reads "BODY ARMOR ... BODY ARMOR".
+  const _slotUp = String(SLOT_NAMES[slotId] || slotId).toUpperCase();
+  const _tagUp  = String(d.tag || '').toUpperCase();
+  const _redundant = _slotUp.split('/').some(part => part.trim() === _tagUp);
+  const cardHTML = detailCardHTML(d, entry, {
+    idp: 'eqCard',
+    subSuffix: _redundant ? '' : ` · ${_slotUp}`,
+    editingName: o._editingName,
+    nameEditFn: 'eqCardEditName()',
+    nameCommitFn: 'eqCardCommitName(true)',
+    nameKeyFn: 'eqCardNameKey(event)',
+    optsHTML,
+  });
+
+  o.innerHTML = `<div class="modal" style="max-width:560px;padding:24px 30px;text-align:left;">
+    ${cardHTML}
+    ${detailDescHTML(d.desc, 'eqCard', 'eqCardDescStartEdit()')}
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+      <button class="rest-btn" onclick="swapEquippedItem('${slotId}')" style="flex:1;background:rgba(20,45,25,.5);border-color:rgba(80,170,90,.55);color:rgba(180,240,190,.9);">⇄ Swap ${SLOT_NAMES[slotId]||'Item'}</button>
+      <button class="rest-btn" onclick="unequipItem('${slotId}')" style="flex:1;background:rgba(40,20,60,.45);border-color:rgba(100,80,180,.5);color:rgba(200,180,255,.85);">↩ Unequip → Steed</button>
+      <button class="rest-btn" onclick="eqCardSave()" style="flex:1;">Save & Close</button>
+      <button class="rest-btn" onclick="document.getElementById('equippedDetailModal').remove()" style="background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
+    </div>
+  </div>`;
+  const inp = document.getElementById('eqCard_name_input');
+  if (inp) { inp.focus(); inp.select(); }
+}
+
+function eqCardEditName() {
+  const o = document.getElementById('equippedDetailModal');
+  if (!o) return;
+  o._editingName = true;
+  _renderEqCard();
+}
+function eqCardCommitName(save) {
+  const o = document.getElementById('equippedDetailModal');
+  if (!o) return;
+  const d = slotData[o._slotId];
+  const inp = document.getElementById('eqCard_name_input');
+  if (save && inp && d) {
+    const v = inp.value.trim();
+    if (v) d.name = v;                  // catalogRef keeps the stat link alive
+  }
+  o._editingName = false;
+  _renderEqCard();
+  buildEquippedColumn(); _saveData();
+}
+function eqCardNameKey(e) {
+  if (e.key === 'Enter')  { e.preventDefault(); eqCardCommitName(true); }
+  if (e.key === 'Escape') { e.preventDefault(); const o=document.getElementById('equippedDetailModal'); if(o){o._editingName=false;_renderEqCard();} }
+}
+function eqCardSelectCondition(btn) {
+  const container = document.getElementById('eqCard_cond_btns');
+  if (!container) return;
+  container.querySelectorAll('[data-cond]').forEach(b => {
+    b.style.border = '2px solid rgba(139,106,0,.3)'; b.style.background = 'rgba(0,0,0,.2)';
+    b.style.color = 'rgba(232,200,74,.45)'; b.style.boxShadow = 'none';
+    b.querySelector('div').style.opacity = '.4';
+  });
+  const c = conditionInfo(btn.dataset.cond);
+  btn.style.border = `2px solid ${c.color}`; btn.style.background = c.bg;
+  btn.style.color = c.color; btn.style.boxShadow = `0 0 6px ${c.color}55`;
+  btn.querySelector('div').style.opacity = '1';
+  // live-update effective value + persist immediately (matches old behaviour on save)
+  const o = document.getElementById('equippedDetailModal');
+  const d = o && slotData[o._slotId];
+  if (d) {
+    d.condition = btn.dataset.cond;
+    const eff = document.getElementById('eqCard_eff');
+    if (eff) eff.textContent = WEAPON_CARD_TAGS.has(d.tag)
+      ? `Condition modifier: ${c.mod >= 0 ? '+' : ''}${c.mod} to attack rolls`
+      : `Effective AC: ${effectiveItemAC(d)}`;
+  }
+}
+function eqCardDescStartEdit(){ _descStartEdit('eqCard'); }
+function eqCardDescConfirm(){
+  const v = _descStopEdit('eqCard', true);
+  const o = document.getElementById('equippedDetailModal');
+  if (o && v !== null) { slotData[o._slotId].desc = v; _saveData(); }
+}
+function eqCardDescCancel(){ _descStopEdit('eqCard', false); }
+function eqCardSave() {
+  const o = document.getElementById('equippedDetailModal');
+  if (o) {
+    // capture an in-progress description edit on save
+    const ed = document.getElementById('eqCard_desc_edit');
+    if (ed && ed.style.display !== 'none') eqCardDescConfirm();
+    const inp = document.getElementById('eqCard_name_input');
+    if (inp) eqCardCommitName(true);
+  }
+  document.getElementById('equippedDetailModal')?.remove();
+  buildEquippedColumn(); buildResVulnDisplay(); calcDC(); _saveData();
 }
 
 /* Swap the equipped item: persist any pending condition edit, then open the
@@ -2416,6 +2724,173 @@ function unequipItem(slotId) {
   calcDC();
 }
 
+/* ── Card-styled detail modal for inventory rows of armor / shields / capes / weapons.
+     Locked stats live on the card; description (✎), quantity and condition are editable. ── */
+function openItemCardModal(tableId, rowIdx) {
+  const item = tableData[tableId][rowIdx];
+  if (!item || !item.name) return;
+  document.getElementById('itemMgmtModal')?.remove();
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'itemMgmtModal';
+  o._tableId = tableId; o._rowIdx = rowIdx;
+  o._currentQty = parseInt(item.q) || 1;
+  o._editingName = false;
+  document.body.appendChild(o);
+  _renderInvCard();
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+function _renderInvCard() {
+  const o = document.getElementById('itemMgmtModal');
+  if (!o) return;
+  const item = tableData[o._tableId][o._rowIdx];
+  const isWeapon = WEAPON_CARD_TAGS.has(item.tag);
+  const isCloak  = item.tag === 'Cloak';
+  const hasCond  = !isCloak;
+  const entry    = detailCardEntry(item);
+  const cond     = item.condition || 'decent';
+  const modLabel = isWeapon ? 'AR' : 'AC';
+
+  // Quantity stepper + condition, hosted inside the card's options strip
+  const qtyHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:${hasCond?'10px':'0'};">
+      <span class="aim-lbl" style="font-size:9.5px;margin:0;flex-shrink:0;">Quantity</span>
+      <button type="button" onclick="invCardAdjQty(-1)"
+        style="width:22px;height:22px;padding:0;border:1px solid rgba(180,60,60,.55);background:rgba(60,15,15,.45);color:#ff8a8a;font-family:var(--got);font-size:15px;font-weight:700;cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;line-height:1;"
+        onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">−</button>
+      <span id="invCard_qty" style="min-width:34px;text-align:center;font-family:'Cinzel',serif;font-weight:600;font-size:15px;color:var(--text-gold);text-shadow:0 0 6px rgba(232,200,74,.4);">${o._currentQty}</span>
+      <button type="button" onclick="invCardAdjQty(+1)"
+        style="width:22px;height:22px;padding:0;border:1px solid rgba(60,140,60,.55);background:rgba(15,50,15,.45);color:#8aff8a;font-family:var(--got);font-size:15px;font-weight:700;cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;line-height:1;"
+        onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">+</button>
+    </div>`;
+  const condHTML = hasCond ? `
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;">
+        <span class="aim-lbl" style="font-size:9.5px;margin:0;">Condition</span>
+        <span id="invCard_eff" style="font-family:var(--got);font-size:9px;color:rgba(136,221,136,.85);letter-spacing:.4px;">${
+          isWeapon ? `Condition modifier: ${conditionInfo(cond).mod >= 0 ? '+' : ''}${conditionInfo(cond).mod} to attack rolls`
+                   : `Effective AC: ${Math.max(0,(parseFloat(item.a)||0)+conditionInfo(cond).mod)}`}</span>
+      </div>
+      <div style="display:flex;gap:5px;" id="invCard_cond_btns">
+        ${ITEM_CONDITIONS.map(c => {
+          const sel = cond === c.key;
+          return `<button type="button" data-cond="${c.key}" onclick="invCardSelectCondition(this)"
+            style="flex:1;padding:5px 3px;font-family:var(--got);font-size:8.5px;letter-spacing:.3px;cursor:pointer;border-radius:2px;transition:all .15s;
+                   border:2px solid ${sel ? c.color : 'rgba(139,106,0,.3)'};background:${sel ? c.bg : 'rgba(0,0,0,.2)'};
+                   color:${sel ? c.color : 'rgba(232,200,74,.45)'};box-shadow:${sel ? `0 0 6px ${c.color}55` : 'none'};">
+            <div style="width:7px;height:7px;border-radius:50%;background:${c.color};margin:0 auto 3px;opacity:${sel?'1':'.4'}"></div>
+            ${c.label}<br><span style="font-size:7.5px;opacity:.8;">${c.mod > 0 ? '+' : ''}${c.mod} ${modLabel}</span>
+          </button>`;
+        }).join('')}
+      </div>` : '';
+  const optsHTML = `<div class="aic-opts">${qtyHTML}${condHTML}</div>`;
+
+  const cardHTML = detailCardHTML(item, entry, {
+    idp: 'invCard',
+    editingName: o._editingName,
+    nameEditFn: 'invCardEditName()',
+    nameCommitFn: 'invCardCommitName(true)',
+    nameKeyFn: 'invCardNameKey(event)',
+    optsHTML,
+  });
+
+  const isBackpack = o._tableId === 'bp_items';
+  const isSteed    = o._tableId === 'st_items';
+  const isExtra    = o._tableId === 'st2_items';
+  const moveBtns = [
+    (isSteed || isExtra)    ? `<button class="rest-btn" onclick="moveItemTo('${o._tableId}',${o._rowIdx},'bp_items')" style="flex:1;background:rgba(30,40,60,.4);border-color:rgba(80,100,180,.45);color:rgba(180,200,255,.8);">🎒 → Backpack</button>` : '',
+    (isBackpack || isExtra) ? `<button class="rest-btn" onclick="moveItemTo('${o._tableId}',${o._rowIdx},'st_items')" style="flex:1;background:rgba(30,20,60,.4);border-color:rgba(100,80,180,.45);color:rgba(200,180,255,.8);">🐴 → Steed</button>` : '',
+    (extraSteedActive && !isExtra) ? `<button class="rest-btn" onclick="moveItemTo('${o._tableId}',${o._rowIdx},'st2_items')" style="flex:1;background:rgba(20,30,60,.4);border-color:rgba(80,60,200,.45);color:rgba(160,150,255,.8);">🐴 → Extra Steed</button>` : '',
+  ].join('');
+
+  o.innerHTML = `<div class="modal" style="max-width:560px;padding:24px 30px;text-align:left;">
+    ${cardHTML}
+    ${detailDescHTML(item.desc, 'invCard', 'invCardDescStartEdit()')}
+    ${moveBtns ? `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">${moveBtns}</div>` : ''}
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="rest-btn" onclick="invCardSave()" style="flex:1;">Save & Close</button>
+      <button class="rest-btn" onclick="itemModalDelete()" style="background:#3a0000;border-color:#882222;color:#ff6666;flex:1;">Delete Item</button>
+      <button class="rest-btn" onclick="document.getElementById('itemMgmtModal').remove()" style="background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
+    </div>
+  </div>`;
+  const inp = document.getElementById('invCard_name_input');
+  if (inp) { inp.focus(); inp.select(); }
+}
+
+function invCardAdjQty(delta) {
+  const o = document.getElementById('itemMgmtModal');
+  if (!o) return;
+  o._currentQty = Math.max(1, (o._currentQty || 1) + delta);
+  const el = document.getElementById('invCard_qty');
+  if (el) el.textContent = o._currentQty;
+}
+function invCardEditName() {
+  const o = document.getElementById('itemMgmtModal');
+  if (!o) return;
+  o._editingName = true;
+  _renderInvCard();
+}
+function invCardCommitName(save) {
+  const o = document.getElementById('itemMgmtModal');
+  if (!o) return;
+  const item = tableData[o._tableId][o._rowIdx];
+  const inp = document.getElementById('invCard_name_input');
+  if (save && inp && item) {
+    const v = inp.value.trim();
+    if (v) item.name = v;
+  }
+  o._editingName = false;
+  _renderInvCard();
+}
+function invCardNameKey(e) {
+  if (e.key === 'Enter')  { e.preventDefault(); invCardCommitName(true); }
+  if (e.key === 'Escape') { e.preventDefault(); const o=document.getElementById('itemMgmtModal'); if(o){o._editingName=false;_renderInvCard();} }
+}
+function invCardSelectCondition(btn) {
+  const container = document.getElementById('invCard_cond_btns');
+  if (!container) return;
+  container.querySelectorAll('[data-cond]').forEach(b => {
+    b.style.border = '2px solid rgba(139,106,0,.3)'; b.style.background = 'rgba(0,0,0,.2)';
+    b.style.color = 'rgba(232,200,74,.45)'; b.style.boxShadow = 'none';
+    b.querySelector('div').style.opacity = '.4';
+  });
+  const c = conditionInfo(btn.dataset.cond);
+  btn.style.border = `2px solid ${c.color}`; btn.style.background = c.bg;
+  btn.style.color = c.color; btn.style.boxShadow = `0 0 6px ${c.color}55`;
+  btn.querySelector('div').style.opacity = '1';
+  const o = document.getElementById('itemMgmtModal');
+  const item = o && tableData[o._tableId][o._rowIdx];
+  if (item) {
+    const eff = document.getElementById('invCard_eff');
+    if (eff) eff.textContent = WEAPON_CARD_TAGS.has(item.tag)
+      ? `Condition modifier: ${c.mod >= 0 ? '+' : ''}${c.mod} to attack rolls`
+      : `Effective AC: ${Math.max(0,(parseFloat(item.a)||0)+c.mod)}`;
+  }
+}
+function invCardDescStartEdit(){ _descStartEdit('invCard'); }
+function invCardDescConfirm(){ _descStopEdit('invCard', true); }
+function invCardDescCancel(){ _descStopEdit('invCard', false); }
+function invCardSave() {
+  const o = document.getElementById('itemMgmtModal');
+  if (!o) return;
+  const item = tableData[o._tableId][o._rowIdx];
+  if (item) {
+    // capture in-progress edits
+    const ed = document.getElementById('invCard_desc_edit');
+    if (ed && ed.style.display !== 'none') _descStopEdit('invCard', true);
+    const inp = document.getElementById('invCard_name_input');
+    if (inp) { const v = inp.value.trim(); if (v) item.name = v; }
+    const disp = document.getElementById('invCard_desc_display');
+    if (disp) item.desc = disp.textContent.trim();
+    item.q = String(o._currentQty || 1);
+    const condBtn = [...(document.getElementById('invCard_cond_btns')?.querySelectorAll('[data-cond]') || [])]
+      .find(b => b.style.boxShadow && b.style.boxShadow !== 'none');
+    if (condBtn) item.condition = condBtn.dataset.cond;
+  }
+  o.remove();
+  buildTable(o._tableId, ['name','q','w','p']);
+  calcWeights(); _saveData();
+}
+
 function openItemModal(tableId, rowIdx) {
   const item = tableData[tableId][rowIdx];
   if (!item || !item.name) return;
@@ -2424,6 +2899,8 @@ function openItemModal(tableId, rowIdx) {
   if (item.tag === 'Book')       { openBookModal(tableId, rowIdx);    return; }
   if (item.tag === 'Tools')      { openToolkitModal(tableId, rowIdx); return; }
   if (item.tag === 'Quiver' || item.tag === 'Ammunition') { openAmmoModal(tableId, rowIdx); return; }
+  // Armor, shields, capes and weapons render as an item card
+  if (ARMOR_CARD_TAGS.has(item.tag)) { openItemCardModal(tableId, rowIdx); return; }
 
   const existing = document.getElementById('itemMgmtModal');
   if (existing) existing.remove();
@@ -2952,7 +3429,7 @@ function buildExtraSteedColumn() {
       </button>
       <input type="hidden" id="st2_animal" value="0">
     </div>
-    <div class="sec" style="font-size:8.5px;letter-spacing:.5px;">Extra Steed — Items</div>
+    <div class="sec" style="font-size:8.5px;letter-spacing:.5px;">Extra Steed Items</div>
     <div class="inv-table" style="flex:none;">
       <div class="inv-tbl-hdr">
         <div class="inv-tbl-hdr-cell itc-name">Items</div>
@@ -3000,7 +3477,7 @@ function buildTable2(containerId, cols) {
       onmouseout="this.style.background='${zebra2}'">
       ${colsHTML}
     </div>`;
-  }).join('') || `<div style="padding:8px 6px;font-family:'IM Fell English',serif;font-size:11px;color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No items — use Add Item</div>`;
+  }).join('') || `<div style="padding:8px 6px;font-family:'IM Fell English',serif;font-size:11px;color:rgba(232,200,74,.3);font-style:italic;text-align:center;">No items. Use Add Item</div>`;
 }
 
 /* Thin wrapper: openItemModal for extra steed items */
@@ -3100,7 +3577,7 @@ function openIngredientPouchModal() {
     if (ingredientPouch.length === 0) {
       return `<div style="padding:10px 6px;font-family:'IM Fell English',serif;font-size:11px;
                 color:rgba(232,200,74,.3);font-style:italic;text-align:center;">
-        No ingredients yet — use Add Item with the Ingredient tag
+        No ingredients yet. Use Add Item with the Ingredient tag
       </div>`;
     }
     return ingredientPouch.map((item, i) => {
@@ -3136,7 +3613,7 @@ function openIngredientPouchModal() {
     <h2 style="font-size:20px;margin-bottom:6px;text-align:center;">🌿 Ingredient Pouch</h2>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#8ecf6a;
        opacity:.75;text-align:center;margin-bottom:18px;line-height:1.6;">
-      "From the earth we take, to the earth we return." — Greenseer saying
+      "From the earth we take, to the earth we return." ~ Greenseer saying
     </p>
 
     <!-- Header row -->
@@ -3569,60 +4046,65 @@ function getItemMgmtCurrency() {
    `group` is shown as a sub-heading inside the dropdown.
 ══════════════════════════════════════════════════════════ */
 const CATALOGS = {
+  /* Weapon extra fields:
+       • die/dmg   = damage die + type   (die2/dmg2 = second damage mode)
+       • versDie   = damage die when wielded two-handed (Versatile)
+       • props     = weapon properties (Light, Reach, Two-Handed, Armor Piercing…)
+       • range     = ranged weapon range, throwRange = Thrown property range   */
   Weapon: [
     // ── Simple Weapons ──
-    { name:"Club",            w:"1",   p:"2",     pc:"c", group:"Simple Weapons" },
-    { name:"Dagger",          w:"0.5", p:"3",     pc:"s", group:"Simple Weapons" },
-    { name:"Rondel Dagger",   w:"0.5", p:"6",     pc:"s", group:"Simple Weapons" },
-    { name:"Spiked Club",     w:"1",   p:"4",     pc:"s", group:"Simple Weapons" },
-    { name:"Greatclub",       w:"5",   p:"3",     pc:"s", group:"Simple Weapons" },
-    { name:"Handaxe",         w:"1",   p:"4",     pc:"s", group:"Simple Weapons" },
-    { name:"Frog Spear",      w:"0.5", p:"3",     pc:"s", group:"Simple Weapons" },
-    { name:"Javelin",         w:"1",   p:"3",     pc:"s", group:"Simple Weapons" },
-    { name:"Light Hammer",    w:"1",   p:"3",     pc:"s", group:"Simple Weapons" },
-    { name:"Mace",            w:"2",   p:"1",     pc:"g", group:"Simple Weapons" },
-    { name:"Quarterstaff",    w:"2",   p:"1",     pc:"s", group:"Simple Weapons" },
-    { name:"Sickle",          w:"1",   p:"2",     pc:"s", group:"Simple Weapons" },
-    { name:"Spear",           w:"1.5", p:"6",     pc:"s", group:"Simple Weapons" },
-    { name:"Spiked Staff",    w:"1",   p:"5",     pc:"s", group:"Simple Weapons" },
-    { name:"Billhook",        w:"1",   p:"1",     pc:"g", group:"Simple Weapons" },
-    { name:"Pitchfork",       w:"1",   p:"2",     pc:"s", group:"Simple Weapons" },
-    { name:"Scythe",          w:"2",   p:"4",     pc:"s", group:"Simple Weapons" },
+    { name:"Club",            w:"1",   p:"2",     pc:"c", group:"Simple Weapons", die:"1d4",  dmg:"Bludgeoning", props:["Light"] },
+    { name:"Dagger",          w:"0.5", p:"3",     pc:"s", group:"Simple Weapons", die:"1d4",  dmg:"Piercing",    props:["Light","Thrown"], throwRange:"20/60" },
+    { name:"Rondel Dagger",   w:"0.5", p:"6",     pc:"s", group:"Simple Weapons", die:"1d4",  dmg:"Piercing",    props:["Light","Thrown","Armor Piercing"], throwRange:"20/60" },
+    { name:"Spiked Club",     w:"1",   p:"4",     pc:"s", group:"Simple Weapons", die:"1d4",  dmg:"Bludgeoning", die2:"1d4", dmg2:"Piercing", props:["Light","Armor Piercing"] },
+    { name:"Greatclub",       w:"5",   p:"3",     pc:"s", group:"Simple Weapons", die:"1d8",  dmg:"Bludgeoning", props:["Two-Handed"] },
+    { name:"Handaxe",         w:"1",   p:"4",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Slashing",    props:["Light","Thrown"], throwRange:"20/60" },
+    { name:"Frog Spear",      w:"0.5", p:"3",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Piercing",    props:["Light","Finesse","Thrown"], throwRange:"40/80" },
+    { name:"Javelin",         w:"1",   p:"3",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Piercing",    props:["Thrown"], throwRange:"30/120" },
+    { name:"Light Hammer",    w:"1",   p:"3",     pc:"s", group:"Simple Weapons", die:"1d4",  dmg:"Bludgeoning", props:["Light","Thrown"], throwRange:"20/60" },
+    { name:"Mace",            w:"2",   p:"1",     pc:"g", group:"Simple Weapons", die:"1d6",  dmg:"Bludgeoning", props:[] },
+    { name:"Quarterstaff",    w:"2",   p:"1",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Bludgeoning", versDie:"1d8", props:["Reach","Versatile"] },
+    { name:"Sickle",          w:"1",   p:"2",     pc:"s", group:"Simple Weapons", die:"1d4",  dmg:"Slashing",    props:["Light"] },
+    { name:"Spear",           w:"1.5", p:"6",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Piercing",    versDie:"1d8", props:["Reach","Thrown","Versatile"], throwRange:"20/60" },
+    { name:"Spiked Staff",    w:"1",   p:"5",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Piercing",    props:["Two-Handed","Reach","Armor Piercing"] },
+    { name:"Billhook",        w:"1",   p:"1",     pc:"g", group:"Simple Weapons", die:"1d8",  dmg:"Piercing",    die2:"1d8", dmg2:"Slashing", props:["Two-Handed","Reach"] },
+    { name:"Pitchfork",       w:"1",   p:"2",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Piercing",    props:["Two-Handed","Reach"] },
+    { name:"Scythe",          w:"2",   p:"4",     pc:"s", group:"Simple Weapons", die:"1d8",  dmg:"Slashing",    props:["Two-Handed","Reach"] },
     // ── Martial Weapons ──
-    { name:"Battleaxe",       w:"2",   p:"2",     pc:"g", group:"Martial Weapons" },
-    { name:"Poleaxe",         w:"2",   p:"2G 3S", pc:"g", group:"Martial Weapons" },
-    { name:"Morningstar",     w:"2",   p:"2G 3S", pc:"g", group:"Martial Weapons" },
-    { name:"Flail",           w:"2",   p:"2",     pc:"g", group:"Martial Weapons" },
-    { name:"Glaive",          w:"3",   p:"3",     pc:"g", group:"Martial Weapons" },
-    { name:"Greataxe",        w:"4",   p:"3G 3S", pc:"g", group:"Martial Weapons" },
-    { name:"Halberd",         w:"3",   p:"4G 3S", pc:"g", group:"Martial Weapons" },
-    { name:"Lance",           w:"3",   p:"2G 3S", pc:"g", group:"Martial Weapons" },
-    { name:"Heavy Lance",     w:"4",   p:"3G 3S", pc:"g", group:"Martial Weapons" },
-    { name:"Bardiche",        w:"2.5", p:"3G 3S", pc:"g", group:"Martial Weapons" },
-    { name:"Falchion",        w:"1",   p:"2",     pc:"g", group:"Martial Weapons" },
-    { name:"Flanged Mace",    w:"2",   p:"3",     pc:"g", group:"Martial Weapons" },
-    { name:"Warhammer",       w:"2",   p:"4",     pc:"g", group:"Martial Weapons" },
-    { name:"Bastard Sword",   w:"2",   p:"7",     pc:"g", group:"Martial Weapons" },
-    { name:"Pike",            w:"6",   p:"1G 3S", pc:"g", group:"Martial Weapons" },
-    { name:"Rapier",          w:"1",   p:"6",     pc:"g", group:"Martial Weapons" },
-    { name:"Scimitar",        w:"1.5", p:"2",     pc:"g", group:"Martial Weapons" },
-    { name:"Shortsword",      w:"1",   p:"2",     pc:"g", group:"Martial Weapons" },
-    { name:"Trident",         w:"2",   p:"1G 3S", pc:"g", group:"Martial Weapons" },
-    { name:"War Pickaxe",     w:"1.5", p:"2G 3S", pc:"g", group:"Martial Weapons" },
-    { name:"Whip",            w:"1",   p:"3",     pc:"s", group:"Martial Weapons" },
+    { name:"Battleaxe",       w:"2",   p:"2",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Slashing",    props:["Versatile"] },
+    { name:"Poleaxe",         w:"2",   p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Slashing",    props:["Reach"] },
+    { name:"Morningstar",     w:"2",   p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Piercing",    props:["Armor Piercing"] },
+    { name:"Flail",           w:"2",   p:"2",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Bludgeoning", props:[] },
+    { name:"Glaive",          w:"3",   p:"3",     pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Slashing",    props:["Heavy","Reach","Two-Handed"] },
+    { name:"Greataxe",        w:"4",   p:"3G 3S", pc:"g", group:"Martial Weapons", die:"1d12", dmg:"Slashing",    props:["Heavy","Two-Handed"] },
+    { name:"Halberd",         w:"3",   p:"4G 3S", pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Slashing",    die2:"1d10", dmg2:"Piercing", props:["Heavy","Reach","Two-Handed"] },
+    { name:"Lance",           w:"3",   p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Piercing",    props:["Reach","Armor Piercing"] },
+    { name:"Heavy Lance",     w:"4",   p:"3G 3S", pc:"g", group:"Martial Weapons", die:"1d12", dmg:"Piercing",    props:["Reach","Armor Piercing"] },
+    { name:"Bardiche",        w:"2.5", p:"3G 3S", pc:"g", group:"Martial Weapons", die:"1d12", dmg:"Slashing",    props:["Reach","Two-Handed"] },
+    { name:"Falchion",        w:"1",   p:"2",     pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Slashing",    props:["Finesse","Light"] },
+    { name:"Flanged Mace",    w:"2",   p:"3",     pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Bludgeoning", versDie:"1d8",  props:["Versatile","Armor Piercing"] },
+    { name:"Warhammer",       w:"2",   p:"4",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Bludgeoning", versDie:"1d10", props:["Versatile","Armor Piercing"] },
+    { name:"Bastard Sword",   w:"2",   p:"7",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Slashing",    versDie:"1d10", props:["Versatile"] },
+    { name:"Pike",            w:"6",   p:"1G 3S", pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Piercing",    props:["Heavy","Reach","Two-Handed"] },
+    { name:"Rapier",          w:"1",   p:"6",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Piercing",    props:["Armor Piercing"] },
+    { name:"Scimitar",        w:"1.5", p:"2",     pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Slashing",    props:["Light"] },
+    { name:"Shortsword",      w:"1",   p:"2",     pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Piercing",    props:["Light"] },
+    { name:"Trident",         w:"2",   p:"1G 3S", pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Piercing",    versDie:"1d8", props:["Thrown","Versatile"], throwRange:"20/60" },
+    { name:"War Pickaxe",     w:"1.5", p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Piercing",    die2:"1d8", dmg2:"Bludgeoning", props:[] },
+    { name:"Whip",            w:"1",   p:"3",     pc:"s", group:"Martial Weapons", die:"1d4",  dmg:"Slashing",    props:["Reach"] },
   ],
   Archery: [
     // ── Simple Ranged Weapons ──
-    { name:"Light Crossbow",  w:"2",   p:"5",     pc:"g", group:"Simple Ranged" },
-    { name:"Shortbow",        w:"0.5", p:"1",     pc:"g", group:"Simple Ranged" },
-    { name:"Sling",           w:"0.2", p:"2",     pc:"c", group:"Simple Ranged" },
-    { name:"Firepots",        w:"0.5", p:"1G 3S", pc:"g", group:"Simple Ranged" },
+    { name:"Light Crossbow",  w:"2",   p:"5",     pc:"g", group:"Simple Ranged",  die:"1d8",  dmg:"Piercing",    props:["Loading","Two-Handed"], range:"80/320" },
+    { name:"Shortbow",        w:"0.5", p:"1",     pc:"g", group:"Simple Ranged",  die:"1d6",  dmg:"Piercing",    props:["Light"], range:"80/320" },
+    { name:"Sling",           w:"0.2", p:"2",     pc:"c", group:"Simple Ranged",  die:"1d4",  dmg:"Bludgeoning", props:[], range:"30/120" },
+    { name:"Fire Pots",       w:"0.5", p:"1G 3S", pc:"g", group:"Simple Ranged",  die:"1d4",  dmg:"Fire",        props:["Thrown","Burning"], throwRange:"15/45" },
     // ── Martial Ranged Weapons ──
-    { name:"Blowgun",         w:"1",   p:"3",     pc:"s", group:"Martial Ranged" },
-    { name:"Hand Crossbow",   w:"1.5", p:"6",     pc:"g", group:"Martial Ranged" },
-    { name:"Heavy Crossbow",  w:"6",   p:"10",    pc:"g", group:"Martial Ranged" },
-    { name:"Longbow",         w:"1",   p:"3",     pc:"g", group:"Martial Ranged" },
-    { name:"Net",             w:"1.5", p:"2",     pc:"s", group:"Martial Ranged" },
+    { name:"Blowgun",         w:"1",   p:"3",     pc:"s", group:"Martial Ranged", die:"1",    dmg:"Piercing",    props:["Loading"], range:"25/100" },
+    { name:"Hand Crossbow",   w:"1.5", p:"6",     pc:"g", group:"Martial Ranged", die:"1d6",  dmg:"Piercing",    props:["Loading"], range:"30/120" },
+    { name:"Heavy Crossbow",  w:"6",   p:"10",    pc:"g", group:"Martial Ranged", die:"1d10", dmg:"Piercing",    props:["Loading","Heavy","Two-Handed"], range:"100/400" },
+    { name:"Longbow",         w:"1",   p:"3",     pc:"g", group:"Martial Ranged", die:"1d8",  dmg:"Piercing",    props:["Heavy","Two-Handed"], range:"150/600" },
+    { name:"Net",             w:"1.5", p:"2",     pc:"s", group:"Martial Ranged", die:"",     dmg:"",            props:["Thrown"], throwRange:"5/15" },
   ],
   /* ── ARMOR ──────────────────────────────────────────────────
      Extra fields on armor entries:
@@ -3637,12 +4119,12 @@ const CATALOGS = {
     { name:"Hood",                ac:"1", w:"0.5", p:"5",     pc:"c", at:"Light",  props:["Warm"],   res:[],                          vuln:["Fire"],            group:"Light" },
     { name:"Merchant's Hat",      ac:"1", w:"0.5", p:"3",     pc:"s", at:"Light",  props:["Warm"],   res:[],                          vuln:["Fire"],            group:"Light" },
     { name:"Padded Coif",         ac:"1", w:"0.5", p:"1",     pc:"s", at:"Light",  props:["Warm"],   res:["Bludgeoning"],             vuln:["Fire"],            group:"Light" },
-    { name:"Leather Cap",         ac:"1", w:"1",   p:"2",     pc:"s", at:"Light",  props:[],         res:[],                          vuln:[],                  group:"Light" },
+    { name:"Leather Cap",         ac:"1", w:"1",   p:"2",     pc:"s", at:"Light",  props:["Fire Resistance"],         res:[],                          vuln:[],                  group:"Light" },
     { name:"Arming Cap",          ac:"1", w:"1",   p:"1",     pc:"s", at:"Light",  props:[],         res:["Bludgeoning"],             vuln:["Fire"],            group:"Light" },
     { name:"Cuir Bouilli Cap",    ac:"1", w:"0.5", p:"3",     pc:"s", at:"Light",  props:[],         res:["Slashing"],                vuln:[],                  group:"Light" },
     { name:"Skullcap",            ac:"1", w:"1.5", p:"4",     pc:"s", at:"Light",  props:["Breezy"], res:["Slashing"],                vuln:[],                  group:"Light" },
     { name:"Mail Coif",           ac:"2", w:"2",   p:"1",     pc:"g", at:"Medium", props:[],         res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
-    { name:"Nasal Helmet",        ac:"2", w:"2",   p:"1G 3S", pc:"g", at:"Medium", props:[],         res:["Slashing"],                vuln:[],                  group:"Medium" },
+    { name:"Nasal Helmet",        ac:"2", w:"2",   p:"1G 3S", pc:"g", at:"Medium", props:["Fire Resistance"],         res:["Slashing"],                vuln:[],                  group:"Medium" },
     { name:"Kettle Helmet",       ac:"2", w:"2",   p:"2",     pc:"g", at:"Medium", props:["Breezy"], res:["Slashing"],                vuln:[],                  group:"Medium" },
     { name:"Spangenhelm",         ac:"2", w:"2",   p:"8",     pc:"g", at:"Medium", props:[],         res:["Slashing","Piercing"],     vuln:[],                  group:"Medium" },
     { name:"Bascinet",            ac:"3", w:"2.5", p:"4",     pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
@@ -3665,13 +4147,13 @@ const CATALOGS = {
     { name:"Hauberk",             ac:"2", w:"3",   p:"7",     pc:"g", at:"Medium", props:[],         res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
     { name:"Mail with Overcoat",  ac:"2", w:"4",   p:"8",     pc:"g", at:"Medium", props:["Warm"],   res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
     { name:"Scale Armor",         ac:"2", w:"5",   p:"6",     pc:"g", at:"Medium", props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Medium" },
-    { name:"Plate Coat",          ac:"3", w:"6",   p:"12",    pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+    { name:"Plate Coat",          ac:"3", w:"6",   p:"12",    pc:"g", at:"Heavy",  props:["Fire Resistance"],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
     { name:"Cuirass",             ac:"3", w:"7.5", p:"20",    pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
     { name:"Plate Armor",         ac:"3", w:"9",   p:"25",    pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
     { name:"Cuirass with Falds",  ac:"3", w:"10",  p:"35",    pc:"g", at:"Heavy",  props:["Warm"],   res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
   ],
   Gauntlets: [
-    { name:"Leather Gloves",      ac:"1", w:"0.5", p:"5",     pc:"c", at:"Light",  props:["Breezy"], res:[],                          vuln:[],                  group:"Light" },
+    { name:"Leather Gloves",      ac:"1", w:"0.5", p:"5",     pc:"c", at:"Light",  props:["Breezy","Fire Resistance"], res:[],                          vuln:[],                  group:"Light" },
     { name:"Padded Mittens",      ac:"1", w:"0.5", p:"4",     pc:"s", at:"Light",  props:["Warm"],   res:["Bludgeoning"],             vuln:["Fire"],            group:"Light" },
     { name:"Fur Gloves",          ac:"1", w:"0.5", p:"1",     pc:"s", at:"Light",  props:["Warm"],   res:[],                          vuln:["Fire"],            group:"Light" },
     { name:"Mail Gauntlets",      ac:"2", w:"1",   p:"4",     pc:"s", at:"Medium", props:[],         res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
@@ -3682,23 +4164,36 @@ const CATALOGS = {
     { name:"Hourglass Gauntlets", ac:"3", w:"2.5", p:"4",     pc:"g", at:"Heavy",  props:["Warm"],   res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
   ],
   Sabatons: [
-    { name:"Leather Boots",       ac:"1", w:"0.5", p:"2",     pc:"s", at:"Light",  props:[],         res:[],                          vuln:[],                  group:"Light" },
+    { name:"Leather Boots",       ac:"1", w:"0.5", p:"2",     pc:"s", at:"Light",  props:["Fire Resistance"],         res:[],                          vuln:[],                  group:"Light" },
     { name:"Legate's Shoes",      ac:"1", w:"0.3", p:"5",     pc:"s", at:"Light",  props:["Breezy"], res:[],                          vuln:["Piercing","Fire"], group:"Light" },
     { name:"Fur Boots",           ac:"1", w:"0.5", p:"3",     pc:"s", at:"Light",  props:["Warm"],   res:[],                          vuln:["Fire"],            group:"Light" },
     { name:"Mail Boots",          ac:"2", w:"1",   p:"6",     pc:"s", at:"Medium", props:[],         res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
     { name:"Mail Chausses",       ac:"2", w:"1",   p:"1G 2S", pc:"g", at:"Medium", props:["Warm"],   res:["Slashing"],                vuln:["Piercing"],        group:"Medium" },
-    { name:"Iron Greaves",        ac:"2", w:"1",   p:"1G 3S", pc:"g", at:"Medium", props:[],         res:["Slashing"],                vuln:[],                  group:"Medium" },
-    { name:"Plate Boots",         ac:"3", w:"2",   p:"2",     pc:"g", at:"Heavy",  props:[],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
+    { name:"Iron Greaves",        ac:"2", w:"1",   p:"1G 3S", pc:"g", at:"Medium", props:["Fire Resistance"],         res:["Slashing"],                vuln:[],                  group:"Medium" },
+    { name:"Plate Boots",         ac:"3", w:"2",   p:"2",     pc:"g", at:"Heavy",  props:["Fire Resistance"],         res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
     { name:"Full Leg Harness",    ac:"3", w:"4",   p:"4",     pc:"g", at:"Heavy",  props:["Warm"],   res:["Slashing","Piercing"],     vuln:["Bludgeoning"],     group:"Heavy" },
   ],
   Shield: [
-    { name:"Light Wooden Round Shield", w:"1", p:"4",     pc:"c", ac:"1" },
-    { name:"Hide Covered Round Shield", w:"1", p:"1",     pc:"s", ac:"1" },
-    { name:"Steel Buckler Shield",      w:"1", p:"4",     pc:"s", ac:"1" },
-    { name:"Heater Shield",             w:"2", p:"1G 3S", pc:"g", ac:"2" },
-    { name:"Kite Shield",               w:"2", p:"2",     pc:"g", ac:"2" },
-    { name:"Pavise Shield",             w:"5", p:"2G 3S", pc:"g", ac:"2" },
-    { name:"Hide Covered Pavise Shield", w:"6", p:"3",    pc:"g", ac:"2" },
+    { name:"Light Wooden Round Shield", w:"1", p:"4",     pc:"c", ac:"1", props:[] },
+    { name:"Hide Covered Round Shield", w:"1", p:"1",     pc:"s", ac:"1", props:["Fire Resistance"] },
+    { name:"Steel Buckler Shield",      w:"1", p:"4",     pc:"s", ac:"1", props:[] },
+    { name:"Heater Shield",             w:"2", p:"1G 3S", pc:"g", ac:"2", props:[] },
+    { name:"Kite Shield",               w:"2", p:"2",     pc:"g", ac:"2", props:[] },
+    { name:"Pavise Shield",             w:"5", p:"2G 3S", pc:"g", ac:"2", props:[] },
+    { name:"Hide Covered Pavise Shield", w:"6", p:"3",    pc:"g", ac:"2", props:["Fire Resistance"] },
+  ],
+  /* ── CAPES — no AC; they carry set properties (Warm/Breezy/Fire Resistance) ── */
+  Cloak: [
+    { name:"Traveler's Cloak",          w:"0.5", p:"4",     pc:"s", props:["Breezy"] },
+    { name:"Oilskin Raincoat",          w:"1",   p:"6",     pc:"s", props:["Warm"] },
+    { name:"Crofter's Mantle",          w:"1",   p:"3",     pc:"s", props:["Warm"] },
+    { name:"Light Linen Hooded Cloak",  w:"0.5", p:"1",     pc:"g", props:["Breezy"] },
+    { name:"Septon's Cloak",            w:"1",   p:"5",     pc:"s", props:["Warm"] },
+    { name:"Sailor's Cape",             w:"2.5", p:"1G 3S", pc:"g", props:["Fire Resistance"] },
+    { name:"Hunter's Cape",             w:"0.5", p:"6",     pc:"s", props:["Breezy"] },
+    { name:"Fur-Lined Mantle",          w:"2",   p:"2",     pc:"g", props:["Warm"] },
+    { name:"Hooded Semi-Circle Cloak",  w:"0.5", p:"2G 3S", pc:"g", props:["Breezy"] },
+    { name:"Noble's Velvet Mantle",     w:"3.5", p:"5",     pc:"g", props:["Fire Resistance"] },
   ],
   Quiver: [
     { name:"Sackcloth Quiver",              w:"0.2", p:"3", pc:"c", cap:10 },
@@ -3734,7 +4229,7 @@ function findAmmoType(name) {
 }
 
 /* Tags that use the catalog picker in the Add Item modal */
-const CATALOG_TAGS = new Set(['Weapon','Archery','Shield','Quiver','Helmet','Gauntlets','Body Armor','Sabatons']);
+const CATALOG_TAGS = new Set(['Weapon','Archery','Shield','Quiver','Helmet','Gauntlets','Body Armor','Sabatons','Cloak']);
 /* Catalog tags that are armor pieces — these auto-fill type/res/vuln/props too. */
 const ARMOR_CATALOG_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons']);
 
@@ -3819,9 +4314,15 @@ function setAimPriceLocked(locked) {
 
 /* Properties an armor piece can carry, and what a full set of 3+ does. */
 const ARMOR_PROPERTIES = {
-  'Warm':   { color:'#e0884a', label:'Warm',   setEffect:'Resistance to cold environments; disadvantage in extreme heat' },
-  'Breezy': { color:'#7ac4e0', label:'Breezy', setEffect:'Resistance to hot environments; disadvantage in extreme cold' },
+  'Warm':   { color:'#e0884a', label:'Warm',   setEffect:'Resistance to cold environments; disadvantage in extreme heat',
+              slots:['head','gloves','boots','armor','cloak'] },
+  'Breezy': { color:'#7ac4e0', label:'Breezy', setEffect:'Resistance to hot environments; disadvantage in extreme cold',
+              slots:['head','gloves','boots','armor','cloak'] },
+  'Fire Resistance': { color:'#e05a3a', label:'Fire Resistance', setEffect:'Resistance to fire damage',
+              slots:['head','gloves','boots','armor','cloak','shield'] },
 };
+/* 3+ matching pieces (within a property's own slot pool) activates its set. */
+const ARMOR_PROP_THRESHOLD = 3;
 
 /* Tick the checkboxes / radio for a catalog armor entry (null = clear). */
 function applyArmorCatalogEntry(entry) {
@@ -3865,9 +4366,18 @@ function armorPropChipHTML(p, size) {
    editable things are the name (via the ✎) and the condition.
 ══════════════════════════════════════════════════════════ */
 /* Tags that render as an item card rather than manual fields. */
-const ARMOR_CARD_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons','Shield']);
-const ARMOR_CARD_ICONS = { 'Helmet':'⛑', 'Body Armor':'🎽', 'Gauntlets':'🧤', 'Sabatons':'🥾', 'Shield':'🛡' };
-const ARMOR_TYPE_COLORS = { 'Light':'#8ecf6a', 'Medium':'#e0b040', 'Heavy':'#d47a4a' };
+const ARMOR_CARD_TAGS = new Set(['Helmet','Gauntlets','Body Armor','Sabatons','Shield','Cloak','Weapon','Archery']);
+/* Card tags whose condition modifies ATTACK rolls rather than AC. */
+const WEAPON_CARD_TAGS = new Set(['Weapon','Archery']);
+const ARMOR_CARD_ICONS = { 'Helmet':'⛑', 'Body Armor':'🎽', 'Gauntlets':'🧤', 'Sabatons':'🥾', 'Shield':'🛡', 'Cloak':'🧥', 'Weapon':'⚔', 'Archery':'🏹' };
+/* Damage-type colours for weapon cards (matches the character sheet palette). */
+const WPN_DMG_COLORS = { 'Slashing':'#ff7777', 'Piercing':'#ffaa55', 'Bludgeoning':'#aaaacc', 'Fire':'#e05a3a' };
+/* Single source of truth for armor-type colouring. Used by the item cards,
+   the equipped-column tags and the proficiency badges so they always match.
+     Light  = grey / white
+     Medium = yellow
+     Heavy  = blue                                                          */
+const ARMOR_TYPE_COLORS = { 'Light':'#d5dae0', 'Medium':'#eccd3f', 'Heavy':'#6f9fd8' };
 
 let _aicEntry = null;      // catalog entry currently shown on the card
 let _aicTag = '';          // its tag
@@ -3926,7 +4436,9 @@ function aicNameKey(e) {
   if (e.key === 'Escape') { e.preventDefault(); aicCommitName(false); }
 }
 
-/* Render the card. `entry` null → the empty prompt. */
+/* Render the card. `entry` null → the empty prompt.
+   Variants by tag:  armor pieces → AC card;  Cloak → property card (no AC,
+   no condition);  Weapon/Archery → damage card (condition modifies AR). */
 function renderArmorCard(entry, tag) {
   const box = document.getElementById('aim_armor_preview');
   if (!box) return;
@@ -3939,22 +4451,68 @@ function renderArmorCard(entry, tag) {
     return;
   }
 
-  // Keep the condition already chosen when the card re-renders (e.g. name edit)
-  const curCond = document.getElementById('aim_condition_btns') ? getAimCondition() : 'decent';
-  const title   = _aicCustomName || entry.name;
-  const isArmor = ARMOR_CATALOG_TAGS.has(_aicTag);
-  const atCol   = ARMOR_TYPE_COLORS[entry.at] || 'var(--text-gold)';
-  const sub     = isArmor && entry.at
-    ? `${_aicTag.toUpperCase()} · ${entry.at.toUpperCase()} ARMOR`
-    : _aicTag.toUpperCase();
+  const isArmor  = ARMOR_CATALOG_TAGS.has(_aicTag);
+  const isWeapon = WEAPON_CARD_TAGS.has(_aicTag);
+  const isCloak  = _aicTag === 'Cloak';
+  const hasCond  = !isCloak; // capes carry no AC/AR, so no condition selector
+  const curCond  = (hasCond && document.getElementById('aim_condition_btns')) ? getAimCondition() : 'decent';
+  const title    = _aicCustomName || entry.name;
 
-  const props = (entry.props || []).map(p => armorPropChipHTML(p)).join('');
-  const res   = (entry.res   || []).map(r => _aicChip('▲ ' + r, '#5abf5a', 'Resistant to ' + r)).join('');
-  const vuln  = (entry.vuln  || []).map(v => _aicChip('▼ ' + v, '#df5a5a', 'Vulnerable to ' + v)).join('');
+  const dmgCol = WPN_DMG_COLORS[entry.dmg] || 'var(--text-gold)';
+  const atCol  = ARMOR_TYPE_COLORS[entry.at] || (isWeapon ? dmgCol : 'var(--text-gold)');
+
+  // ── sub-line ──
+  let sub = _aicTag.toUpperCase();
+  if (isArmor && entry.at) sub = `${_aicTag.toUpperCase()} · ${entry.at.toUpperCase()} ARMOR`;
+  if (isWeapon)            sub = `${(entry.group || _aicTag).toUpperCase()}${entry.versDie ? ' · VERSATILE' : ''}`;
+  if (isCloak)             sub = 'CAPE · NO ARMOR VALUE';
+
+  // ── chips ──
+  const setProps  = (entry.props || []).filter(p => ARMOR_PROPERTIES[p]).map(p => armorPropChipHTML(p)).join('');
+  const wpnProps  = isWeapon
+    ? (entry.props || []).filter(p => !ARMOR_PROPERTIES[p]).map(p => {
+        const label = (p === 'Thrown' && entry.throwRange) ? `Thrown ${entry.throwRange}` : p;
+        return _aicChip(label, 'rgba(232,200,74,.65)');
+      }).join('')
+    : '';
+  const dmgChip = (isWeapon && entry.dmg) ? _aicChip(entry.dmg, dmgCol, entry.dmg + ' damage') : '';
+  const res  = (entry.res   || []).map(r => _aicChip('▲ ' + r, '#5abf5a', 'Resistant to ' + r)).join('');
+  const vuln = (entry.vuln  || []).map(v => _aicChip('▼ ' + v, '#df5a5a', 'Vulnerable to ' + v)).join('');
   const typeChip = (isArmor && entry.at) ? _aicChip(entry.at, atCol, entry.at + ' armor') : '';
-  const tagsHTML = typeChip + props + res + vuln;
-  const noRV = isArmor && !res && !vuln
+  const tagsHTML = typeChip + dmgChip + setProps + wpnProps + res + vuln;
+  const noRV = (isArmor && ARMOR_CATALOG_TAGS.has(_aicTag) && !res && !vuln && !isWeapon && _aicTag !== 'Shield' && !isCloak)
     ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.35);margin-top:2px;">No resistances or vulnerabilities</div>`
+    : '';
+
+  // ── stat boxes ──
+  let boxes;
+  if (isWeapon) {
+    const dmg1 = entry.die ? `${entry.die}` : '—';
+    const dmg2 = entry.die2 ? ` / ${entry.die2}` : '';
+    const dmgVal = entry.die
+      ? `<span style="color:${dmgCol};">${dmg1}${dmg2}</span>`
+      : '<span style="opacity:.4;">—</span>';
+    const rangeVal = entry.range ? entry.range : (entry.throwRange ? '↪ ' + entry.throwRange : '5 ft');
+    boxes = `
+      <div class="aic-box"><span class="aic-box-lbl">DAMAGE</span><div class="aic-box-val">${dmgVal}</div></div>
+      <div class="aic-box"><span class="aic-box-lbl">RANGE</span><div class="aic-box-val" style="font-size:${String(rangeVal).length>7?'10.5':'12'}px;">${rangeVal}</div></div>
+      <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${entry.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
+      <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${_aicPriceHTML(entry)}</div></div>`;
+  } else if (isCloak) {
+    boxes = `
+      <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${entry.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
+      <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${_aicPriceHTML(entry)}</div></div>`;
+  } else {
+    boxes = `
+      <div class="aic-box"><span class="aic-box-lbl">ARMOR</span><div class="aic-box-val">+${entry.ac}</div></div>
+      <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${entry.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
+      <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${_aicPriceHTML(entry)}</div></div>`;
+  }
+  const gridCols = isWeapon ? '1fr 1fr 1fr 1.2fr' : (isCloak ? '1fr 1.2fr' : '1fr 1fr 1.2fr');
+
+  // Versatile damage note (only when the two-handed die is known)
+  const versNote = (isWeapon && entry.versDie)
+    ? `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.55);letter-spacing:.4px;margin-bottom:6px;text-align:center;">Two-handed (versatile): <strong style="color:${dmgCol};">${entry.versDie}</strong></div>`
     : '';
 
   const nameRow = _aicEditing
@@ -3972,23 +4530,20 @@ function renderArmorCard(entry, tag) {
     </div>
     <div class="aic-sub">${sub}</div>
 
-    <div class="aic-stats">
-      <div class="aic-box"><span class="aic-box-lbl">ARMOR</span><div class="aic-box-val">+${entry.ac}</div></div>
-      <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${entry.w}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
-      <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${_aicPriceHTML(entry)}</div></div>
-    </div>
-
+    <div class="aic-stats" style="grid-template-columns:${gridCols};">${boxes}</div>
+    ${versNote}
     <div class="aic-tags">${tagsHTML}</div>
     ${noRV}
 
-    <div class="aic-opts">
-      <span class="aim-lbl" style="font-size:9.5px;">Condition</span>
+    ${hasCond ? `<div class="aic-opts">
+      <span class="aim-lbl" style="font-size:9.5px;">Condition${WEAPON_CARD_TAGS.has(_aicTag) ? ' <span style="opacity:.55;letter-spacing:0;text-transform:none;">(modifies attack rolls)</span>' : ''}</span>
       <div style="display:flex;gap:5px;" id="aim_condition_btns"></div>
-    </div>
+    </div>` : ''}
   </div>`;
-  buildAimConditionBtns(curCond);
+  if (hasCond) buildAimConditionBtns(curCond, WEAPON_CARD_TAGS.has(_aicTag) ? 'AR' : 'AC');
 }
 
+/* Called when the catalog dropdown changes — auto-fill name, weight, price. */
 /* Called when the catalog dropdown changes — auto-fill name, weight, price. */
 /* Called when the catalog dropdown changes — auto-fill name, weight, price. */
 function aimCatalogChanged() {
@@ -4015,6 +4570,11 @@ function aimCatalogChanged() {
   }
   // Armor pieces additionally carry type / resistances / vulnerabilities / properties
   if (ARMOR_CATALOG_TAGS.has(tag)) applyArmorCatalogEntry(entry);
+  // Cloaks, shields and weapons also carry properties (set props / weapon traits)
+  if (ARMOR_CARD_TAGS.has(tag) && !ARMOR_CATALOG_TAGS.has(tag)) {
+    const propEl = document.getElementById('aim_props');
+    if (propEl) propEl.value = (entry && Array.isArray(entry.props)) ? entry.props.join(',') : '';
+  }
   // Armor & shields render as an item card. A new pick clears any renaming;
   // re-entrant calls (e.g. from confirmAddItem) must NOT clobber it.
   if (ARMOR_CARD_TAGS.has(tag)) {
@@ -4532,9 +5092,10 @@ function aimArmorTypeChanged() {
   });
 }
 
-function buildAimConditionBtns(selectedKey) {
+function buildAimConditionBtns(selectedKey, modLabel) {
   const container = document.getElementById('aim_condition_btns');
   if (!container) return;
+  modLabel = modLabel || 'AC';
   container.innerHTML = ITEM_CONDITIONS.map(c => {
     const sel = (selectedKey || 'decent') === c.key;
     return `<button type="button" data-cond="${c.key}" onclick="selectAimCondition(this)"
@@ -4545,7 +5106,7 @@ function buildAimConditionBtns(selectedKey) {
              color:${sel ? c.color : 'rgba(232,200,74,.45)'};
              box-shadow:${sel ? `0 0 6px ${c.color}55` : 'none'};">
       <div style="width:8px;height:8px;border-radius:50%;background:${c.color};margin:0 auto 3px;opacity:${sel?'1':'.4'}"></div>
-      ${c.label}<br><span style="font-size:8px;opacity:.8;">${c.mod > 0 ? '+' : ''}${c.mod} AC</span>
+      ${c.label}<br><span style="font-size:8px;opacity:.8;">${c.mod > 0 ? '+' : ''}${c.mod} ${modLabel}</span>
     </button>`;
   }).join('');
 }
@@ -4610,22 +5171,29 @@ function aimResVulnChanged(type) {
 ─────────────────────────────────────────────────────────────────────── */
 function buildResVulnDisplay() {
   const armorSlots = ['head','gloves','boots','armor'];
-  // Count armor types AND properties among equipped armor pieces
+  // Armor types are counted over the four armor slots
   const typeCounts = {};
-  const propCounts = {};
   armorSlots.forEach(slotId => {
     const d = slotData[slotId];
-    if (!d || !d.name) return;
-    if (d.armorType) typeCounts[d.armorType] = (typeCounts[d.armorType] || 0) + 1;
-    (Array.isArray(d.props) ? d.props : []).forEach(p => {
-      propCounts[p] = (propCounts[p] || 0) + 1;
+    if (d && d.name && d.armorType) typeCounts[d.armorType] = (typeCounts[d.armorType] || 0) + 1;
+  });
+  // Properties are counted over their OWN slot pool:
+  //   Warm / Breezy       → armor + cloak            (3 of 5 activates)
+  //   Fire Resistance     → armor + cloak + shield   (3 of 6 activates)
+  const propCounts = {};
+  Object.entries(ARMOR_PROPERTIES).forEach(([prop, def]) => {
+    let n = 0;
+    (def.slots || armorSlots).forEach(slotId => {
+      const d = slotData[slotId];
+      if (d && d.name && Array.isArray(d.props) && d.props.includes(prop)) n++;
     });
+    if (n > 0) propCounts[prop] = n;
   });
 
   // Find the armor type with 3 or more pieces
   const activeType = Object.entries(typeCounts).find(([t, n]) => n >= 3)?.[0] || null;
-  // Same threshold for properties: 3+ matching pieces turns the property on
-  const activeProps = Object.entries(propCounts).filter(([p, n]) => n >= 3).map(([p]) => p);
+  // A property's set turns on at the threshold within its own pool
+  const activeProps = Object.entries(propCounts).filter(([p, n]) => n >= ARMOR_PROP_THRESHOLD).map(([p]) => p);
 
   const block   = document.getElementById('resVulnBlock');
   const content = document.getElementById('resVulnContent');
@@ -4633,6 +5201,7 @@ function buildResVulnDisplay() {
 
   if (!activeType && activeProps.length === 0) {
     block.style.display = 'none';
+    content.innerHTML = '';   // clear stale set info so hidden state is clean
     return;
   }
 
@@ -4651,6 +5220,7 @@ function buildResVulnDisplay() {
   // Nothing to show at all (e.g. a Light set with no penalties and no properties)
   if (!hasMoveEffect && !hasRangedDisadv && !hasStealthCombatDisadv && activeProps.length === 0) {
     block.style.display = 'none';
+    content.innerHTML = '';
     return;
   }
 
@@ -4682,10 +5252,11 @@ function buildResVulnDisplay() {
 
   // ── Property sets (Warm / Breezy) — 3+ matching pieces turns one on ──
   activeProps.forEach(p => {
-    const def = ARMOR_PROPERTIES[p] || { color:'var(--text-gold)', setEffect:'' };
+    const def = ARMOR_PROPERTIES[p] || { color:'var(--text-gold)', setEffect:'', slots:armorSlots };
+    const poolSize = (def.slots || armorSlots).length;
     html += `<div style="margin-top:7px;padding-top:6px;border-top:1px solid rgba(139,106,0,.25);">
       <div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:3px;">
-        ${p.toUpperCase()} SET (${propCounts[p]} / 4 pieces)
+        ${p.toUpperCase()} SET (${propCounts[p]} / ${poolSize} pieces)
       </div>
       <div>
         <span style="font-family:var(--got);font-size:9px;color:${def.color};letter-spacing:.4px;">✦ ${p}: </span>
@@ -4747,8 +5318,8 @@ function confirmAddItem() {
   const vulnerabilities = ARMOR_PROF_TAGS.has(tag)
     ? [...document.querySelectorAll('input[name="aim_vulnerability"]:checked')].map(c => c.value)
     : [];
-  const condition = AC_BONUS_TAGS.has(tag) ? getAimCondition() : 'decent';
-  const props = ARMOR_PROF_TAGS.has(tag) ? getAimProps() : [];
+  const condition = (AC_BONUS_TAGS.has(tag) || WEAPON_CARD_TAGS.has(tag)) ? getAimCondition() : 'decent';
+  const props = ARMOR_CARD_TAGS.has(tag) ? getAimProps() : [];
   const dest  = document.querySelector('input[name="aim_dest"]:checked')?.value || 'backpack';
   // Ingredients go directly to the pouch
   if(tag === 'Ingredient') {
@@ -4876,7 +5447,7 @@ function openSlotModal(slotId) {
     }).join('');
 
     o.innerHTML = `<div class="modal" style="max-width:460px;padding:26px 30px;max-height:80vh;overflow-y:auto;">
-      <h2 style="font-size:17px;margin-bottom:6px;text-align:center;">Equip — ${slotLabel}</h2>
+      <h2 style="font-size:17px;margin-bottom:6px;text-align:center;">Equip ${slotLabel}</h2>
       <p style="font-family:'IM Fell English',serif;font-size:12px;color:#999;margin-bottom:14px;text-align:center;font-style:italic;">
         Select an item from your inventory to equip it
       </p>
@@ -4892,9 +5463,54 @@ function openSlotModal(slotId) {
   o.addEventListener('click', e => { if (e.target === o) o.remove(); });
 }
 
+/* ══ TWO-HANDED RULE ══
+   A weapon with the Two-Handed property fills both hands:
+     • it can only be equipped in the MAIN hand (weapon1),
+     • while it is equipped, no shield can be carried (and vice versa). */
+function isTwoHandedItem(d) {
+  if (!d) return false;
+  if (Array.isArray(d.props) && d.props.includes('Two-Handed')) return true;
+  const entry = detailCardEntry(d);
+  return !!(entry && Array.isArray(entry.props) && entry.props.includes('Two-Handed'));
+}
+
+function _equipRuleMsg(title, msg) {
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.style.zIndex = 10060;
+  o.innerHTML = `<div class="modal"><h2 style="font-size:20px;">${title}</h2>
+    <p style="line-height:1.6;">${msg}</p>
+    <button onclick="this.closest('.modal-overlay').remove()">Understood</button></div>`;
+  document.body.appendChild(o);
+  o.onclick = e => { if (e.target === o) o.remove(); };
+}
+
+/* Returns true when the equip is allowed; shows a themed message otherwise. */
+function checkTwoHandedRule(slotId, item) {
+  const twoHanded = isTwoHandedItem(item);
+  if (slotId === 'weapon2' && twoHanded) {
+    _equipRuleMsg('⚔ Both Hands Required',
+      `<strong>${item.name}</strong> is a two-handed weapon. It can only be wielded in your <strong>main hand</strong>.`);
+    return false;
+  }
+  if (slotId === 'weapon1' && twoHanded && slotData.shield && slotData.shield.name) {
+    _equipRuleMsg('⚔ Both Hands Required',
+      `<strong>${item.name}</strong> needs both hands. Unequip your shield (<strong>${slotData.shield.name}</strong>) before wielding it.`);
+    return false;
+  }
+  if (slotId === 'shield' && slotData.weapon1 && slotData.weapon1.name && isTwoHandedItem(slotData.weapon1)) {
+    _equipRuleMsg('🛡 Hands Are Full',
+      `Your main hand carries <strong>${slotData.weapon1.name}</strong>, a two-handed weapon. Unequip it before raising a shield.`);
+    return false;
+  }
+  return true;
+}
+
 function equipItemFromSlot(slotId, srcTable, rowIdx, modalId) {
   const item = tableData[srcTable][rowIdx];
   if (!item || !item.name) return;
+
+  // Two-handed weapons: main hand only, incompatible with a shield
+  if (!checkTwoHandedRule(slotId, item)) return;
 
   // If something already occupies this slot, send it back to steed
   const existing = slotData[slotId];
@@ -5614,7 +6230,7 @@ function ammoOpenPicker(modalId) {
   o.innerHTML = `<div class="modal" style="max-width:480px;padding:26px 32px;max-height:88vh;overflow-y:auto;">
     <h2 style="font-size:18px;margin-bottom:4px;text-align:center;">Add Ammunition</h2>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;text-align:center;margin-bottom:${full?'8px':'16px'};">Choose a type to add to ${owner.name}</p>
-    ${full ? `<p style="font-family:var(--got);font-size:9px;color:#e0a83a;text-align:center;letter-spacing:.5px;margin-bottom:14px;">⚠ Quiver is full (${cap}/${cap}) — make room before adding more.</p>` : ''}
+    ${full ? `<p style="font-family:var(--got);font-size:9px;color:#e0a83a;text-align:center;letter-spacing:.5px;margin-bottom:14px;">⚠ Quiver is full (${cap}/${cap}). Make room before adding more.</p>` : ''}
     <div>${rows}</div>
     <div style="margin-top:14px;">
       <button class="rest-btn" onclick="document.getElementById('ammoPickerModal').remove()"
@@ -6099,9 +6715,10 @@ function moneyAdj(coin, delta) {
 ══════════════════════════════════════════════════════════ */
 const PROF_DEFS = [
   { id: 'prof_shield', label: 'Shield',  color: 'rgba(139,106,0,.9)'  },
-  { id: 'prof_light',  label: 'Light',   color: 'rgba(200,200,200,.9)' },
-  { id: 'prof_medium', label: 'Medium',  color: 'rgba(160,160,190,.9)' },
-  { id: 'prof_heavy',  label: 'Heavy',   color: 'rgba(120,140,180,.9)' },
+  // Armor types share ARMOR_TYPE_COLORS with the item cards and equipped column
+  { id: 'prof_light',  label: 'Light',   color: ARMOR_TYPE_COLORS.Light  },
+  { id: 'prof_medium', label: 'Medium',  color: ARMOR_TYPE_COLORS.Medium },
+  { id: 'prof_heavy',  label: 'Heavy',   color: ARMOR_TYPE_COLORS.Heavy  },
 ];
 
 function getProficiencies() {
@@ -6192,6 +6809,113 @@ function toggleProf(checkboxId) {
 /* ══════════════════════════════════════════════════════════
    WESTEROS MAP MODAL  — zoomable political map
 ══════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════
+   ITEM RULE BOOK — read-only manual with chapter navigation.
+   Content sourced from The aGoT Handbook.
+══════════════════════════════════════════════════════════ */
+const RULEBOOK_CHAPTERS = [
+  { id:'ac', title:'Armor Class', body: `
+    <p>It is easier to don some armor than to learn to swing a sword. Even the biggest men can fall from a single cut if they are not well protected. Therefore, everybody starts with the same base <b>Armor Class score of 8</b>. Through collecting various pieces of armor you can make sure you are well protected in combat!</p>
+    <p>In your inventory you have <b>4 armor slots</b>: helmet, gauntlets, body armor and sabatons, plus a <b>cape</b> and a <b>shield</b>. Each armor piece has its own properties. Set properties only become active when you wear enough matching pieces:</p>
+    <ul>
+      <li><b>Warm / Breezy</b>: 3 of 5 matching pieces (armor slots + cape).</li>
+      <li><b>Fire Resistance</b>: 3 of 6 matching pieces (armor slots + cape + shield).</li>
+      <li><b>Armor Type</b> (Light / Medium / Heavy): 3 of 4 matching armor pieces.</li>
+    </ul>
+    <p>When you are wearing a full suit (3+) of the same <i>Armor Type</i>, your movement is affected: <b>Heavy</b> armor decreases your movement by 10ft, <b>Medium</b> by 5ft, and <b>Light</b> leaves it untouched. Heavy armor also influences your dexterity severely, causing <b>disadvantage on attacks made with a ranged weapon</b>.</p>
+    <p>Resistances and vulnerabilities (piercing, slashing, bludgeoning and fire) are unique per piece of armor, and count when a wounding attack is directed to that particular body part.</p>` },
+  { id:'quality', title:'Quality Ratings', body: `
+    <p>The condition of your armor and weapons directly affects your combat effectiveness. Every piece of equipment has a quality rating that provides bonuses or penalties to your performance. A rusty sword or cracked breastplate can mean the difference between life and death.</p>
+    <p>Equipment is rated on a five-tier scale, each providing a modifier to your <b>Armor Class</b> (for armor) or <b>Attack Rolls</b> (for weapons):</p>
+    <ul>
+      <li><b style="color:#cc2222;">Tragic:</b> −2 modifier (severely damaged, nearly broken)</li>
+      <li><b style="color:#cc7722;">Poor:</b> −1 modifier (damaged, neglected)</li>
+      <li><b style="color:#ccaa00;">Decent:</b> +0 modifier (serviceable, standard condition)</li>
+      <li><b style="color:#66bb44;">Good:</b> +1 modifier (well-maintained, quality craftsmanship)</li>
+      <li><b style="color:#228844;">Excellent:</b> +2 modifier (masterwork, pristine condition)</li>
+    </ul>
+    <p>When a piece of armor or a weapon has the <b>Tragic</b> condition, every time it is used to defend from an attack or to make an attack there is a chance it will be damaged beyond repair. Roll a d20. On a <b>10 or lower</b>, the piece of equipment breaks.</p>` },
+  { id:'degradation', title:'Degradation', body: `
+    <p><b>Armor.</b> Your armor suffers damage when you take wounds in combat. Each armor piece (helmet, body armor, gauntlets, sabatons) protects a specific body part and degrades when that area is struck:</p>
+    <ul>
+      <li><b>Moderate Wound:</b> the armor piece drops one quality tier</li>
+      <li><b>Critical Wound:</b> the armor piece drops two quality tiers</li>
+    </ul>
+    <p style="font-style:italic;opacity:.85;">Example: You're wearing Good quality plate armor (+1 AC). During battle you suffer a Critical Torso Wound. Your body armor drops two tiers from Good to Poor, changing your modifier from +1 AC to −1 AC. You're more vulnerable for the rest of the fight unless you can repair or replace it.</p>
+    <p><b>Weapons.</b> Weapons and shields require regular maintenance. If you neglect them for more than 24 hours after you have been in combat, they begin to degrade:</p>
+    <ul>
+      <li>After 24 hours of neglect: drop one quality tier</li>
+      <li>Every additional 24 hours: drop one more quality tier</li>
+    </ul>
+    <p>Proper care includes cleaning after battle, sharpening blades with whetstones, oiling metal to prevent rust, or maintaining the wood and string of bows and staves.</p>
+    <p style="font-style:italic;opacity:.85;">Example: You carry an Excellent longsword (+2 Attack) into battle. After a hard fight you forget to clean the blade. 24 hours pass and your sword drops to Good (+1). Two more days without maintenance and it drops to Decent (+0), and the +2 bonus is gone through neglect.</p>` },
+  { id:'repair', title:'Repairing & Upgrading', body: `
+    <p>You can restore or improve equipment quality through professional smithing or your own efforts (if proficient with the relevant toolkit):</p>
+    <ul>
+      <li><b>Self-Repair:</b> requires proficiency with appropriate tools and materials. Cost varies. You can only upgrade to the <b>Decent</b> condition with your own tools.</li>
+      <li><b>Professional Smith:</b> faster and more reliable, but more expensive. Can upgrade up to <b>Excellent</b> condition.</li>
+    </ul>
+    <p>The higher the quality you're trying to achieve, the more expensive and time-consuming the process. Reaching <b>Good</b> and <b>Excellent</b> quality requires master craftsmanship and premium materials.</p>
+    <p><b>Tools for Self-Repair:</b> Weapon Kit (melee weapons), Fletching Kit (ranged weapons), Leatherworker's Tools (leather armor), Blacksmithing Tools (metal armor), Woodworker's Tools (shields), Cobbler's Tools (boots).</p>
+    <p style="font-style:italic;opacity:.85;">Example: After your armor degrades to Poor (−1 AC), you visit a smith in King's Landing. You pay 75 gold and wait a day for him to hammer out the dents and restore it to Decent (+0 AC). Upgrading further to Good (+1 AC) would cost an additional 250 gold and take 2–3 days of work.</p>` },
+  { id:'status', title:'Status Effects', body: `
+    <p>Certain weapons and ammunition carry properties that inflict lasting effects:</p>
+    <p><b style="color:#e8c84a;">⚔ Armor Piercing.</b> These weapons have the ability to pierce through weak spots in the armor of your opponent. When using <b>simple</b> weapons with this attribute, the armor class of your opponent is lowered by <b>1</b>; when using <b>martial</b> weapons with this attribute, the armor class of your opponent is lowered by <b>2</b>.</p>
+    <p><b style="color:#e05a3a;">🔥 Burning.</b> When you apply burning on a target through fire pots, fire arrows and bolts, a fire sword or other means, the target takes <b>1d4 damage each turn for the following 5 turns</b>. A burning target can use its action to roll on the floor and stop the burning, leaving it <b>prone</b>.</p>
+    <p><b style="color:#df5a5a;">🩸 Bleeding.</b> When you deal damage with a weapon with the bleeding property, the target starts to bleed profoundly. It takes <b>1d4 damage each turn</b> until it spends its entire turn to stop the bleeding.</p>` },
+  { id:'toolkits', title:'Toolkits', body: `
+    <p><b>Using Toolkits.</b> Every toolkit is built from two parts: its <b>permanent assets</b> (the actual tools, like a Draw Knife or Spokeshave) and its <b>dispensable items</b> (consumable materials like Sticks or Feathers). To attempt any task with a toolkit, you must physically have it on hand. The permanent assets never run out, but each <b>use</b> of the toolkit costs 1 of every dispensable item currently loaded in it. If you're out of even one of those materials, you cannot perform that use until you restock. You may freely combine items carried outside the toolkit (rare components, special ores, monster parts…) with what's inside it to craft more specialized or higher quality results, but the toolkit's own dispensable items are still consumed as normal.</p>
+    <p><b>Checks and Proficiency.</b> When you attempt a task with a toolkit, roll a check using an ability score your GM assigns based on the nature of the task (a lockpick attempt might call for Dexterity, appraising a gem for Intelligence, haggling over a repair for Charisma). If you're proficient with that toolkit, add your proficiency bonus to the roll. You can still attempt the check without proficiency, but you roll with <b>disadvantage</b>. If you're proficient in both a relevant skill and the toolkit itself, your GM may grant <b>advantage</b>. Outside of checks, toolkits can also be used via the <b>Utilize</b> action to apply their specific function in combat or exploration, such as using a fletching kit to fashion emergency arrows mid-journey.</p>
+    <p><b>Crafting.</b> To craft a non-magical item, brew a potion, or otherwise produce goods during downtime, you must own and be proficient with the appropriate toolkit. Progress and cost are measured against the item's market price, and the dispensable items in your toolkit are spent according to that project's requirements, so stock up before committing to a big crafting job. Repairs, cooking, and other recurring uses work the same way: no proficiency, no result; no dispensable materials, no craft.</p>` },
+];
+
+function openRuleBook(chapterId) {
+  document.getElementById('ruleBookModal')?.remove();
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'ruleBookModal';
+  o.innerHTML = `<div class="modal" style="max-width:760px;width:92%;padding:0;overflow:hidden;text-align:left;">
+    <div style="background:linear-gradient(140deg, rgba(38,26,4,.95), rgba(16,9,0,.98));border-bottom:2px solid var(--gold);padding:16px 26px 0;">
+      <div style="font-family:'GameOfThrones','Cinzel',serif;font-size:20px;color:#e8c84a;letter-spacing:2.5px;text-align:center;text-shadow:0 0 16px rgba(184,134,11,.5);margin-bottom:12px;">Item Rule Book</div>
+      <div id="rb_tabs" style="display:flex;flex-wrap:wrap;gap:0;justify-content:center;"></div>
+    </div>
+    <div id="rb_content" style="max-height:62vh;overflow-y:auto;padding:20px 30px 26px;
+         font-family:'IM Fell English',serif;font-size:15px;line-height:1.75;color:#e8d8a0;
+         scrollbar-width:thin;scrollbar-color:#b8860b #1a1400;"></div>
+    <div style="border-top:1px solid rgba(139,106,0,.4);padding:10px 26px;display:flex;justify-content:flex-end;background:rgba(10,6,0,.6);">
+      <button class="rest-btn" onclick="document.getElementById('ruleBookModal').remove()" style="padding:6px 22px;font-size:11px;">Close</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+  ruleBookGoTo(chapterId || RULEBOOK_CHAPTERS[0].id);
+}
+
+function ruleBookGoTo(chapterId) {
+  const tabs = document.getElementById('rb_tabs');
+  const content = document.getElementById('rb_content');
+  if (!tabs || !content) return;
+  tabs.innerHTML = RULEBOOK_CHAPTERS.map(ch => {
+    const sel = ch.id === chapterId;
+    return `<button type="button" onclick="ruleBookGoTo('${ch.id}')"
+      style="padding:8px 13px 7px;font-family:var(--got);font-size:8.5px;letter-spacing:.7px;cursor:pointer;
+             border:none;border-bottom:3px solid ${sel ? 'var(--gold)' : 'transparent'};
+             background:${sel ? 'rgba(139,106,0,.22)' : 'transparent'};
+             color:${sel ? '#e8c84a' : 'rgba(232,200,74,.45)'};transition:all .15s;"
+      onmouseover="if(this.style.borderBottomColor==='transparent')this.style.color='rgba(232,200,74,.75)'"
+      onmouseout="if(this.style.borderBottomColor==='transparent')this.style.color='rgba(232,200,74,.45)'">${ch.title.toUpperCase()}</button>`;
+  }).join('');
+  const ch = RULEBOOK_CHAPTERS.find(c => c.id === chapterId) || RULEBOOK_CHAPTERS[0];
+  content.innerHTML = `
+    <div style="font-family:'Cinzel',serif;font-weight:600;font-size:19px;color:var(--text-gold);letter-spacing:1px;margin-bottom:4px;text-shadow:0 0 8px rgba(232,200,74,.3);">${ch.title}</div>
+    <div style="width:70px;height:2px;background:linear-gradient(to right, var(--gold), transparent);margin-bottom:14px;"></div>
+    ${ch.body}`;
+  content.scrollTop = 0;
+  // gold styling for lists inside chapters
+  content.querySelectorAll('ul').forEach(ul => { ul.style.paddingLeft = '22px'; ul.style.margin = '8px 0 12px'; });
+  content.querySelectorAll('li').forEach(li => { li.style.marginBottom = '5px'; });
+  content.querySelectorAll('b').forEach(b => { if (!b.style.color) b.style.color = '#f0e0b0'; });
+}
+
 function openWesterosMap() {
   document.getElementById('westerosMapModal')?.remove();
 
@@ -6249,7 +6973,7 @@ function openWesterosMap() {
         onerror="document.getElementById('westerosMapFallback').style.display='block';this.style.display='none'">
       <div id="westerosMapFallback" style="display:none;font-family:'IM Fell English',serif;
              font-style:italic;font-size:13px;color:rgba(232,200,74,.5);margin:20px auto;text-align:center;padding:20px;">
-        Map could not be loaded — check your internet connection.
+        Map could not be loaded. Check your internet connection.
       </div>
     </div>
 
