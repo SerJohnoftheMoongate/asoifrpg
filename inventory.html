@@ -854,12 +854,6 @@ button.aic-pencil:hover{background:rgba(139,106,0,.35);border-color:var(--gold);
     <input type="hidden" id="money_stags"   value="0">
     <input type="hidden" id="money_pennies" value="0">
 
-    <!-- Quote -->
-    <div class="inv-quote-block">
-      <div class="inv-quote-text">"Little one, a peasant may skin a common squirrel for his pot, but if he finds a gold squirrel in his tree he takes it to his lord, or he will wish he did."</div>
-      <div class="inv-quote-attr">~ Pello of Tyrosh "Greenbeard"</div>
-    </div>
-
   </div><!-- /inv-stats-panel -->
 
  <!-- ═══ KNIGHT PANEL ═══ -->
@@ -2186,7 +2180,7 @@ function buildEquippedColumn() {
       const _acSign = _effAC >= 0 ? '+' : '';   // effectiveItemAC clamps to ≥0, so this is always '+'
       const acBadge = occupied && d.ac
         ? `<div title="Effective AC (base ${d.ac}, ${_cond.label} ${_cond.mod>=0?'+':''}${_cond.mod})"
-                style="display:flex;align-items:center;justify-content:center;gap:3px;padding:2px 9px;border-radius:3px;
+                style="display:flex;align-items:center;justify-content:center;gap:3px;width:58px;box-sizing:border-box;padding:2px 4px;border-radius:3px;
                        border:1px solid ${_cond.color};
                        background:linear-gradient(135deg,#1a1a1a,${_cond.color},#1a1a1a);
                        color:#fff;font-family:var(--got);font-size:12px;letter-spacing:.5px;
@@ -2196,7 +2190,7 @@ function buildEquippedColumn() {
         : '';
       // KG badge — same shape & width as the AC badge but a cream box with theme-gold text
       const kgBadge = occupied && d.w
-        ? `<div style="display:flex;align-items:center;justify-content:center;gap:3px;padding:2px 9px;border-radius:3px;border:1px solid var(--gold);background:var(--input-bg);color:var(--gold-dk);font-family:var(--got);font-size:12px;letter-spacing:.5px;box-shadow:0 0 4px rgba(184,134,11,.2);white-space:nowrap;">
+        ? `<div style="display:flex;align-items:center;justify-content:center;gap:3px;width:58px;box-sizing:border-box;padding:2px 4px;border-radius:3px;border:1px solid var(--gold);background:var(--input-bg);color:var(--gold-dk);font-family:var(--got);font-size:12px;letter-spacing:.5px;box-shadow:0 0 4px rgba(184,134,11,.2);white-space:nowrap;">
             <span style="font-size:8px;opacity:.75;">KG</span><span style="font-weight:700;">${d.w}</span>
           </div>`
         : '';
