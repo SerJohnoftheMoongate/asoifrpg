@@ -744,11 +744,31 @@ button.aic-pencil:hover{background:rgba(139,106,0,.35);border-color:var(--gold);
 
     <!-- Armor Class — base AC hidden but still functional, only Total AC shown -->
     <input type="hidden" id="inv_ac" value="8">
-    <div class="inv-ac-block">
-      <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <div class="inv-ac-lbl" style="flex:1;font-size:9px;background:linear-gradient(135deg,#1a1a1a,#6e6e6e,#1a1a1a);border-color:#aaa;color:#f0f0f0;text-shadow:0 0 4px rgba(255,255,255,.3);box-shadow:0 0 5px rgba(180,180,180,.2);">Total AC</div>
-          <div class="inv-ac-num"><input type="text" id="inv_ac_total" readonly style="background:linear-gradient(135deg,#1a1a1a,#6e6e6e,#1a1a1a);color:#f0f0f0;border-color:#aaa;font-weight:700;font-size:17px;text-align:center;cursor:default;text-shadow:0 0 6px rgba(255,255,255,.4);box-shadow:0 0 6px rgba(180,180,180,.25);"></div>
+    <!-- Keep a hidden input so existing calcDC()/save logic that reads it still works -->
+    <input type="hidden" id="inv_ac_total" readonly>
+    <div class="inv-ac-block" style="justify-content:center;">
+      <div style="position:relative;width:96px;height:107px;filter:drop-shadow(0 3px 8px rgba(0,0,0,.6));">
+        <svg viewBox="0 0 100 112" style="width:100%;height:100%;display:block;">
+          <defs>
+            <linearGradient id="acShieldGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"  stop-color="#2a2a2a"/>
+              <stop offset="45%" stop-color="#8a8a8a"/>
+              <stop offset="55%" stop-color="#9a9a9a"/>
+              <stop offset="100%" stop-color="#2a2a2a"/>
+            </linearGradient>
+          </defs>
+          <!-- Heater-shield silhouette -->
+          <path d="M50 3 L94 15 Q94 62 50 108 Q6 62 6 15 Z"
+                fill="url(#acShieldGrad)" stroke="#d8d8d8" stroke-width="2.5"
+                stroke-linejoin="round"/>
+          <path d="M50 10 L87 20 Q87 60 50 99 Q13 60 13 20 Z"
+                fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:8px;">
+          <div style="font-family:var(--got);font-size:9px;letter-spacing:1px;color:#2a2a2a;
+                      text-shadow:0 1px 1px rgba(255,255,255,.4);margin-bottom:1px;">TOTAL AC</div>
+          <div id="inv_ac_shield_num" style="font-family:'Cinzel',serif;font-weight:700;font-size:31px;
+                      color:#1a1a1a;line-height:1;text-shadow:0 1px 2px rgba(255,255,255,.45);">8</div>
         </div>
       </div>
     </div>
@@ -827,20 +847,6 @@ button.aic-pencil:hover{background:rgba(139,106,0,.35);border-color:var(--gold);
       <input type="checkbox" id="prof_light"  style="display:none">
       <input type="checkbox" id="prof_medium" style="display:none">
       <input type="checkbox" id="prof_heavy"  style="display:none">
-    </div>
-
-<!-- Money Pouch -->
-    <div style="padding:4px 0 6px;">
-      <button onclick="openMoneyPouchModal()"
-        style="width:100%;padding:7px 10px;font-family:var(--got);font-size:12px;letter-spacing:1px;
-               background:linear-gradient(135deg,#5a3a00,#b8820a,#5a3a00);
-               border:1.5px solid #d4a017;color:#fff8dc;cursor:pointer;
-               box-shadow:0 0 8px rgba(212,160,23,.4);
-               transition:filter .15s,box-shadow .15s;"
-        onmouseover="this.style.filter='brightness(1.2)';this.style.boxShadow='0 0 14px rgba(212,160,23,.7)'"
-        onmouseout="this.style.filter='';this.style.boxShadow='0 0 8px rgba(212,160,23,.4)'">
-        Money Pouch
-      </button>
     </div>
 
     <!-- Hidden money store (auto-saved by _collectInvData) -->
@@ -927,6 +933,20 @@ button.aic-pencil:hover{background:rgba(139,106,0,.35);border-color:var(--gold);
         <span style="color:var(--text-gold);font-family:var(--got);font-size:10px;flex-shrink:0;">/</span>
         <input type="text" id="eq_cw_max" readonly placeholder="—" title="Based on body weight from character sheet" style="flex:1;height:24px;font-size:12px;font-weight:700;text-align:center;background:#1a1400;color:var(--text-gold);border-color:rgba(139,106,0,.5);">
       </div>
+    </div>
+
+    <!-- Money Pouch (sits above the Shield slot in the equipped column) -->
+    <div style="padding:2px 0 8px;">
+      <button onclick="openMoneyPouchModal()"
+        style="width:100%;padding:7px 10px;font-family:var(--got);font-size:12px;letter-spacing:1px;
+               background:linear-gradient(135deg,#5a3a00,#b8820a,#5a3a00);
+               border:1.5px solid #d4a017;color:#fff8dc;cursor:pointer;
+               box-shadow:0 0 8px rgba(212,160,23,.4);
+               transition:filter .15s,box-shadow .15s;"
+        onmouseover="this.style.filter='brightness(1.2)';this.style.boxShadow='0 0 14px rgba(212,160,23,.7)'"
+        onmouseout="this.style.filter='';this.style.boxShadow='0 0 8px rgba(212,160,23,.4)'">
+        Money Pouch
+      </button>
     </div>
 
     <!-- Section: Shield -->
@@ -2158,10 +2178,20 @@ function buildEquippedColumn() {
       const d = slotData[si.id];
       const occupied = d && d.name;
       const profOk   = !occupied || isItemProficient({tag: d.tag, armorType: d.armorType});
-      // AC badge — styled like the Total AC box (metallic silver gradient + glow)
+      // AC badge — shows EFFECTIVE AC (base + condition modifier), and the box is
+      // tinted to the item's condition colour (Tragic red … Excellent green),
+      // keeping a dark metallic gradient underneath. Single +/- sign.
+      const _effAC = occupied ? effectiveItemAC(d) : 0;
+      const _cond  = conditionInfo(d && d.condition || 'decent');
+      const _acSign = _effAC >= 0 ? '+' : '';   // effectiveItemAC clamps to ≥0, so this is always '+'
       const acBadge = occupied && d.ac
-        ? `<div style="display:flex;align-items:center;justify-content:center;gap:3px;padding:2px 9px;border-radius:3px;border:1px solid #aaa;background:linear-gradient(135deg,#1a1a1a,#6e6e6e,#1a1a1a);color:#f0f0f0;font-family:var(--got);font-size:12px;letter-spacing:.5px;text-shadow:0 0 4px rgba(255,255,255,.4);box-shadow:0 0 5px rgba(180,180,180,.25);white-space:nowrap;">
-            <span style="font-size:8px;opacity:.8;">AC</span><span style="font-weight:700;">+${d.ac}</span>
+        ? `<div title="Effective AC (base ${d.ac}, ${_cond.label} ${_cond.mod>=0?'+':''}${_cond.mod})"
+                style="display:flex;align-items:center;justify-content:center;gap:3px;padding:2px 9px;border-radius:3px;
+                       border:1px solid ${_cond.color};
+                       background:linear-gradient(135deg,#1a1a1a,${_cond.color},#1a1a1a);
+                       color:#fff;font-family:var(--got);font-size:12px;letter-spacing:.5px;
+                       text-shadow:0 0 4px rgba(0,0,0,.6);box-shadow:0 0 6px ${_cond.color}66;white-space:nowrap;">
+            <span style="font-size:8px;opacity:.85;">AC</span><span style="font-weight:700;">${_acSign}${_effAC}</span>
           </div>`
         : '';
       // KG badge — same shape & width as the AC badge but a cream box with theme-gold text
@@ -2524,12 +2554,13 @@ function _renderEqCard() {
     nameEditFn: 'eqCardEditName()',
     nameCommitFn: 'eqCardCommitName(true)',
     nameKeyFn: 'eqCardNameKey(event)',
+    // Description sits inside the card, right under the title + sub-line
+    descHTML: detailDescHTML(d.desc, 'eqCard', 'eqCardDescStartEdit()'),
     optsHTML,
   });
 
   o.innerHTML = `<div class="modal" style="max-width:560px;padding:24px 30px;text-align:left;">
     ${cardHTML}
-    ${detailDescHTML(d.desc, 'eqCard', 'eqCardDescStartEdit()')}
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
       <button class="rest-btn" onclick="swapEquippedItem('${slotId}')" style="flex:1;background:rgba(20,45,25,.5);border-color:rgba(80,170,90,.55);color:rgba(180,240,190,.9);">⇄ Swap ${SLOT_NAMES[slotId]||'Item'}</button>
       <button class="rest-btn" onclick="unequipItem('${slotId}')" style="flex:1;background:rgba(40,20,60,.45);border-color:rgba(100,80,180,.5);color:rgba(200,180,255,.85);">↩ Unequip → Steed</button>
@@ -2778,9 +2809,11 @@ function _renderInvCard() {
   const cond     = item.condition || 'decent';
   const modLabel = isWeapon ? 'AR' : 'AC';
 
-  // Quantity stepper + condition, hosted inside the card's options strip
+  // Quantity stepper + condition, hosted inside the card's options strip.
+  // Quantity now sits BELOW the condition block, so it needs a top margin
+  // whenever a condition block precedes it.
   const qtyHTML = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:${hasCond?'10px':'0'};">
+    <div style="display:flex;align-items:center;gap:10px;margin-top:${hasCond?'10px':'0'};">
       <span class="aim-lbl" style="font-size:9.5px;margin:0;flex-shrink:0;">Quantity</span>
       <button type="button" onclick="invCardAdjQty(-1)"
         style="width:22px;height:22px;padding:0;border:1px solid rgba(180,60,60,.55);background:rgba(60,15,15,.45);color:#ff8a8a;font-family:var(--got);font-size:15px;font-weight:700;cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;line-height:1;"
@@ -2809,7 +2842,8 @@ function _renderInvCard() {
           </button>`;
         }).join('')}
       </div>` : '';
-  const optsHTML = `<div class="aic-opts">${qtyHTML}${condHTML}</div>`;
+  // Condition first, then quantity underneath it (per briefing)
+  const optsHTML = `<div class="aic-opts">${condHTML}${qtyHTML}</div>`;
 
   const descBlock = detailDescHTML(item.desc, 'invCard', 'invCardDescStartEdit()');
   const cardHTML = detailCardHTML(item, entry, {
@@ -2818,8 +2852,8 @@ function _renderInvCard() {
     nameEditFn: 'invCardEditName()',
     nameCommitFn: 'invCardCommitName(true)',
     nameKeyFn: 'invCardNameKey(event)',
-    // Plain items carry the description inside the card, right under the title
-    descHTML: isGeneric ? descBlock : '',
+    // Description always sits inside the card, right under the title + sub-line
+    descHTML: descBlock,
     optsHTML,
   });
 
@@ -2834,7 +2868,6 @@ function _renderInvCard() {
 
   o.innerHTML = `<div class="modal" style="max-width:560px;padding:24px 30px;text-align:left;">
     ${cardHTML}
-    ${isGeneric ? '' : descBlock}
     ${moveBtns ? `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">${moveBtns}</div>` : ''}
     <div style="display:flex;gap:8px;margin-top:10px;">
       <button class="rest-btn" onclick="invCardSave()" style="flex:1;">Save & Close</button>
@@ -3417,6 +3450,8 @@ function updateTotalAC() {
   const total = base + bonus;
   const el = document.getElementById('inv_ac_total');
   if (el) el.value = total;
+  const shieldNum = document.getElementById('inv_ac_shield_num');
+  if (shieldNum) shieldNum.textContent = total;
   return total;
 }
 
@@ -3781,40 +3816,40 @@ const CATALOGS = {
     { name:"Dagger",          w:"0.5", p:"3",     pc:"s", group:"Simple Weapons", die:"1d4",  dmg:"Piercing",    props:["Light","Thrown"], throwRange:"20/60" },
     { name:"Rondel Dagger",   w:"0.5", p:"6",     pc:"s", group:"Simple Weapons", die:"1d4",  dmg:"Piercing",    props:["Light","Thrown","Armor Piercing"], throwRange:"20/60" },
     { name:"Spiked Club",     w:"1",   p:"4",     pc:"s", group:"Simple Weapons", die:"1d4",  dmg:"Bludgeoning", die2:"1d4", dmg2:"Piercing", props:["Light","Armor Piercing"] },
-    { name:"Greatclub",       w:"5",   p:"3",     pc:"s", group:"Simple Weapons", die:"1d8",  dmg:"Bludgeoning", props:["Two-Handed"] },
+    { name:"Greatclub",       w:"2.5",   p:"3",     pc:"s", group:"Simple Weapons", die:"1d8",  dmg:"Bludgeoning", props:["Two-Handed"] },
     { name:"Handaxe",         w:"1",   p:"4",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Slashing",    props:["Light","Thrown"], throwRange:"20/60" },
     { name:"Frog Spear",      w:"0.5", p:"3",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Piercing",    props:["Light","Finesse","Thrown"], throwRange:"40/80" },
     { name:"Javelin",         w:"1",   p:"3",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Piercing",    props:["Thrown"], throwRange:"30/120" },
     { name:"Light Hammer",    w:"1",   p:"3",     pc:"s", group:"Simple Weapons", die:"1d4",  dmg:"Bludgeoning", props:["Light","Thrown"], throwRange:"20/60" },
-    { name:"Mace",            w:"2",   p:"1",     pc:"g", group:"Simple Weapons", die:"1d6",  dmg:"Bludgeoning", props:[] },
+    { name:"Mace",            w:"1.2",   p:"1",     pc:"g", group:"Simple Weapons", die:"1d6",  dmg:"Bludgeoning", props:[] },
     { name:"Quarterstaff",    w:"2",   p:"1",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Bludgeoning", versDie:"1d8", props:["Reach","Versatile"] },
     { name:"Sickle",          w:"1",   p:"2",     pc:"s", group:"Simple Weapons", die:"1d4",  dmg:"Slashing",    props:["Light"] },
-    { name:"Spear",           w:"1.5", p:"6",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Piercing",    versDie:"1d8", props:["Reach","Thrown","Versatile"], throwRange:"20/60" },
+    { name:"Spear",           w:"1.8", p:"6",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Piercing",    versDie:"1d8", props:["Reach","Thrown","Versatile"], throwRange:"20/60" },
     { name:"Spiked Staff",    w:"1",   p:"5",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Piercing",    props:["Two-Handed","Reach","Armor Piercing"] },
     { name:"Billhook",        w:"1",   p:"1",     pc:"g", group:"Simple Weapons", die:"1d8",  dmg:"Piercing",    die2:"1d8", dmg2:"Slashing", props:["Two-Handed","Reach"] },
     { name:"Pitchfork",       w:"1",   p:"2",     pc:"s", group:"Simple Weapons", die:"1d6",  dmg:"Piercing",    props:["Two-Handed","Reach"] },
-    { name:"Scythe",          w:"2",   p:"4",     pc:"s", group:"Simple Weapons", die:"1d8",  dmg:"Slashing",    props:["Two-Handed","Reach"] },
+    { name:"Scythe",          w:"2.5",   p:"4",     pc:"s", group:"Simple Weapons", die:"1d8",  dmg:"Slashing",    props:["Two-Handed","Reach"] },
     // ── Martial Weapons ──
-    { name:"Battleaxe",       w:"2",   p:"2",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Slashing",    props:["Versatile"] },
-    { name:"Poleaxe",         w:"2",   p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Slashing",    props:["Reach"] },
-    { name:"Morningstar",     w:"2",   p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Piercing",    props:["Armor Piercing"] },
-    { name:"Flail",           w:"2",   p:"2",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Bludgeoning", props:[] },
-    { name:"Glaive",          w:"3",   p:"3",     pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Slashing",    props:["Heavy","Reach","Two-Handed"] },
-    { name:"Greataxe",        w:"4",   p:"3G 3S", pc:"g", group:"Martial Weapons", die:"1d12", dmg:"Slashing",    props:["Heavy","Two-Handed"] },
-    { name:"Halberd",         w:"3",   p:"4G 3S", pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Slashing",    die2:"1d10", dmg2:"Piercing", props:["Heavy","Reach","Two-Handed"] },
-    { name:"Lance",           w:"3",   p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Piercing",    props:["Reach","Armor Piercing"] },
-    { name:"Heavy Lance",     w:"4",   p:"3G 3S", pc:"g", group:"Martial Weapons", die:"1d12", dmg:"Piercing",    props:["Reach","Armor Piercing"] },
-    { name:"Bardiche",        w:"2.5", p:"3G 3S", pc:"g", group:"Martial Weapons", die:"1d12", dmg:"Slashing",    props:["Reach","Two-Handed"] },
-    { name:"Falchion",        w:"1",   p:"2",     pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Slashing",    props:["Finesse","Light"] },
-    { name:"Flanged Mace",    w:"2",   p:"3",     pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Bludgeoning", versDie:"1d8",  props:["Versatile","Armor Piercing"] },
-    { name:"Warhammer",       w:"2",   p:"4",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Bludgeoning", versDie:"1d10", props:["Versatile","Armor Piercing"] },
-    { name:"Bastard Sword",   w:"2",   p:"7",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Slashing",    versDie:"1d10", props:["Versatile"] },
-    { name:"Pike",            w:"6",   p:"1G 3S", pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Piercing",    props:["Heavy","Reach","Two-Handed"] },
-    { name:"Rapier",          w:"1",   p:"6",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Piercing",    props:["Armor Piercing"] },
-    { name:"Scimitar",        w:"1.5", p:"2",     pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Slashing",    props:["Light"] },
+    { name:"Battleaxe",       w:"1.5",   p:"2",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Slashing",    props:["Versatile"] },
+    { name:"Poleaxe",         w:"2.7",   p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Slashing",    props:["Reach"] },
+    { name:"Morningstar",     w:"1.8",   p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Piercing",    props:["Armor Piercing"] },
+    { name:"Flail",           w:"1.8",   p:"2",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Bludgeoning", props:[] },
+    { name:"Glaive",          w:"2.7",   p:"3",     pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Slashing",    props:["Heavy","Reach","Two-Handed"] },
+    { name:"Greataxe",        w:"3",   p:"3G 3S", pc:"g", group:"Martial Weapons", die:"1d12", dmg:"Slashing",    props:["Heavy","Two-Handed"] },
+    { name:"Halberd",         w:"2.7",   p:"4G 3S", pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Slashing",    die2:"1d10", dmg2:"Piercing", props:["Heavy","Reach","Two-Handed"] },
+    { name:"Lance",           w:"2.5",   p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Piercing",    props:["Reach","Armor Piercing"] },
+    { name:"Heavy Lance",     w:"3",   p:"3G 3S", pc:"g", group:"Martial Weapons", die:"1d12", dmg:"Piercing",    props:["Reach","Armor Piercing","Two-Handed"] },
+    { name:"Bardiche",        w:"3", p:"3G 3S", pc:"g", group:"Martial Weapons", die:"1d12", dmg:"Slashing",    props:["Reach","Two-Handed"] },
+    { name:"Falchion",        w:"1.2",   p:"2",     pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Slashing",    props:["Finesse","Light"] },
+    { name:"Flanged Mace",    w:"1.2",   p:"3",     pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Bludgeoning", versDie:"1d8",  props:["Versatile","Armor Piercing"] },
+    { name:"Warhammer",       w:"1.5",   p:"4",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Bludgeoning", versDie:"1d10", props:["Versatile","Armor Piercing"] },
+    { name:"Bastard Sword",   w:"1.6",   p:"7",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Slashing",    versDie:"1d10", props:["Versatile"] },
+    { name:"Pike",            w:"3.5",   p:"1G 3S", pc:"g", group:"Martial Weapons", die:"1d10", dmg:"Piercing",    props:["Heavy","Reach","Two-Handed"] },
+    { name:"Rapier",          w:"1.1",   p:"6",     pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Piercing",    props:["Armor Piercing"] },
+    { name:"Scimitar",        w:"1.2", p:"2",     pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Slashing",    props:["Light"] },
     { name:"Shortsword",      w:"1",   p:"2",     pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Piercing",    props:["Light"] },
-    { name:"Trident",         w:"2",   p:"1G 3S", pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Piercing",    versDie:"1d8", props:["Thrown","Versatile"], throwRange:"20/60" },
-    { name:"War Pickaxe",     w:"1.5", p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Piercing",    die2:"1d8", dmg2:"Bludgeoning", props:[] },
+    { name:"Trident",         w:"1.8",   p:"1G 3S", pc:"g", group:"Martial Weapons", die:"1d6",  dmg:"Piercing",    versDie:"1d8", props:["Thrown","Versatile"], throwRange:"20/60" },
+    { name:"War Pickaxe",     w:"1.4", p:"2G 3S", pc:"g", group:"Martial Weapons", die:"1d8",  dmg:"Piercing",    die2:"1d8", dmg2:"Bludgeoning", props:[] },
     { name:"Whip",            w:"1",   p:"3",     pc:"s", group:"Martial Weapons", die:"1d4",  dmg:"Slashing",    props:["Reach"] },
   ],
   Archery: [
@@ -3826,7 +3861,7 @@ const CATALOGS = {
     // ── Martial Ranged Weapons ──
     { name:"Blowgun",         w:"1",   p:"3",     pc:"s", group:"Martial Ranged", die:"1",    dmg:"Piercing",    props:["Loading"], range:"25/100" },
     { name:"Hand Crossbow",   w:"1.5", p:"6",     pc:"g", group:"Martial Ranged", die:"1d6",  dmg:"Piercing",    props:["Loading"], range:"30/120" },
-    { name:"Heavy Crossbow",  w:"6",   p:"10",    pc:"g", group:"Martial Ranged", die:"1d10", dmg:"Piercing",    props:["Loading","Heavy","Two-Handed"], range:"100/400" },
+    { name:"Heavy Crossbow",  w:"4",   p:"10",    pc:"g", group:"Martial Ranged", die:"1d10", dmg:"Piercing",    props:["Loading","Heavy","Two-Handed"], range:"100/400" },
     { name:"Longbow",         w:"1",   p:"3",     pc:"g", group:"Martial Ranged", die:"1d8",  dmg:"Piercing",    props:["Heavy","Two-Handed"], range:"150/600" },
     { name:"Net",             w:"1.5", p:"2",     pc:"s", group:"Martial Ranged", die:"",     dmg:"",            props:["Thrown"], throwRange:"5/15" },
   ],
@@ -4965,42 +5000,51 @@ function buildResVulnDisplay() {
 
   block.style.display = 'block';
   const totalPieces = Object.values(typeCounts).reduce((a,b)=>a+b,0);
+
+  // A penalty line: red left-rule + "PENALTY" pill + description.
+  const penaltyRow = (text) => `
+    <div style="display:flex;align-items:stretch;gap:8px;margin-bottom:5px;">
+      <div style="width:3px;border-radius:2px;background:linear-gradient(to bottom,#e0554a,#a02a22);flex-shrink:0;"></div>
+      <div style="flex:1;background:linear-gradient(to right,rgba(150,40,32,.22),rgba(150,40,32,.05));
+                  border:1px solid rgba(200,70,60,.35);border-radius:3px;padding:5px 9px;
+                  display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-family:var(--got);font-size:8px;letter-spacing:1px;color:#ff6a5a;
+                     background:rgba(150,40,32,.4);border:1px solid rgba(220,90,80,.5);
+                     border-radius:2px;padding:2px 6px 1px;white-space:nowrap;">⚠ PENALTY</span>
+        <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#f0c0b0;line-height:1.35;">${text}</span>
+      </div>
+    </div>`;
+
+  // A buff line: coloured left-rule + "BUFF" pill in the property's colour + description.
+  const buffRow = (label, text, col) => `
+    <div style="display:flex;align-items:stretch;gap:8px;margin-bottom:5px;">
+      <div style="width:3px;border-radius:2px;background:linear-gradient(to bottom,${col},${col}66);flex-shrink:0;"></div>
+      <div style="flex:1;background:linear-gradient(to right,${col}22,${col}08);
+                  border:1px solid ${col}55;border-radius:3px;padding:5px 9px;
+                  display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-family:var(--got);font-size:8px;letter-spacing:1px;color:${col};
+                     background:${col}33;border:1px solid ${col}77;
+                     border-radius:2px;padding:2px 6px 1px;white-space:nowrap;">✦ ${label.toUpperCase()}</span>
+        <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#e8d8a0;line-height:1.35;">${text}</span>
+      </div>
+    </div>`;
+
+  const sectionLabel = (txt) =>
+    `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:5px;">${txt}</div>`;
+
   let html = '';
-  if (activeType) {
-    html += `<div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:4px;">${activeType.toUpperCase()} ARMOR SET (${totalPieces} / 4 pieces)</div>`;
-  }
+  if (activeType) html += sectionLabel(`${activeType.toUpperCase()} ARMOR SET (${totalPieces} / 4 pieces)`);
+  if (hasMoveEffect)            html += penaltyRow(eff.move);
+  if (hasStealthCombatDisadv)   html += penaltyRow('Disadvantage on Stealth Checks &amp; Combat Rolls');
+  if (hasRangedDisadv)          html += penaltyRow('Disadvantage on ranged weapon attacks');
 
-  if (hasMoveEffect) {
-    html += `<div style="margin-bottom:3px;">
-      <span style="font-family:var(--got);font-size:9px;color:#d4a040;letter-spacing:.4px;">⚠ Penalty: </span>
-      <span style="font-family:'IM Fell English',serif;font-size:12px;color:#e8c07a;">${eff.move}</span>
-    </div>`;
-  }
-  if (hasStealthCombatDisadv) {
-    html += `<div style="margin-bottom:3px;">
-      <span style="font-family:var(--got);font-size:9px;color:#d4a040;letter-spacing:.4px;">⚠ Penalty: </span>
-      <span style="font-family:'IM Fell English',serif;font-size:12px;color:#e8c07a;">Disadvantage on Stealth Checks &amp; Combat Rolls</span>
-    </div>`;
-  }
-  if (hasRangedDisadv) {
-    html += `<div>
-      <span style="font-family:var(--got);font-size:9px;color:#d4a040;letter-spacing:.4px;">⚠ Penalty: </span>
-      <span style="font-family:'IM Fell English',serif;font-size:12px;color:#e8c07a;">Disadvantage on ranged weapon attacks</span>
-    </div>`;
-  }
-
-  // ── Property sets (Warm / Breezy) — 3+ matching pieces turns one on ──
+  // ── Property sets (Warm / Breezy / Fire Resistance) — buffs ──
   activeProps.forEach(p => {
     const def = ARMOR_PROPERTIES[p] || { color:'var(--text-gold)', setEffect:'', slots:armorSlots };
     const poolSize = (def.slots || armorSlots).length;
-    html += `<div style="margin-top:7px;padding-top:6px;border-top:1px solid rgba(139,106,0,.25);">
-      <div style="font-family:var(--got);font-size:8.5px;color:rgba(232,200,74,.5);letter-spacing:.8px;margin-bottom:3px;">
-        ${p.toUpperCase()} SET (${propCounts[p]} / ${poolSize} pieces)
-      </div>
-      <div>
-        <span style="font-family:var(--got);font-size:9px;color:${def.color};letter-spacing:.4px;">✦ ${p}: </span>
-        <span style="font-family:'IM Fell English',serif;font-size:12px;color:#e8c07a;">${def.setEffect}</span>
-      </div>
+    html += `<div style="margin-top:8px;padding-top:7px;border-top:1px solid rgba(139,106,0,.25);">
+      ${sectionLabel(`${p.toUpperCase()} SET (${propCounts[p]} / ${poolSize} pieces)`)}
+      ${buffRow(p, def.setEffect, def.color)}
     </div>`;
   });
   content.innerHTML = html;
@@ -5470,7 +5514,6 @@ function openBookModal(tableId, rowIdx) {
     const pgNum  = currentPage + 1;
     const hasPrev = currentPage > 0;
     const hasNext = currentPage < total - 1;
-    const metaStr = [item.w ? item.w + ' kg' : '', priceText(item.p, item.pc)].filter(Boolean).join(' · ');
 
     const modal = document.getElementById('bookModal');
     if (!modal) return;
@@ -5479,7 +5522,7 @@ function openBookModal(tableId, rowIdx) {
         <h2 style="font-size:19px;margin:0;font-family:'IM Fell English',serif;font-style:italic;">${item.name}</h2>
         <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);">Book</span>
       </div>
-      ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:14px;">${metaStr}</div>` : '<div style="margin-bottom:14px;"></div>'}
+      <div style="margin-bottom:14px;"></div>
 
       <!-- Chapter header + page nav -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
@@ -5525,19 +5568,12 @@ function openBookModal(tableId, rowIdx) {
           onmouseover="this.style.filter='brightness(1.4)'" onmouseout="this.style.filter=''">− Remove Chapter</button>
       </div>
 
-      <!-- Weight / Price edit + action buttons -->
+      <!-- Locked weight/price + action buttons -->
       <div style="border-top:1px solid rgba(139,106,0,.25);padding-top:12px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
-          <div>
-            <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Weight (kg)</label>
-            <input type="text" id="bookMgmt_w" value="${item.w||''}" placeholder="—"
-              style="width:100%;height:28px;font-size:13px;text-align:center;">
-          </div>
-          <div>
-            <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Price</label>
-            <input type="text" id="bookMgmt_p" value="${item.p||''}" placeholder="—"
-              style="width:100%;height:28px;font-size:13px;text-align:center;">
-          </div>
+        <!-- Weight & price are locked (like the item cards) — read-only stat boxes -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+          <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${item.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
+          <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${priceCellHTML(item.p, item.pc, 13) || '—'}</div></div>
         </div>
         ${_bookMoveButtons(tableId)}
         <div style="display:flex;gap:8px;">
@@ -5607,8 +5643,7 @@ function bookSave() {
   const item = tableData[modal._tableId][modal._rowIdx];
   const ta = document.getElementById('book_page_text');
   if (ta) item.pages[window._bookGetPage()] = ta.value;
-  item.w = document.getElementById('bookMgmt_w')?.value.trim() || item.w;
-  item.p = document.getElementById('bookMgmt_p')?.value.trim() || item.p;
+  // weight & price are locked — nothing to read back
   modal.remove();
   buildAllTables();
   calcWeights();
@@ -5637,8 +5672,7 @@ function bookMoveTo(toTable) {
   // Save current page text first
   const ta = document.getElementById('book_page_text');
   if (ta && item.pages) item.pages[window._bookGetPage?.() || 0] = ta.value;
-  item.w = document.getElementById('bookMgmt_w')?.value.trim() || item.w;
-  item.p = document.getElementById('bookMgmt_p')?.value.trim() || item.p;
+  // weight & price are locked
   const toRows = toData[toTable];
   let ti = toRows.findIndex(r => !r.name);
   if (ti === -1) { toRows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); ti = toRows.length - 1; }
@@ -5759,7 +5793,6 @@ function openAmmoModal(tableId, rowIdx) {
     return _buildAmmoRows(item.ammo, 'ammoModal', capReached);
   };
 
-  const metaStr = [item.w ? item.w + ' kg' : '', priceText(item.p, item.pc)].filter(Boolean).join(' · ');
 
   const o = document.createElement('div');
   o.id = 'ammoModal'; o.className = 'modal-overlay';
@@ -5769,7 +5802,7 @@ function openAmmoModal(tableId, rowIdx) {
         <h2 style="font-size:19px;margin:0;">🏹 ${item.name}</h2>
         <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);">Quiver</span>
       </div>
-      ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:16px;">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
+      <div style="margin-bottom:16px;"></div>
 
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
         <span style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;">AMMUNITION</span>
@@ -5834,7 +5867,6 @@ function openEquippedQuiverModal() {
     if (hdr) hdr.innerHTML = _ammoCapLine(d.ammo, d);
   };
 
-  const metaStr = [d.w ? d.w + ' kg' : '', priceText(d.p, d.pc)].filter(Boolean).join(' · ');
 
   const o = document.createElement('div');
   o.id = 'equippedQuiverModal'; o.className = 'modal-overlay';
@@ -5844,7 +5876,7 @@ function openEquippedQuiverModal() {
         <h2 style="font-size:19px;margin:0;">🏹 ${d.name}</h2>
         <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);">Equipped · Quiver</span>
       </div>
-      ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:16px;">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
+      <div style="margin-bottom:16px;"></div>
 
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
         <span style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;">AMMUNITION</span>
@@ -6101,7 +6133,6 @@ function openToolkitModal(tableId, rowIdx) {
     }).join('');
   };
 
-  const metaStr = [item.w ? item.w + ' kg' : '', priceText(item.p, item.pc)].filter(Boolean).join(' · ');
   // If this item is linked to a known kit definition, derive the description from
   // the live data so wording changes (e.g. "Contains:" → "Permanent Assets:") apply
   // to items added under the old wording too. Fall back to whatever was stored.
@@ -6139,7 +6170,7 @@ function openToolkitModal(tableId, rowIdx) {
         <h2 style="font-size:19px;margin:0;">${item.name}</h2>
         <span style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.5);padding:2px 7px;border:1px solid rgba(139,106,0,.35);">Tools</span>
       </div>
-      ${metaStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:#777;text-align:center;margin-bottom:${descStr?'6px':'16px'};">${metaStr}</div>` : '<div style="margin-bottom:16px;"></div>'}
+      <div style="margin-bottom:${descStr?'6px':'16px'};"></div>
       ${descStr ? `<div style="font-family:'IM Fell English',serif;font-style:italic;font-size:17px;color:#e8d8a0;text-align:center;margin-bottom:16px;line-height:1.7;letter-spacing:.2px;padding:0 12px;">${descStr}</div>` : ''}
 
       <div style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:8px;">TOOLKIT CONTENTS</div>
@@ -6150,18 +6181,12 @@ function openToolkitModal(tableId, rowIdx) {
       </div>
       <div id="toolkit_list" style="max-height:260px;overflow-y:auto;margin-bottom:12px;"></div>
 
-      <!-- Weight / Price -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;
-                  border-top:1px solid rgba(139,106,0,.25);padding-top:12px;">
-        <div>
-          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Weight (kg)</label>
-          <input type="text" id="toolkitMgmt_w" value="${item.w||''}" placeholder="—"
-            style="width:100%;height:28px;font-size:13px;text-align:center;">
-        </div>
-        <div>
-          <label style="font-family:var(--got);font-size:9px;color:var(--gold-lt);display:block;margin-bottom:3px;letter-spacing:.4px;">Price</label>
-          <input type="text" id="toolkitMgmt_p" value="${item.p||''}" placeholder="—"
-            style="width:100%;height:28px;font-size:13px;text-align:center;">
+      <!-- Locked weight/price (read-only, like the item cards) -->
+      <div style="border-top:1px solid rgba(139,106,0,.25);padding-top:12px;">
+        <!-- Weight & price are locked (like the item cards) — read-only stat boxes -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+          <div class="aic-box"><span class="aic-box-lbl">WEIGHT</span><div class="aic-box-val">${item.w||'—'}<span style="font-size:9px;opacity:.7;">kg</span></div></div>
+          <div class="aic-box"><span class="aic-box-lbl">PRICE</span><div class="aic-box-val">${priceCellHTML(item.p, item.pc, 13) || '—'}</div></div>
         </div>
       </div>
 
@@ -6195,8 +6220,7 @@ function toolkitMoveTo(fromTable, toTable) {
   const toData   = _getTableFor(toTable);
   const item = fromData[_tableId][_rowIdx];
   if (!item) return;
-  item.w = document.getElementById('toolkitMgmt_w')?.value.trim() || item.w;
-  item.p = document.getElementById('toolkitMgmt_p')?.value.trim() || item.p;
+  // weight & price are locked
   const toRows = toData[toTable];
   let ti = toRows.findIndex(r => !r.name);
   if (ti === -1) { toRows.push({name:'',tag:'',q:'',w:'',p:'',a:''}); ti = toRows.length - 1; }
@@ -6331,8 +6355,7 @@ function toolkitSave() {
   const modal = document.getElementById('toolkitModal');
   if (!modal) return;
   const item = tableData[modal._tableId][modal._rowIdx];
-  item.w = document.getElementById('toolkitMgmt_w')?.value.trim() || item.w;
-  item.p = document.getElementById('toolkitMgmt_p')?.value.trim() || item.p;
+  // weight & price are locked
   modal.remove();
   buildAllTables();
   calcWeights();
@@ -6393,21 +6416,25 @@ function openMoneyPouchModal() {
           <span style="font-family:var(--got);font-size:10px;color:${p.color};flex:1;text-align:left;
                        letter-spacing:.4px;text-shadow:0 0 6px ${p.glow};">${p.label}</span>
           <button onclick="moneyAdj('${coin}',-1)"
+            onmousedown="moneyHoldStart('${coin}',-1)" onmouseup="moneyHoldStop()" onmouseleave="moneyHoldStop()"
+            ontouchstart="event.preventDefault();moneyHoldStart('${coin}',-1)" ontouchend="moneyHoldStop()"
             style="width:28px;height:28px;border-radius:50%;border:1.5px solid ${p.border};
                    background:${p.bg};color:${p.color};font-size:18px;font-weight:700;cursor:pointer;
                    line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;
-                   box-shadow:0 0 6px ${p.glow};transition:filter .15s;"
-            onmouseover="this.style.filter='brightness(1.35)'" onmouseout="this.style.filter=''">−</button>
+                   box-shadow:0 0 6px ${p.glow};transition:filter .15s;user-select:none;"
+            onmouseover="this.style.filter='brightness(1.35)'" onmouseout="this.style.filter='';moneyHoldStop()">−</button>
           <span id="mp_${coin}" style="font-family:var(--got);font-size:18px;color:${p.color};
                  min-width:44px;text-align:center;text-shadow:0 0 8px ${p.glow};line-height:1;">
             ${getV('money_'+coin)}
           </span>
           <button onclick="moneyAdj('${coin}',+1)"
+            onmousedown="moneyHoldStart('${coin}',+1)" onmouseup="moneyHoldStop()" onmouseleave="moneyHoldStop()"
+            ontouchstart="event.preventDefault();moneyHoldStart('${coin}',+1)" ontouchend="moneyHoldStop()"
             style="width:28px;height:28px;border-radius:50%;border:1.5px solid ${p.border};
                    background:${p.bg};color:${p.color};font-size:18px;font-weight:700;cursor:pointer;
                    line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;
-                   box-shadow:0 0 6px ${p.glow};transition:filter .15s;"
-            onmouseover="this.style.filter='brightness(1.35)'" onmouseout="this.style.filter=''">+</button>
+                   box-shadow:0 0 6px ${p.glow};transition:filter .15s;user-select:none;"
+            onmouseover="this.style.filter='brightness(1.35)'" onmouseout="this.style.filter='';moneyHoldStop()">+</button>
         </div>`;
       }).join('')}
 
@@ -6419,8 +6446,9 @@ function openMoneyPouchModal() {
           ${calcTotalDragons(getV('money_dragons'), getV('money_stags'), getV('money_pennies'))} Dragons
         </span>
       </div>
-      <p style="font-family:'IM Fell English',serif;font-size:9px;color:rgba(232,200,74,.3);margin:6px 0 16px;font-style:italic;">
-        1 Gold Dragon = 7 Silver Stags = 49 Copper Stars
+      <p style="font-family:var(--got);font-size:11px;color:rgba(232,200,74,.75);margin:10px 0 16px;
+                letter-spacing:.6px;line-height:1.5;text-shadow:0 0 6px rgba(212,160,23,.3);">
+        1 <span style="color:#ffd700;">Gold Dragon</span> = 7 <span style="color:#e8e8e8;">Silver Stags</span> = 49 <span style="color:#f0b070;">Copper Stars</span>
       </p>
       <button class="rest-btn" onclick="document.getElementById('moneyPouchModal').remove()"
         style="width:100%;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Close</button>
@@ -6428,6 +6456,25 @@ function openMoneyPouchModal() {
 
   document.body.appendChild(o);
   o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+let _moneyHoldTimer = null, _moneyHoldInterval = null;
+function moneyHoldStart(coin, delta) {
+  moneyHoldStop();
+  // Wait past the normal click, then repeat with gentle acceleration.
+  _moneyHoldTimer = setTimeout(() => {
+    let speed = 140;
+    const tick = () => {
+      moneyAdj(coin, delta);
+      speed = Math.max(40, speed - 12);          // accelerate down to 40ms
+      _moneyHoldInterval = setTimeout(tick, speed);
+    };
+    tick();
+  }, 400);
+}
+function moneyHoldStop() {
+  if (_moneyHoldTimer)   { clearTimeout(_moneyHoldTimer);   _moneyHoldTimer = null; }
+  if (_moneyHoldInterval){ clearTimeout(_moneyHoldInterval);_moneyHoldInterval = null; }
 }
 
 function moneyAdj(coin, delta) {
