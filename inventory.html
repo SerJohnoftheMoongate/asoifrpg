@@ -732,7 +732,8 @@ button.aic-pencil:hover{background:rgba(139,106,0,.35);border-color:var(--gold);
     </div>
   </div>
   <input type="file" accept="image/*" id="fBg" style="display:none">
-  <div class="header-bg-hint">🖼 Click background to upload image</div>
+  <input type="hidden" id="bg_crop">
+  <div class="header-bg-hint">🖼 Click banner to change image</div>
 </div>
 
 <!-- INVENTORY BODY -->
@@ -1486,20 +1487,221 @@ function uploadPortrait(e, divId, fileId) {
   };
   inp.click();
 }
+/* ══════════════════════════════════════════════════════════
+   BANNER IMAGE — gallery library + custom upload + crop/position
+   ----------------------------------------------------------------
+   Persistence: the chosen image is stored on #headerBg as its
+   background-image (saved via _img_bg, exactly as before). The crop
+   is stored as background-position + background-size, captured into
+   the hidden #bg_crop field and saved via _bgcrop so it round-
+   trips through the existing save/load system.
+══════════════════════════════════════════════════════════ */
+const BG_GALLERY_COUNT = 13;
+
+/* Entry point — replaces the old direct file upload. */
 function uploadBg(e) {
   const skip = ['INPUT','SELECT','TEXTAREA','BUTTON','IMG'];
-  if (skip.includes(e.target.tagName) || e.target.closest('.portrait') ||
+  if (e && (skip.includes(e.target.tagName) || e.target.closest('.portrait') ||
       e.target.closest('.name-bar') || e.target.closest('.header-drops') ||
       e.target.closest('.header-drops2') || e.target.closest('.multiclass-toggle') ||
-      e.target.closest('.rest-buttons')) return;
-  const inp = document.getElementById('fBg');
+      e.target.closest('.rest-buttons'))) return;
+  openBgLibrary();
+}
+
+/* ── Library modal: 13 presets + custom upload ── */
+function openBgLibrary() {
+  document.getElementById('bgLibraryModal')?.remove();
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'bgLibraryModal';
+  o.style.cssText = 'position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;';
+
+  let tiles = '';
+  for (let i = 1; i <= BG_GALLERY_COUNT; i++) {
+    const path = `Images/Background ${i}.webp`;
+    const pathAlt = `Images/Background ${i}`;
+    tiles += `<div class="bg-lib-tile" onclick="bgLibraryPick('${pathAlt}')"
+      style="position:relative;aspect-ratio:16/6;border:2px solid rgba(139,106,0,.5);border-radius:3px;
+             overflow:hidden;cursor:pointer;background:#0a0901 center/cover no-repeat;
+             background-image:url('${path}'),url('${pathAlt}');transition:border-color .15s,transform .1s;"
+      onmouseover="this.style.borderColor='var(--gold)';this.style.transform='scale(1.02)'"
+      onmouseout="this.style.borderColor='rgba(139,106,0,.5)';this.style.transform=''">
+      <div style="position:absolute;bottom:0;left:0;right:0;padding:3px 6px;
+                  background:linear-gradient(to top,rgba(0,0,0,.8),transparent);
+                  font-family:var(--got);font-size:9px;color:rgba(232,200,74,.85);letter-spacing:.5px;">Background ${i}</div>
+    </div>`;
+  }
+
+  o.innerHTML = `<div class="modal" style="max-width:780px;width:94%;max-height:88vh;overflow-y:auto;padding:22px 26px;text-align:left;
+       scrollbar-width:thin;scrollbar-color:#b8860b #1a1400;">
+    <div style="font-family:'GameOfThrones','Cinzel',serif;font-size:20px;color:#e8c84a;letter-spacing:2px;
+                text-align:center;text-shadow:0 0 16px rgba(184,134,11,.5);margin-bottom:4px;">Banner Library</div>
+    <div style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:rgba(232,200,74,.5);
+                text-align:center;margin-bottom:16px;">Choose a background, or upload your own.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:16px;">
+      ${tiles}
+    </div>
+    <input type="file" accept="image/*" id="bgCustomFile" style="display:none">
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="rest-btn" onclick="bgLibraryCustom()"
+        style="padding:9px 22px;font-size:12px;letter-spacing:1px;background:rgba(20,45,25,.5);border-color:rgba(80,170,90,.55);color:rgba(190,240,200,.9);">⬆ Custom Background</button>
+      <button class="rest-btn" onclick="document.getElementById('bgLibraryModal').remove()"
+        style="padding:9px 22px;font-size:12px;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+}
+
+/* Preset chosen → straight to the crop adjuster. */
+function bgLibraryPick(path) {
+  document.getElementById('bgLibraryModal')?.remove();
+  openBgCrop(`url("${path}")`);
+}
+
+/* Custom upload → read file → crop adjuster. */
+function bgLibraryCustom() {
+  const inp = document.getElementById('bgCustomFile');
   inp.onchange = ev => {
     const f = ev.target.files[0]; if (!f) return;
     const r = new FileReader();
-    r.onload = ev2 => { document.getElementById('headerBg').style.backgroundImage = `url(${ev2.target.result})`; };
+    r.onload = ev2 => {
+      document.getElementById('bgLibraryModal')?.remove();
+      openBgCrop(`url("${ev2.target.result}")`);
+    };
     r.readAsDataURL(f);
   };
   inp.click();
+}
+
+/* ── Crop / position adjuster ──────────────────────────────────
+   A live preview of the header at true aspect ratio. Zoom slider
+   sets background-size; dragging repositions (background-position).
+   Both are captured to #headerBg and the hidden #bg_crop field. */
+let _bgCropState = null;
+function openBgCrop(imgCss) {
+  document.getElementById('bgCropModal')?.remove();
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'bgCropModal';
+  o.style.cssText = 'position:fixed;inset:0;z-index:10051;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;';
+  o.innerHTML = `<div class="modal" style="max-width:720px;width:94%;padding:22px 26px;text-align:left;">
+    <div style="font-family:'GameOfThrones','Cinzel',serif;font-size:18px;color:#e8c84a;letter-spacing:2px;
+                text-align:center;text-shadow:0 0 16px rgba(184,134,11,.5);margin-bottom:4px;">Adjust Banner</div>
+    <div style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:rgba(232,200,74,.5);
+                text-align:center;margin-bottom:14px;">Drag the image to reposition &middot; use the slider to zoom.</div>
+    <div id="bgCropPreview" style="width:100%;aspect-ratio:1000/150;border:2px solid var(--gold);border-radius:3px;
+         background-repeat:no-repeat;cursor:grab;overflow:hidden;
+         box-shadow:0 0 20px rgba(0,0,0,.6);position:relative;user-select:none;"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin:14px 0 4px;">
+      <span style="font-family:var(--got);font-size:10px;color:rgba(232,200,74,.7);letter-spacing:.5px;">ZOOM</span>
+      <input type="range" id="bgCropZoom" min="100" max="300" value="100"
+        style="flex:1;accent-color:var(--gold);cursor:pointer;">
+      <button class="rest-btn" onclick="bgCropReset()" style="padding:4px 12px;font-size:9px;
+        background:rgba(40,30,0,.5);color:rgba(232,200,74,.6);border-color:rgba(139,106,0,.4);">RESET</button>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+      <button class="rest-btn" onclick="bgCropBack()" style="padding:8px 18px;font-size:11px;background:rgba(40,30,10,.4);color:#aaa;border-color:rgba(100,80,0,.3);">← Library</button>
+      <button class="rest-btn" onclick="bgCropApply()" style="padding:8px 26px;font-size:12px;letter-spacing:1px;background:rgba(20,45,25,.5);border-color:rgba(80,170,90,.6);color:rgba(190,240,200,.95);">✓ Apply Banner</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+
+  // state: posX/posY are % (0–100), zoom is % of "cover"
+  _bgCropState = { img: imgCss, zoom: 100, posX: 50, posY: 50, dragging: false, sx: 0, sy: 0, spx: 50, spy: 50 };
+  const prev = document.getElementById('bgCropPreview');
+  const zoom = document.getElementById('bgCropZoom');
+  prev.style.backgroundImage = imgCss;  // set here to avoid nested-quote issues in the style attr
+  _bgCropRender();
+
+  zoom.addEventListener('input', () => { _bgCropState.zoom = parseInt(zoom.value, 10); _bgCropRender(); });
+
+  prev.addEventListener('mousedown', e => {
+    _bgCropState.dragging = true; prev.style.cursor = 'grabbing';
+    _bgCropState.sx = e.clientX; _bgCropState.sy = e.clientY;
+    _bgCropState.spx = _bgCropState.posX; _bgCropState.spy = _bgCropState.posY;
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', _bgCropDrag);
+  window.addEventListener('mouseup', _bgCropUp);
+  // touch
+  prev.addEventListener('touchstart', e => {
+    const t = e.touches[0]; _bgCropState.dragging = true;
+    _bgCropState.sx = t.clientX; _bgCropState.sy = t.clientY;
+    _bgCropState.spx = _bgCropState.posX; _bgCropState.spy = _bgCropState.posY;
+  }, {passive:true});
+  prev.addEventListener('touchmove', e => {
+    if (!_bgCropState.dragging) return;
+    const t = e.touches[0];
+    _bgCropDrag({clientX:t.clientX, clientY:t.clientY});
+    e.preventDefault();
+  }, {passive:false});
+  prev.addEventListener('touchend', _bgCropUp);
+}
+function _bgCropDrag(e) {
+  if (!_bgCropState || !_bgCropState.dragging) return;
+  const prev = document.getElementById('bgCropPreview');
+  if (!prev) return;
+  const rect = prev.getBoundingClientRect();
+  // movement as a fraction of the preview → position %
+  const dx = (e.clientX - _bgCropState.sx) / rect.width  * 100;
+  const dy = (e.clientY - _bgCropState.sy) / rect.height * 100;
+  // dragging right should reveal the left of the image → subtract
+  _bgCropState.posX = Math.max(0, Math.min(100, _bgCropState.spx - dx));
+  _bgCropState.posY = Math.max(0, Math.min(100, _bgCropState.spy - dy));
+  _bgCropRender();
+}
+function _bgCropUp() {
+  if (_bgCropState) _bgCropState.dragging = false;
+  const prev = document.getElementById('bgCropPreview');
+  if (prev) prev.style.cursor = 'grab';
+}
+function _bgCropRender() {
+  const prev = document.getElementById('bgCropPreview');
+  if (!prev || !_bgCropState) return;
+  prev.style.backgroundSize     = _bgCropState.zoom + '%';
+  prev.style.backgroundPosition = _bgCropState.posX + '% ' + _bgCropState.posY + '%';
+}
+function bgCropReset() {
+  if (!_bgCropState) return;
+  _bgCropState.zoom = 100; _bgCropState.posX = 50; _bgCropState.posY = 50;
+  const z = document.getElementById('bgCropZoom'); if (z) z.value = 100;
+  _bgCropRender();
+}
+function bgCropBack() {
+  document.getElementById('bgCropModal')?.remove();
+  openBgLibrary();
+}
+function bgCropApply() {
+  if (!_bgCropState) return;
+  const el = document.getElementById('headerBg');
+  if (el) {
+    el.style.backgroundImage    = _bgCropState.img;
+    el.style.backgroundSize     = _bgCropState.zoom + '%';
+    el.style.backgroundPosition = _bgCropState.posX + '% ' + _bgCropState.posY + '%';
+    el.style.backgroundRepeat   = 'no-repeat';
+    const hint = el.querySelector('.header-bg-hint'); // keep hint; harmless
+  }
+  // persist the crop alongside the image
+  const cropField = document.getElementById('bg_crop');
+  if (cropField) cropField.value = JSON.stringify({ z: _bgCropState.zoom, x: _bgCropState.posX, y: _bgCropState.posY });
+  document.getElementById('bgCropModal')?.remove();
+  // trigger a save if the page exposes one
+  try { if (typeof _saveData === 'function') _saveData(); } catch(e){}
+  try { if (typeof save === 'function') save(); } catch(e){}
+}
+
+/* Re-apply a saved crop after load (called from the load routine). */
+function applyBgCrop(cropJson) {
+  const el = document.getElementById('headerBg');
+  if (!el || !cropJson) return;
+  try {
+    const c = typeof cropJson === 'string' ? JSON.parse(cropJson) : cropJson;
+    if (c && c.z != null) {
+      el.style.backgroundSize     = c.z + '%';
+      el.style.backgroundPosition = c.x + '% ' + c.y + '%';
+      el.style.backgroundRepeat   = 'no-repeat';
+    }
+  } catch(e){}
 }
 
 /* ── Accent colour (identical to main page) ── */
@@ -1713,6 +1915,7 @@ function _collectInvData() {
   const elPL = document.getElementById('pL');       if (elPL)  d._img_pL = elPL.style.backgroundImage  || '';
   const elPR = document.getElementById('pR');       if (elPR)  d._img_pR = elPR.style.backgroundImage  || '';
   const elBg = document.getElementById('headerBg'); if (elBg)  d._img_bg = elBg.style.backgroundImage  || '';
+  const elCrop = document.getElementById('bg_crop'); if (elCrop) d._bgcrop = elCrop.value || '';
   const stYourselfEl = document.getElementById('st_yourself');
   d._invMeta = {
     bp_size:        document.getElementById('bp_size')   ? document.getElementById('bp_size').value   : '25',
@@ -1784,6 +1987,11 @@ function load() {
     else if (k === '_img_bg') {
       const el = document.getElementById('headerBg');
       if (el && v) el.style.backgroundImage = v;
+    }
+    else if (k === '_bgcrop') {
+      const cf = document.getElementById('bg_crop');
+      if (cf) cf.value = v || '';
+      applyBgCrop(v);
     }
     else if (k === '_invMeta' || k === '_slotData' || k === '_tableData' || k === '_ingredientPouch') { /* handled below */ }
     else if (k.startsWith('_')) { /* skip other internal keys */ }
