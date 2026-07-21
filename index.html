@@ -54,17 +54,23 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .header:hover .header-bg-hint{color:rgba(255,255,255,.55)}
 
 .portrait{
-  position:absolute;width:140px;height:140px;border-radius:50%;
-  border:4px solid var(--gold);top:10px;overflow:hidden;cursor:pointer;
+  position:absolute;width:150px;height:170px;top:10px;overflow:hidden;cursor:pointer;
   background:#000;display:flex;align-items:center;justify-content:center;z-index:10;
 }
-.portrait-left{left:12px}.portrait-right{right:12px}
+.portrait-left{left:10px}.portrait-right{right:10px}
 .portrait img{width:100%;height:100%;object-fit:cover}
-.portrait .hint{position:absolute;font-size:9px;color:rgba(255,255,255,.4);font-family:'Cinzel',serif;text-align:center;padding:6px;pointer-events:none;line-height:1.5}
-.portrait:hover::after{content:"📷 Upload";position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;color:var(--text-gold);font-size:12px;font-family:var(--got)}
+.portrait .hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(255,255,255,.45);font-family:'Cinzel',serif;text-align:center;padding:6px;pointer-events:none;line-height:1.5;z-index:1}
+/* decorative portrait frames — purely cosmetic overlay, follows accent colour */
+.pframe{position:absolute;inset:0;z-index:3;pointer-events:none}
+.pframe svg{width:100%;height:100%;display:block}
+/* banner side-curtains — narrow the header image to the dropdown→save band */
+.header-curtain{position:absolute;top:0;bottom:0;background:var(--black);z-index:1;pointer-events:none}
+.header-curtain-l{left:0;width:166px}
+.header-curtain-r{right:0;width:166px}
+.portrait:hover::after{content:"📷 Upload";position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;color:var(--text-gold);font-size:12px;font-family:var(--got);z-index:4}
 
 /* name bar — GoT font */
-.name-bar{position:absolute;left:166px;right:166px;top:36px;height:38px;background:var(--gold-bg);border:2px solid var(--gold-lt);display:flex;align-items:center}
+.name-bar{position:absolute;left:50%;transform:translateX(-50%);width:680px;top:36px;height:38px;background:var(--gold-bg);border:2px solid var(--gold-lt);display:flex;align-items:center;justify-content:center;z-index:5}
 .name-bar input{background:transparent;border:none;color:var(--text-gold);font-family:var(--got);font-size:20px;font-weight:400;text-align:center;letter-spacing:2px;width:100%;padding:0 10px}
 .name-bar input::placeholder{color:rgba(232,200,74,.3)}
 
@@ -716,12 +722,82 @@ textarea{resize:none;font-weight:400;font-size:12px}
 <!-- HEADER -->
 <div class="header" id="headerBg" onclick="uploadBg(event)">
   <div class="header-overlay"></div>
+  <div class="header-curtain header-curtain-l"></div>
+  <div class="header-curtain header-curtain-r"></div>
   <div class="portrait portrait-left" id="pL" onclick="uploadPortrait(event,'pL','fL')">
     <div class="hint">Click to<br>upload portrait</div>
+    <div class="pframe" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 170" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="pflg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="var(--gold-lt)"/><stop offset=".45" stop-color="var(--gold)"/>
+        <stop offset=".75" stop-color="var(--gold-dk)"/><stop offset="1" stop-color="var(--gold-dk)"/>
+      </linearGradient>
+      <linearGradient id="pflgL" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="var(--gold-lt)"/><stop offset="1" stop-color="var(--gold)"/>
+      </linearGradient>
+      <g id="pflScroll" stroke="rgba(0,0,0,.5)" stroke-width=".7" stroke-linejoin="round">
+        <path d="M24,10 C40,7 55,9 66,12 C55,13 44,14 34,17 C40,13 30,11 24,10 Z" fill="url(#pflg)"/>
+        <path d="M10,24 C7,40 9,55 12,66 C13,55 14,44 17,34 C13,40 11,30 10,24 Z" fill="url(#pflg)"/>
+        <path d="M23,23 C14,23 8,29 8,38 C8,45 13,50 20,50 C25,50 29,46 29,41 C29,37 26,34 22,34 C19,34 17,36 17,39" fill="none" stroke-width="1.6"/>
+        <circle cx="20" cy="41" r="2.6" fill="url(#pflgL)"/>
+        <path d="M23,23 C31,20 40,22 46,29 C39,28 33,29 28,33 C30,28 27,24 23,23 Z" fill="url(#pflgL)"/>
+      </g>
+      <g id="pflCrest" stroke="rgba(0,0,0,.5)" stroke-width=".7" stroke-linejoin="round">
+        <path d="M75,2 C77,8 77,14 75,20 C73,14 73,8 75,2 Z" fill="url(#pflgL)"/>
+        <path d="M75,6 C81,5 87,8 90,14 C85,12 80,13 76,17 C77,12 76,8 75,6 Z" fill="url(#pflg)"/>
+        <path d="M75,6 C69,5 63,8 60,14 C65,12 70,13 74,17 C73,12 74,8 75,6 Z" fill="url(#pflg)"/>
+        <circle cx="75" cy="4" r="2.2" fill="url(#pflgL)"/>
+      </g>
+    </defs>
+    <path fill-rule="evenodd" fill="url(#pflg)" stroke="rgba(0,0,0,.55)" stroke-width="1" d="M4,4 H146 V166 H4 Z M27,29 H123 V141 H27 Z"/>
+    <path fill="none" stroke="rgba(255,255,255,.65)" stroke-width="1.1" d="M5,165 V5 H145"/>
+    <path fill="none" stroke="rgba(0,0,0,.5)" stroke-width="1.1" d="M145,6 V165 H6"/>
+    <rect x="16" y="17" width="118" height="136" rx="1" fill="none" stroke="rgba(0,0,0,.28)" stroke-width=".8"/>
+    <rect x="27" y="29" width="96" height="112" fill="none" stroke="rgba(0,0,0,.6)" stroke-width="2.4"/>
+    <rect x="24.5" y="26.5" width="101" height="117" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1"/>
+    <use href="#pflScroll"/><use href="#pflScroll" transform="translate(150,0) scale(-1,1)"/>
+    <use href="#pflScroll" transform="translate(0,170) scale(1,-1)"/><use href="#pflScroll" transform="translate(150,170) scale(-1,-1)"/>
+    <use href="#pflCrest"/><use href="#pflCrest" transform="translate(0,170) scale(1,-1)"/>
+</svg></div>
     <input type="file" accept="image/*" id="fL" style="display:none">
   </div>
   <div class="portrait portrait-right" id="pR" onclick="uploadPortrait(event,'pR','fR')">
     <div class="hint">Click to<br>upload portrait</div>
+    <div class="pframe" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 170" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="pfrg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="var(--gold-lt)"/><stop offset=".45" stop-color="var(--gold)"/>
+        <stop offset=".75" stop-color="var(--gold-dk)"/><stop offset="1" stop-color="var(--gold-dk)"/>
+      </linearGradient>
+      <linearGradient id="pfrgL" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="var(--gold-lt)"/><stop offset="1" stop-color="var(--gold)"/>
+      </linearGradient>
+      <path id="pfrShield" d="M24,42 H126 V86 C126,118 103,141 75,154 C47,141 24,118 24,86 Z"/>
+      <g id="pfrMantle" stroke="rgba(0,0,0,.5)" stroke-width=".7" stroke-linejoin="round">
+        <path d="M30,44 C18,44 10,52 9,64 C15,58 21,56 27,57 C18,62 13,70 13,80 C19,73 25,70 31,71 C24,78 21,87 22,96 C28,88 34,85 40,86 C34,78 31,66 33,55 C34,49 32,46 30,44 Z" fill="url(#pfrg)"/>
+      </g>
+    </defs>
+    <path fill-rule="evenodd" fill="var(--black)" d="M0,0 H150 V170 H0 Z M24,42 H126 V86 C126,118 103,141 75,154 C47,141 24,118 24,86 Z"/>
+    <use href="#pfrMantle"/><use href="#pfrMantle" transform="translate(150,0) scale(-1,1)"/>
+    <g stroke="rgba(0,0,0,.5)" stroke-width=".7" stroke-linejoin="round">
+      <path d="M56,34 L59,19 L67,28 L75,15 L83,28 L91,19 L94,34 Z" fill="url(#pfrg)"/>
+      <rect x="56" y="33" width="38" height="7" rx="1.5" fill="url(#pfrgL)"/>
+      <circle cx="59" cy="18" r="2.4" fill="url(#pfrgL)"/><circle cx="75" cy="14" r="2.7" fill="url(#pfrgL)"/><circle cx="91" cy="18" r="2.4" fill="url(#pfrgL)"/>
+      <circle cx="64" cy="36.5" r="1.4" fill="rgba(0,0,0,.35)"/><circle cx="75" cy="36.5" r="1.4" fill="rgba(0,0,0,.35)"/><circle cx="86" cy="36.5" r="1.4" fill="rgba(0,0,0,.35)"/>
+    </g>
+    <use href="#pfrShield" fill="none" stroke="rgba(0,0,0,.6)" stroke-width="6"/>
+    <use href="#pfrShield" fill="none" stroke="url(#pfrg)" stroke-width="4"/>
+    <use href="#pfrShield" fill="none" stroke="rgba(255,255,255,.6)" stroke-width=".9"/>
+    <g fill="url(#pfrgL)" stroke="rgba(0,0,0,.5)" stroke-width=".5">
+      <circle cx="32" cy="47" r="2"/><circle cx="75" cy="47" r="2"/><circle cx="118" cy="47" r="2"/>
+      <circle cx="26.5" cy="78" r="2"/><circle cx="123.5" cy="78" r="2"/>
+      <circle cx="35" cy="110" r="2"/><circle cx="115" cy="110" r="2"/><circle cx="75" cy="150" r="2"/>
+    </g>
+    <g stroke="rgba(0,0,0,.5)" stroke-width=".7" stroke-linejoin="round">
+      <path d="M62,148 C52,159 44,160 36,157 C45,162 49,167 60,164 C56,158 58,152 62,148 Z" fill="url(#pfrg)"/>
+      <path d="M88,148 C98,159 106,160 114,157 C105,162 101,167 90,164 C94,158 92,152 88,148 Z" fill="url(#pfrg)"/>
+    </g>
+</svg></div>
     <input type="file" accept="image/*" id="fR" style="display:none">
   </div>
   <div class="name-bar" onclick="event.stopPropagation()">
