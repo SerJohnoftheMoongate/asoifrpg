@@ -796,6 +796,12 @@ button.aic-pencil:hover{background:rgba(139,106,0,.35);border-color:var(--gold);
       <div id="resVulnContent" style="font-family:'IM Fell English',serif;font-size:12px;color:var(--white);line-height:1.6;padding:4px 0;"></div>
     </div>
 
+    <!-- Encumbrance (active when equipped or backpack weight exceeds capacity) -->
+    <div class="inv-dc-block" id="encumbranceBlock" style="display:none;">
+      <div class="sec" style="font-size:11px;margin-bottom:4px;">Encumbrance</div>
+      <div id="encumbranceContent" style="padding:4px 0;"></div>
+    </div>
+
     <!-- Health: Max HP + Body Weight side by side -->
     <div class="inv-hp-block">
       <div class="sec" style="font-size:11px;margin-bottom:6px;">Health</div>
@@ -3480,6 +3486,49 @@ function calcDC() {
   }
 }
 
+/* ── Encumbrance penalty ────────────────────────────────────────────
+   Going over the carrying capacity for EITHER the equipment or the
+   backpack applies: movement halved + disadvantage on all Martial Skills.
+   Rendered in the same red "penalty" style as the armor-set penalties. */
+function updateEncumbrance(eqOver, bpOver) {
+  const block   = document.getElementById('encumbranceBlock');
+  const content = document.getElementById('encumbranceContent');
+  if (!block || !content) return;
+
+  if (!eqOver && !bpOver) {
+    block.style.display = 'none';
+    content.innerHTML = '';
+    return;
+  }
+
+  // Which load is over — shown as a small note under the penalties
+  const sources = [];
+  if (eqOver) sources.push('equipment');
+  if (bpOver) sources.push('backpack');
+  const srcLabel = sources.join(' & ');
+
+  const penaltyRow = (text) => `
+    <div style="display:flex;align-items:stretch;gap:8px;margin-bottom:5px;">
+      <div style="width:3px;border-radius:2px;background:linear-gradient(to bottom,#e0554a,#a02a22);flex-shrink:0;"></div>
+      <div style="flex:1;background:linear-gradient(to right,rgba(150,40,32,.22),rgba(150,40,32,.05));
+                  border:1px solid rgba(200,70,60,.35);border-radius:3px;padding:5px 9px;
+                  display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-family:var(--got);font-size:8px;letter-spacing:1px;color:#ff6a5a;
+                     background:rgba(150,40,32,.4);border:1px solid rgba(220,90,80,.5);
+                     border-radius:2px;padding:2px 6px 1px;white-space:nowrap;">⚠ PENALTY</span>
+        <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#f0c0b0;line-height:1.35;">${text}</span>
+      </div>
+    </div>`;
+
+  block.style.display = 'block';
+  content.innerHTML =
+    `<div style="font-family:var(--got);font-size:8.5px;color:#ff8a7a;letter-spacing:.8px;margin-bottom:5px;">
+       OVER CAPACITY — ${srcLabel.toUpperCase()}
+     </div>` +
+    penaltyRow('Movement is reduced by half') +
+    penaltyRow('Disadvantage on all Martial Skills');
+}
+
 function calcWeights() {
   // ─────────────────────────────────────────
   // EQUIPPED  — sum W and P from slotData
@@ -3489,7 +3538,9 @@ function calcWeights() {
     ew += parseFloat(d.w) || 0;
     ep += parseFloat(d.p) || 0;
   });
-  setCarryDisplay('eq_cw_cur', 'eq_cw_max', ew, getEquippedMax());
+  const eqMax = getEquippedMax();
+  setCarryDisplay('eq_cw_cur', 'eq_cw_max', ew, eqMax);
+  const eqOver = (eqMax !== null && eqMax !== undefined) && ew > eqMax;
 
   // ─────────────────────────────────────────
   // BACKPACK  — sum W*Q and P
@@ -3503,6 +3554,10 @@ function calcWeights() {
   const bpSizeEl = document.getElementById('bp_size');
   const bpMax    = bpSizeEl ? parseFloat(bpSizeEl.value) : null;
   setCarryDisplay('bp_cw_cur', 'bp_cw_max', bw, bpMax);
+  const bpOver = (bpMax !== null && !isNaN(bpMax)) && bw > bpMax;
+
+  // Encumbrance penalty applies if EITHER the equipment or the backpack is over capacity
+  updateEncumbrance(eqOver, bpOver);
 
   // ─────────────────────────────────────────
   // STEED  — own items W*Q and P, plus Yourself toggle
