@@ -1383,7 +1383,7 @@ function uploadPortrait(e,divId,fileId){
    the hidden #bg_crop field and saved via _bgcrop so it round-
    trips through the existing save/load system.
 ══════════════════════════════════════════════════════════ */
-const BG_GALLERY_COUNT = 13;
+const BG_GALLERY_COUNT = 15;
 
 /* Entry point — replaces the old direct file upload. */
 function uploadBg(e) {
@@ -1406,7 +1406,8 @@ function openBgLibrary() {
   for (let i = 1; i <= BG_GALLERY_COUNT; i++) {
     const path = `Images/Background ${i}.webp`;
     const pathAlt = `Images/Background ${i}`;
-    tiles += `<div class="bg-lib-tile" onclick="bgLibraryPick('${pathAlt}')"
+    // Pick the real .webp file — pathAlt is only a display fallback for the thumbnail.
+    tiles += `<div class="bg-lib-tile" onclick="bgLibraryPick('${path}')"
       style="position:relative;aspect-ratio:16/6;border:2px solid rgba(139,106,0,.5);border-radius:3px;
              overflow:hidden;cursor:pointer;background:#0a0901 center/cover no-repeat;
              background-image:url('${path}'),url('${pathAlt}');transition:border-color .15s,transform .1s;"
