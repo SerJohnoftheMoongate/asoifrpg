@@ -15,7 +15,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --gold:#b8860b;--gold-lt:#d4a017;--gold-dk:#7a5800;--gold-bg:#8B6A00;
+  --gold:#b8860b;--gold-lt:#d4a017;--gold-dk:#7a5800;--gold-bg:#8B6A00;--ink-gold:#12100a;--ink-gold-lt:#12100a;--ink-gold-dk:#f5efe2;--ink-gold-bg:#12100a;
   --black:#0a0901;--near-black:#111008;--panel:#1a1400;
   --white:#f5f0e8;--input-bg:#faf7f0;--text-gold:#e8c84a;
   --quote-bg:#8B6A00;--quote-fg:#f5f0e8;
@@ -34,7 +34,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 
 /* Section header bar — GoT font */
 .sec{
-  background:var(--gold-bg);color:var(--near-black);
+  background:var(--gold-bg);color:var(--ink-gold-bg);
   font-family:var(--got);font-size:11px;
   text-align:center;letter-spacing:1px;
   padding:4px 4px;border:1px solid var(--gold)
@@ -194,7 +194,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .inj-section{display:flex;flex-direction:column;background:var(--panel);flex-shrink:0}
 .inj-inner{padding:4px 5px}
 .inj-hdr{display:grid;grid-template-columns:1fr 75px;gap:3px;margin-bottom:3px}
-.inj-col-lbl{background:var(--gold-bg);color:var(--near-black);font-family:var(--got);font-size:9px;text-align:center;padding:3px;border:1px solid var(--gold)}
+.inj-col-lbl{background:var(--gold-bg);color:var(--ink-gold-bg);font-family:var(--got);font-size:9px;text-align:center;padding:3px;border:1px solid var(--gold)}
 .inj-row{display:grid;grid-template-columns:1fr 75px;gap:3px;margin-bottom:3px}
 .inj-inp{height:21px}
 .inj-inp input{height:100%;font-size:12px}
@@ -219,7 +219,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 
 .act-table{padding:4px 5px;background:var(--panel);flex-shrink:0}
 .act-hdr{display:grid;grid-template-columns:1fr 42px 48px 48px;gap:2px;margin-bottom:3px}
-.act-col-lbl{background:var(--gold-bg);color:var(--near-black);font-family:var(--got);font-size:9px;text-align:center;padding:2px;border:1px solid var(--gold)}
+.act-col-lbl{background:var(--gold-bg);color:var(--ink-gold-bg);font-family:var(--got);font-size:9px;text-align:center;padding:2px;border:1px solid var(--gold)}
 .act-row-g{display:grid;grid-template-columns:1fr 42px 48px 48px;gap:2px;margin-bottom:2px}
 .act-inp{height:21px}
 .act-what input{cursor:pointer!important;font-size:10px;}
@@ -438,7 +438,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 /* ── FEATURE UPLOAD MODAL ── */
 .feat-upload-row{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(139,106,0,.2);}
 .feat-upload-row:last-child{border-bottom:none;}
-.feat-lvl-badge{font-family:var(--got);font-size:9px;background:var(--gold-bg);color:var(--near-black);border:1px solid var(--gold);padding:2px 5px;white-space:nowrap;border-radius:2px;text-align:center;}
+.feat-lvl-badge{font-family:var(--got);font-size:9px;background:var(--gold-bg);color:var(--ink-gold-bg);border:1px solid var(--gold);padding:2px 5px;white-space:nowrap;border-radius:2px;text-align:center;}
 .feat-parse-status{font-family:'IM Fell English',serif;font-size:12px;font-style:italic;}
 .feat-parse-status.ok{color:#5c5;}
 .feat-parse-status.err{color:#c55;}
@@ -563,7 +563,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .modal{background:#1a1000;border:3px solid var(--gold);color:var(--text-gold);font-family:var(--got);padding:40px 52px;text-align:center;border-radius:6px;max-width:660px;font-size:14px;box-shadow:0 0 40px rgba(0,0,0,.8)}
 .modal h2{font-size:32px;margin-bottom:14px;letter-spacing:2px}
 .modal p{font-size:14px;color:#ddd;font-family:'IM Fell English',serif;margin-bottom:14px;line-height:1.6}
-.modal button{background:var(--gold);border:none;color:var(--near-black);font-family:var(--got);padding:10px 32px;cursor:pointer;font-size:13px;margin-top:8px;letter-spacing:1px}
+.modal button{background:var(--gold);border:none;color:var(--ink-gold);font-family:var(--got);padding:10px 32px;cursor:pointer;font-size:13px;margin-top:8px;letter-spacing:1px}
 .modal button:hover{background:var(--gold-lt)}
 
 /* ─────────── ATTACK FLOW: hex button + multi-step modal ─────────── */
@@ -749,7 +749,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .asp-left .multiclass-toggle{position:static;left:auto;top:auto;align-self:flex-start;}
 .asp-card{border:1px solid var(--gold-dk);background:linear-gradient(to bottom,rgba(255,255,255,.02),rgba(0,0,0,.18));}
 .asp-card-h{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--gold-dk);background:rgba(0,0,0,.28);}
-.asp-card-type{font-family:var(--got);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:#0a0901;background:var(--gold-lt);padding:2px 7px;border-radius:2px;}
+.asp-card-type{font-family:var(--got);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-gold-lt);background:var(--gold-lt);padding:2px 7px;border-radius:2px;}
 .asp-card-h h4{margin:0;font-family:var(--got);font-size:15px;letter-spacing:1px;color:var(--text-gold);}
 .asp-card-body{display:flex;gap:12px;padding:12px;}
 .asp-card-img{width:112px;height:112px;object-fit:cover;border:2px solid var(--gold-dk);flex:0 0 auto;background:rgba(0,0,0,.35);}
@@ -769,7 +769,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .rest-menu.open{display:flex;}
 .rest-menu > div{display:flex;flex-direction:column;gap:6px;margin:0;}
 .rest-menu .rest-btn{width:100%;justify-content:flex-start;}
-#pR{clip-path:path('M24,42 H126 V86 C126,118 103,141 75,154 C47,141 24,118 24,86 Z');}
+#pR{clip-path:path('M22,4 H128 V94 C128,131 105,157 75,167 C45,157 22,131 22,94 Z');}
 .pfr-coat{position:absolute;right:10px;top:10px;width:150px;height:170px;z-index:11;pointer-events:none;}
 .pfr-coat svg{width:100%;height:100%;display:block;}
 </style>
@@ -835,23 +835,23 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <linearGradient id="pcBlade" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#8f99a4"/><stop offset=".5" stop-color="#f6f9fc"/><stop offset="1" stop-color="#8f99a4"/>
     </linearGradient>
-    <path id="pcShield" d="M24,42 H126 V86 C126,118 103,141 75,154 C47,141 24,118 24,86 Z"/>
+    <path id="pcShield" d="M22,4 H128 V94 C128,131 105,157 75,167 C45,157 22,131 22,94 Z"/>
     <clipPath id="pcOutside" clipPathUnits="userSpaceOnUse">
-      <path clip-rule="evenodd" d="M0,0 H150 V170 H0 Z M24,42 H126 V86 C126,118 103,141 75,154 C47,141 24,118 24,86 Z"/>
+      <path clip-rule="evenodd" d="M0,0 H150 V170 H0 Z M22,4 H128 V94 C128,131 105,157 75,167 C45,157 22,131 22,94 Z"/>
     </clipPath>
     <g id="pcSword" stroke="rgba(0,0,0,.5)" stroke-width=".6" stroke-linejoin="round">
-      <circle cx="75" cy="22" r="4" fill="url(#pcMetL)"/>
-      <rect x="72.5" y="25" width="5" height="12" fill="url(#pcMet)"/>
-      <path d="M60,40 Q75,35 90,40 Q75,45 60,40 Z" fill="url(#pcMetL)"/>
-      <path d="M71.5,42 L78.5,42 L76.5,158 L75,166 L73.5,158 Z" fill="url(#pcBlade)"/>
-      <line x1="75" y1="45" x2="75" y2="156" stroke="rgba(255,255,255,.55)" stroke-width=".7"/>
+      <circle cx="75" cy="8" r="4.5" fill="url(#pcMetL)"/>
+      <rect x="72" y="12" width="6" height="12" fill="url(#pcMet)"/>
+      <path d="M56,25 Q75,19 94,25 Q75,31 56,25 Z" fill="url(#pcMetL)"/>
+      <path d="M70.5,28 L79.5,28 L77,168 L75,176 L73,168 Z" fill="url(#pcBlade)"/>
+      <line x1="75" y1="30" x2="75" y2="166" stroke="rgba(255,255,255,.55)" stroke-width=".8"/>
     </g>
   </defs>
 
   <!-- crossed swords behind the shield -->
   <g clip-path="url(#pcOutside)">
-    <use href="#pcSword" transform="rotate(-41 75 95)"/>
-    <use href="#pcSword" transform="rotate(41 75 95)"/>
+    <use href="#pcSword" transform="rotate(-48 75 90)"/>
+    <use href="#pcSword" transform="rotate(48 75 90)"/>
   </g>
 
   <!-- shield rim -->
@@ -859,9 +859,9 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <use href="#pcShield" fill="none" stroke="url(#pcMet)" stroke-width="4"/>
   <use href="#pcShield" fill="none" stroke="rgba(255,255,255,.6)" stroke-width=".9"/>
   <g fill="url(#pcMetL)" stroke="rgba(0,0,0,.5)" stroke-width=".5">
-    <circle cx="32" cy="47" r="2"/><circle cx="75" cy="47" r="2"/><circle cx="118" cy="47" r="2"/>
-    <circle cx="26.5" cy="80" r="2"/><circle cx="123.5" cy="80" r="2"/>
-    <circle cx="35" cy="112" r="2"/><circle cx="115" cy="112" r="2"/><circle cx="75" cy="150" r="2"/>
+    <circle cx="35" cy="11" r="2"/><circle cx="75" cy="10" r="2"/><circle cx="115" cy="11" r="2"/>
+    <circle cx="24" cy="62" r="2"/><circle cx="126" cy="62" r="2"/>
+    <circle cx="38" cy="122" r="2"/><circle cx="112" cy="122" r="2"/><circle cx="75" cy="161" r="2"/>
   </g>
 </svg></div>
   <div class="aspect-summary" onclick="event.stopPropagation()">
@@ -4288,14 +4288,29 @@ function hslToHex(h,s,l){
   const f=n=>{const k=(n+h/30)%12;const c=l-a*Math.max(Math.min(k-3,9-k,1),-1);return Math.round(255*c).toString(16).padStart(2,'0');};
   return`#${f(0)}${f(8)}${f(4)}`;
 }
+function _accentInk(hex){
+  hex=(''+hex).replace('#',''); if(hex.length===3) hex=hex.split('').map(function(c){return c+c;}).join('');
+  var r=parseInt(hex.slice(0,2),16)/255, g=parseInt(hex.slice(2,4),16)/255, b=parseInt(hex.slice(4,6),16)/255;
+  function f(c){return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);}
+  var L=0.2126*f(r)+0.7152*f(g)+0.0722*f(b);
+  return L>0.155 ? '#12100a' : '#f5efe2';
+}
 function applyAccentColour(hex){
   const [h,s,l]=hexToHSL(hex);
   const root=document.documentElement;
-  root.style.setProperty('--gold',        hslToHex(h,Math.min(s+10,100),Math.max(l-15,10)));
-  root.style.setProperty('--gold-lt',     hslToHex(h,Math.min(s+5,100), Math.max(l-5,10)));
-  root.style.setProperty('--gold-dk',     hslToHex(h,Math.min(s+15,100),Math.max(l-35,5)));
-  root.style.setProperty('--gold-bg',     hslToHex(h,Math.min(s+10,100),Math.max(l-30,5)));
+  var _cGold=hslToHex(h,Math.min(s+10,100),Math.max(l-15,10));
+  var _cGoldLt=hslToHex(h,Math.min(s+5,100), Math.max(l-5,10));
+  var _cGoldDk=hslToHex(h,Math.min(s+15,100),Math.max(l-35,5));
+  var _cGoldBg=hslToHex(h,Math.min(s+10,100),Math.max(l-30,5));
+  root.style.setProperty('--gold',        _cGold);
+  root.style.setProperty('--gold-lt',     _cGoldLt);
+  root.style.setProperty('--gold-dk',     _cGoldDk);
+  root.style.setProperty('--gold-bg',     _cGoldBg);
   root.style.setProperty('--text-gold',   hex);
+  root.style.setProperty('--ink-gold',    _accentInk(_cGold));
+  root.style.setProperty('--ink-gold-lt', _accentInk(_cGoldLt));
+  root.style.setProperty('--ink-gold-dk', _accentInk(_cGoldDk));
+  root.style.setProperty('--ink-gold-bg', _accentInk(_cGoldBg));
   const bgL=Math.max(l-30,5);
   root.style.setProperty('--quote-bg',    hslToHex(h,Math.min(s+10,100),bgL));
   root.style.setProperty('--quote-fg',    bgL<52?'#f5f0e8':'#1a1400');
@@ -4375,6 +4390,10 @@ function resetAccent(){
   document.documentElement.style.setProperty('--gold-lt','#d4a017');
   document.documentElement.style.setProperty('--gold-dk','#7a5800');
   document.documentElement.style.setProperty('--gold-bg','#8B6A00');
+  document.documentElement.style.setProperty('--ink-gold','#12100a');
+  document.documentElement.style.setProperty('--ink-gold-lt','#12100a');
+  document.documentElement.style.setProperty('--ink-gold-dk','#f5efe2');
+  document.documentElement.style.setProperty('--ink-gold-bg','#12100a');
   document.documentElement.style.setProperty('--text-gold',def);
   document.documentElement.style.setProperty('--quote-bg','#8B6A00');
   document.documentElement.style.setProperty('--quote-fg','#f5f0e8');
