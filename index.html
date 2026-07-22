@@ -64,9 +64,9 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .pframe{position:absolute;inset:0;z-index:3;pointer-events:none}
 .pframe svg{width:100%;height:100%;display:block}
 /* banner side-curtains — narrow the header image to the dropdown→save band */
-.header-curtain{position:absolute;top:0;bottom:0;background:var(--black);z-index:1;pointer-events:none}
+.header-curtain{position:absolute;top:0;bottom:0;background:var(--text-gold);z-index:1;pointer-events:none}
 .header-curtain-l{left:0;width:166px}
-.header-curtain-r{right:0;width:166px}
+.header-curtain-r{right:0;width:174px}
 .portrait:hover::after{content:"📷 Upload";position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;color:var(--text-gold);font-size:12px;font-family:var(--got);z-index:4}
 
 /* name bar — GoT font */
@@ -714,6 +714,52 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .atk-nav button:disabled{opacity:.35;cursor:not-allowed;}
 .atk-nav .nav-next{flex:1.5;background:linear-gradient(to bottom,rgba(120,90,20,.55),rgba(60,45,10,.65));}
 .atk-nav .nav-close{background:rgba(30,25,10,.5);color:#888;border-color:rgba(100,80,0,.3);}
+
+/* ===== Character Aspects: banner summary, pill tags, and configure modal ===== */
+.aspect-summary{position:absolute;left:206px;top:16px;width:432px;z-index:5;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.13);border-radius:6px;padding:9px 13px;display:flex;flex-direction:column;gap:7px;}
+.aspect-name{font-family:var(--got);font-size:19px;font-weight:400;letter-spacing:2px;color:var(--text-gold);cursor:pointer;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.aspect-name:hover{filter:brightness(1.15);}
+.aspect-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 7px;}
+.aspect-btn{align-self:stretch;text-align:center;font-family:var(--got);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-gold);background:var(--near-black);border:2px solid var(--gold);padding:6px 14px;cursor:pointer;transition:all .15s;margin-top:1px;}
+.aspect-btn:hover{background:var(--gold-bg);color:#fff;border-color:var(--gold-lt);}
+.aspect-pill{display:flex;align-items:center;gap:6px;width:100%;box-sizing:border-box;font-family:var(--got);font-size:10.5px;letter-spacing:.4px;padding:3px 9px;border-radius:3px;border:1px solid;margin:0;overflow:hidden;}
+.aspect-pill b{font-size:8px;letter-spacing:1px;text-transform:uppercase;font-weight:700;opacity:.95;flex:0 0 auto;}
+.aspect-pill .asp-v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.aspect-pill-empty{opacity:.5;}
+.asp-none{opacity:.65;}
+.ap-origin {color:#d3ecf7;border-color:rgba(58,160,201,.55);background:linear-gradient(to right,rgba(58,160,201,.30),rgba(58,160,201,.06));} .ap-origin  b{color:#7fcdea;}
+.ap-class  {color:#f4d8bd;border-color:rgba(201,119,46,.55);background:linear-gradient(to right,rgba(201,119,46,.30),rgba(201,119,46,.06));} .ap-class   b{color:#e6a86a;}
+.ap-culture{color:#cdeecb;border-color:rgba(87,179,107,.55);background:linear-gradient(to right,rgba(87,179,107,.30),rgba(87,179,107,.06));} .ap-culture b{color:#82d18f;}
+.ap-spec   {color:#e2d2f2;border-color:rgba(155,108,201,.55);background:linear-gradient(to right,rgba(155,108,201,.30),rgba(155,108,201,.06));} .ap-spec    b{color:#c09be6;}
+.asp-overlay{position:fixed;inset:0;z-index:10060;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;}
+.asp-modal{width:min(1120px,95vw);max-height:90vh;overflow:auto;background:var(--near-black);border:2px solid var(--gold);box-shadow:0 0 44px rgba(0,0,0,.7);}
+.asp-head{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:2px solid var(--gold-dk);background:var(--gold-bg);position:sticky;top:0;z-index:2;}
+.asp-head h3{margin:0;font-family:var(--got);font-size:18px;letter-spacing:2px;color:var(--text-gold);}
+.asp-x{background:none;border:none;color:var(--text-gold);font-size:24px;line-height:1;cursor:pointer;padding:0 4px;}
+.asp-x:hover{color:#fff;}
+.asp-cols{display:flex;align-items:stretch;}
+.asp-left{flex:0 0 340px;padding:16px;border-right:2px solid var(--gold-dk);display:flex;flex-direction:column;gap:15px;}
+.asp-right{flex:1;min-width:0;padding:16px;display:flex;flex-direction:column;gap:13px;background:var(--black);}
+.asp-field > label{display:block;font-family:var(--got);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-lt);margin-bottom:5px;}
+.asp-left .name-bar{position:static;transform:none;width:100%;height:auto;background:none;border:none;display:block;}
+.asp-left .name-bar input{width:100%;height:34px;text-align:left;letter-spacing:1px;font-size:15px;color:#1a1000;background:var(--input-bg);border:2px solid var(--gold);padding:0 10px;}
+.asp-left .header-drops,.asp-left .header-drops2{position:static;left:auto;top:auto;width:100%;height:auto;display:flex;gap:8px;flex-wrap:wrap;margin:0;}
+.asp-left .header-drops.multiclass-on,.asp-left .header-drops2.multiclass-on{width:100%;}
+.asp-left .header-drops select,.asp-left .header-drops2 select{flex:1 1 130px;min-width:120px;height:34px;font-size:11px;}
+.asp-left .multiclass-toggle{position:static;left:auto;top:auto;align-self:flex-start;}
+.asp-card{border:1px solid var(--gold-dk);background:linear-gradient(to bottom,rgba(255,255,255,.02),rgba(0,0,0,.18));}
+.asp-card-h{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--gold-dk);background:rgba(0,0,0,.28);}
+.asp-card-type{font-family:var(--got);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:#0a0901;background:var(--gold-lt);padding:2px 7px;border-radius:2px;}
+.asp-card-h h4{margin:0;font-family:var(--got);font-size:15px;letter-spacing:1px;color:var(--text-gold);}
+.asp-card-body{display:flex;gap:12px;padding:12px;}
+.asp-card-img{width:112px;height:112px;object-fit:cover;border:2px solid var(--gold-dk);flex:0 0 auto;background:rgba(0,0,0,.35);}
+.asp-card-txt{flex:1;min-width:0;}
+.asp-card-blurb{margin:0 0 8px;font-family:'IM Fell English',serif;font-size:12.5px;line-height:1.5;color:#d8cba0;}
+.asp-buffs-h{font-family:var(--got);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-lt);margin-bottom:3px;}
+.asp-card-buffs{margin:0;padding-left:16px;}
+.asp-card-buffs li{font-family:'IM Fell English',serif;font-size:12px;line-height:1.45;color:#c8bb92;margin-bottom:2px;}
+.asp-empty-cards{font-family:var(--got);font-size:12px;color:rgba(255,255,255,.4);letter-spacing:1px;padding:24px;text-align:center;}
+
 </style>
 </head>
 <body>
@@ -729,11 +775,11 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <div class="pframe" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 170" preserveAspectRatio="none">
     <defs>
       <linearGradient id="pflg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="var(--gold-lt)"/><stop offset=".45" stop-color="var(--gold)"/>
-        <stop offset=".75" stop-color="var(--gold-dk)"/><stop offset="1" stop-color="var(--gold-dk)"/>
+        <stop offset="0" stop-color="#eef2f6"/><stop offset=".45" stop-color="#aeb8c2"/>
+        <stop offset=".75" stop-color="#6b7681"/><stop offset="1" stop-color="#6b7681"/>
       </linearGradient>
       <linearGradient id="pflgL" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="var(--gold-lt)"/><stop offset="1" stop-color="var(--gold)"/>
+        <stop offset="0" stop-color="#eef2f6"/><stop offset="1" stop-color="#aeb8c2"/>
       </linearGradient>
       <g id="pflScroll" stroke="rgba(0,0,0,.5)" stroke-width=".7" stroke-linejoin="round">
         <path d="M24,10 C40,7 55,9 66,12 C55,13 44,14 34,17 C40,13 30,11 24,10 Z" fill="url(#pflg)"/>
@@ -749,7 +795,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
         <circle cx="75" cy="4" r="2.2" fill="url(#pflgL)"/>
       </g>
     </defs>
-    <path fill-rule="evenodd" fill="url(#pflg)" stroke="rgba(0,0,0,.55)" stroke-width="1" d="M4,4 H146 V166 H4 Z M27,29 H123 V141 H27 Z"/>
+    <path fill-rule="evenodd" fill="url(#pflg)" stroke="rgba(0,0,0,.55)" stroke-width="1" d="M0,0 H150 V170 H0 Z M27,29 H123 V141 H27 Z"/>
     <path fill="none" stroke="rgba(255,255,255,.65)" stroke-width="1.1" d="M5,165 V5 H145"/>
     <path fill="none" stroke="rgba(0,0,0,.5)" stroke-width="1.1" d="M145,6 V165 H6"/>
     <rect x="16" y="17" width="118" height="136" rx="1" fill="none" stroke="rgba(0,0,0,.28)" stroke-width=".8"/>
@@ -766,18 +812,18 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <div class="pframe" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 170" preserveAspectRatio="none">
     <defs>
       <linearGradient id="pfrg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="var(--gold-lt)"/><stop offset=".45" stop-color="var(--gold)"/>
-        <stop offset=".75" stop-color="var(--gold-dk)"/><stop offset="1" stop-color="var(--gold-dk)"/>
+        <stop offset="0" stop-color="#eef2f6"/><stop offset=".45" stop-color="#aeb8c2"/>
+        <stop offset=".75" stop-color="#6b7681"/><stop offset="1" stop-color="#6b7681"/>
       </linearGradient>
       <linearGradient id="pfrgL" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="var(--gold-lt)"/><stop offset="1" stop-color="var(--gold)"/>
+        <stop offset="0" stop-color="#eef2f6"/><stop offset="1" stop-color="#aeb8c2"/>
       </linearGradient>
       <path id="pfrShield" d="M24,42 H126 V86 C126,118 103,141 75,154 C47,141 24,118 24,86 Z"/>
       <g id="pfrMantle" stroke="rgba(0,0,0,.5)" stroke-width=".7" stroke-linejoin="round">
         <path d="M30,44 C18,44 10,52 9,64 C15,58 21,56 27,57 C18,62 13,70 13,80 C19,73 25,70 31,71 C24,78 21,87 22,96 C28,88 34,85 40,86 C34,78 31,66 33,55 C34,49 32,46 30,44 Z" fill="url(#pfrg)"/>
       </g>
     </defs>
-    <path fill-rule="evenodd" fill="var(--black)" d="M0,0 H150 V170 H0 Z M24,42 H126 V86 C126,118 103,141 75,154 C47,141 24,118 24,86 Z"/>
+    <path fill-rule="evenodd" fill="var(--text-gold)" d="M0,0 H150 V170 H0 Z M24,42 H126 V86 C126,118 103,141 75,154 C47,141 24,118 24,86 Z"/>
     <use href="#pfrMantle"/><use href="#pfrMantle" transform="translate(150,0) scale(-1,1)"/>
     <g stroke="rgba(0,0,0,.5)" stroke-width=".7" stroke-linejoin="round">
       <path d="M56,34 L59,19 L67,28 L75,15 L83,28 L91,19 L94,34 Z" fill="url(#pfrg)"/>
@@ -800,24 +846,11 @@ textarea{resize:none;font-weight:400;font-size:12px}
 </svg></div>
     <input type="file" accept="image/*" id="fR" style="display:none">
   </div>
-  <div class="name-bar" onclick="event.stopPropagation()">
-    <input type="text" id="charName" placeholder="Character Name" spellcheck="false">
+  <div class="aspect-summary" onclick="event.stopPropagation()">
+    <div class="aspect-name" id="aspectName" onclick="openAspectsModal()" title="Edit character aspects">Unnamed Character</div>
+    <div class="aspect-grid" id="aspectPills"></div>
+    <button class="aspect-btn" onclick="openAspectsModal()">Select Character Aspects</button>
   </div>
-  <div class="header-drops" onclick="event.stopPropagation()">
-    <select id="origin" onchange="applyOriginProfs()"><option value="">— Origin —</option><option>The Vale</option><option>The Westerlands</option><option>Dorne</option><option>The Crownlands</option><option>The North</option><option>The Iron Islands</option><option>The Riverlands</option><option>The Reach</option><option>The Stormlands</option></select>
-    <select id="class_" onchange="updateSpecOptions(true)"><option value="">— Class —</option></select>
-    <!-- Secondary class+spec dropdowns — hidden unless multiclass is toggled on -->
-    <select id="class_2" onchange="updateSpecOptions2(true)" style="display:none"><option value="">— 2nd Class —</option></select>
-  </div>
-  <div class="header-drops2" onclick="event.stopPropagation()">
-    <select id="culture" onchange="applyCultureBonus()"><option value="">— Culture —</option></select>
-    <select id="spec" onchange="applySpecFeatures()"><option value="">— Specialisation —</option></select>
-    <select id="spec_2" onchange="applySpecFeatures()" style="display:none"><option value="">— 2nd Specialisation —</option></select>
-  </div>
-  <label class="multiclass-toggle" onclick="event.stopPropagation()" title="Enable a secondary class & specialisation. Grants features only — no extra proficiencies or saves.">
-    <input type="checkbox" id="multiclass_toggle" onchange="toggleMulticlass()">
-    <span>⚔ Multiclass</span>
-  </label>
 <div class="rest-buttons" onclick="event.stopPropagation()">
   <div style="display:flex;gap:8px;">
     <button id="shortRestBtn" class="rest-btn" onclick="doRest('short')"><img class="ri" src="Images/Short Rest Icon.webp" alt="">SHORT REST</button>
@@ -7246,5 +7279,85 @@ function showMenuWarning() {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 }
 </script>
+<div id="aspectsModal" class="asp-overlay" style="display:none" onclick="if(event.target===this)closeAspectsModal()">
+  <div class="asp-modal" onclick="event.stopPropagation()">
+    <div class="asp-head"><h3>Character Aspects</h3><button class="asp-x" onclick="closeAspectsModal()" title="Close">&times;</button></div>
+    <div class="asp-cols">
+      <div class="asp-left">
+        <div class="asp-field"><label>Character Name</label><div class="name-bar" onclick="event.stopPropagation()">
+    <input type="text" id="charName" placeholder="Character Name" spellcheck="false">
+  </div></div>
+        <div class="asp-field"><label>Origin &amp; Class</label><div class="header-drops" onclick="event.stopPropagation()">
+    <select id="origin" onchange="applyOriginProfs()"><option value="">— Origin —</option><option>The Vale</option><option>The Westerlands</option><option>Dorne</option><option>The Crownlands</option><option>The North</option><option>The Iron Islands</option><option>The Riverlands</option><option>The Reach</option><option>The Stormlands</option></select>
+    <select id="class_" onchange="updateSpecOptions(true)"><option value="">— Class —</option></select>
+    <!-- Secondary class+spec dropdowns — hidden unless multiclass is toggled on -->
+    <select id="class_2" onchange="updateSpecOptions2(true)" style="display:none"><option value="">— 2nd Class —</option></select>
+  </div></div>
+        <div class="asp-field"><label>Culture &amp; Specialisation</label><div class="header-drops2" onclick="event.stopPropagation()">
+    <select id="culture" onchange="applyCultureBonus()"><option value="">— Culture —</option></select>
+    <select id="spec" onchange="applySpecFeatures()"><option value="">— Specialisation —</option></select>
+    <select id="spec_2" onchange="applySpecFeatures()" style="display:none"><option value="">— 2nd Specialisation —</option></select>
+  </div></div>
+        <label class="multiclass-toggle" onclick="event.stopPropagation()" title="Enable a secondary class & specialisation. Grants features only — no extra proficiencies or saves.">
+    <input type="checkbox" id="multiclass_toggle" onchange="toggleMulticlass()">
+    <span>⚔ Multiclass</span>
+  </label>
+      </div>
+      <div class="asp-right" id="aspectCards"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+const ASPECT_INFO = {"origins": {"The North": {"blurb": "The largest and most unforgiving region, stretching from the Wall to the Neck and ruled from Winterfell by House Stark. It holds to the customs of the First Men and the Old Gods, and its people are hardened by snow, wind and endless seasons.", "buffs": ["Weapon: Two-handed swords (unique property)", "Winter is Coming: +2 to attack rolls when fighting in the snow", "The Old Gods: proficient with the Sense and Prowess skills", "Starting gear suited to the cold (winter cloak, snowshoes)"]}, "The Riverlands": {"blurb": "The war-torn heart of Westeros, shaped by the three forks of the Trident and ruled from Riverrun by House Tully. Its quarrelsome lords and fisherfolk live on fertile but exposed land.", "buffs": ["Weapon: Heavy Crossbow (unique property)", "The Blackfish: you gain the ability to swim", "Caught in the Middle: proficient with the Strategy and Negotiation skills"]}, "The Iron Islands": {"blurb": "A harsh archipelago of salt and iron off the western coast, home to the Ironborn who live by the Old Way and worship the Drowned God under House Greyjoy of Pyke.", "buffs": ["Weapon: Battleaxe (unique property)", "From salt and sea: you can captain a ship (proficient)", "We do not Sow: proficient with the Looting and Intimidation skills"]}, "The Vale": {"blurb": "A realm ringed by sky-high mountains and guarded by the Eyrie, prizing honour, the Faith of the Seven and knighthood under House Arryn.", "buffs": ["Weapon: Lances (unique property)", "The High Ground: +2 Armor Class in a mountain environment", "Knights of Valor: proficient with the Prowess and History skills"]}, "The Westerlands": {"blurb": "Rugged western hills rich with gold and silver, ruled from Casterly Rock by House Lannister. Its people are stubborn, disciplined and loyal, and its strength lies in wealth and well-armed levies.", "buffs": ["Weapon: Longbows (unique property)", "Rains of Castamere: advantage on persuasion combat rolls against people of lower renown", "Fortune Builder: proficient with the Haggling and Negotiation skills"]}, "The Crownlands": {"blurb": "The administrative heart of Westeros around Blackwater Bay and King's Landing, bound to the Iron Throne rather than a single culture. Power, trade and intrigue converge here.", "buffs": ["Weapon: Halberds (unique property)", "A Pit of Snakes: you cannot be Surprised", "Chaos is a ladder: proficient with the Deception and Religion skills"]}, "The Stormlands": {"blurb": "A wild, storm-battered land of hills and deep woods ruled from Storm's End by House Baratheon. Its people are fierce in battle and resolute at sea.", "buffs": ["Weapon: All two-handed weapons (unique property)", "Stubborn Defenders: +2 to attack rolls when below half your Hit Points", "Storm Lords: proficient with the Intimidation and Prowess skills"]}, "The Reach": {"blurb": "The fertile breadbasket of Westeros and the home of chivalry, ruled from Highgarden by House Tyrell. A land of orchards, vineyards, tourneys and courtesy.", "buffs": ["Weapon: Longswords (unique property)", "Tourney Knights: +2 to attack rolls in mounted combat", "The Ruling Regent: proficient with the Negotiation and Prowess skills"]}, "Dorne": {"blurb": "The sun-baked southern realm beyond the Red Mountains, unbowed and unconquered, ruled from Sunspear by House Martell. Its people favour speed, cunning and poisoned blades, and value wit and passion.", "buffs": ["Weapon: Martial Melee", "The Viper: proficient with a poisoner's kit", "The Dornish Plot: proficient with the Forgery and Strategy skills"]}}, "cultures": {"Northmen": {"blurb": "Descendants of the First Men who keep the old ways, hardened by a harder life and fond of hunting and brawling.", "buffs": ["Ability bonus: +1 Martial, +1 Attunement"]}, "Harbormen": {"blurb": "Citizens of White Harbor, wealthy traders and crafters with more in common with the Reach than the rest of the North.", "buffs": ["Ability bonus: +1 Stewardship, +1 Learning"]}, "Crannogmen": {"blurb": "Secretive swamp-dwellers of the Neck who raise their halls on floating islands and fight with poison and guile.", "buffs": ["Ability bonus: +2 Intrigue"]}, "Forkmen": {"blurb": "Rivermen who have seen more battles and fallen kings than any other folk, living on rich land with few natural defences.", "buffs": ["Ability bonus: +2 Diplomacy"]}, "Blackwood Riverlanders": {"blurb": "First Men of the forested Blackwood Vale, where the old gods still hold power and the last weirwood below the Neck stands.", "buffs": ["Ability bonus: +1 Martial, +1 Attunement"]}, "Ironborn": {"blurb": "A hard people, as unbending as the Drowned God, masters of the sea however poor they may be on land.", "buffs": ["Ability bonus: +1 Martial, +1 Stewardship"]}, "Greenborn": {"blurb": "A distrusted minority who live by mainland norms, follow the Faith of the Seven and employ maesters.", "buffs": ["Ability bonus: +1 Learning, +1 Diplomacy"]}, "Valemen": {"blurb": "Men of the rich, fertile Vale, ringed by the Mountains of the Moon and confident in their near-impregnable home.", "buffs": ["Ability bonus: +1 Diplomacy, +1 Martial"]}, "Sistermen": {"blurb": "Reclusive folk of the Three Sisters, a refuge for sailors, traders and smugglers with rumoured old blood.", "buffs": ["Ability bonus: +1 Stewardship, +1 Intrigue"]}, "Fingermen": {"blurb": "People of the poor, rocky Fingers where the Andals first landed, rich in harbours if not in farmland.", "buffs": ["Ability bonus: +2 Stewardship"]}, "Westermen": {"blurb": "A wealthy, disciplined people who prize power, order and reputation, and hold absolute loyalty to their liege.", "buffs": ["Ability bonus: +1 Stewardship, +1 Diplomacy"]}, "Fair Islers": {"blurb": "Islanders of Fair Isle who value ships, walls and readiness to repel Ironborn raids over gold and politics.", "buffs": ["Ability bonus: +2 Martial"]}, "Crownlanders": {"blurb": "Pragmatic, politically minded folk of King's Landing and its surrounds, alert to courtly intrigue and treachery.", "buffs": ["Ability bonus: +2 Intrigue"]}, "Clawmen": {"blurb": "Half-wild, fiercely independent people of Cracklaw Point, distrustful of strangers and prone to blood feuds.", "buffs": ["Ability bonus: +1 Martial, +1 Diplomacy"]}, "Westerosi Valyrian": {"blurb": "Descendants of Valyrian houses who fled the Doom, holding a certain mystique and regarded as noble and attractive.", "buffs": ["Ability bonus: +1 Learning, +1 Attunement"]}, "Stormlanders": {"blurb": "A special breed like their weather: tumultuous, violent, implacable and unpredictable.", "buffs": ["Ability bonus: +1 Martial, +1 Diplomacy"]}, "Marcher": {"blurb": "The fiercest fighters in the Stormlands, border guardians said to learn the sword before they learn to walk.", "buffs": ["Ability bonus: +2 Martial"]}, "Reachmen": {"blurb": "Keepers of tourney tradition who uphold all that is best in knighthood, chivalry, song and virtue.", "buffs": ["Ability bonus: +2 Diplomacy"]}, "Honeywiners": {"blurb": "People of Oldtown on the Honeywine, a seat of learning, music and the arts around the Citadel and the Hightower.", "buffs": ["Ability bonus: +1 Learning, +1 Attunement"]}, "Vinemen": {"blurb": "Refined, socially polished folk of the Arbor where commerce and naval power meet over casks of golden wine.", "buffs": ["Ability bonus: +2 Stewardship"]}, "Salt-Dornish": {"blurb": "Coastal Rhoynar descendants of the Greenblood who prize fishing, raiding and seafaring as skilled navigators.", "buffs": ["Ability bonus: +2 Stewardship"]}, "Sand-Dornish": {"blurb": "Desert and river-valley folk who keep Rhoynish traditions and breed the famed sand steeds.", "buffs": ["Ability bonus: +1 Intrigue, +1 Martial"]}, "Stone-Dornish": {"blurb": "Fair mountain folk of First Men and Andal descent, long at war with the Reach and the Stormlands.", "buffs": ["Ability bonus: +2 Martial"]}}, "classes": {"Warrior": {"blurb": "Steel and arrows are the most straightforward way to deal with the cruelties of the world, and bravery is a virtue in the Seven Kingdoms. Warriors range from battle strategists to waterdancers to longbowmen, and excelling in war or tourney can raise you through society fast.", "buffs": ["Hit Die: 1D12", "Saving throws: Martial and Diplomacy", "Choose 2 class skills on taking the class", "Features include Adrenaline Rush, Action Surge and Fighting Style"]}, "Survivalist": {"blurb": "Some make survival their sole aim, each relying on a different set of skills and moral code: roaming and foraging the wild, stealing and plundering, or lending a sword for renown and gold.", "buffs": ["Hit Die: 1D10", "Saving throws: Stewardship and Martial", "Choose 2 class skills on taking the class", "Features include Survival Instinct and Home Turf"]}, "Priest": {"blurb": "You have dedicated your life to serving the divine, whether the Seven, the Old Gods or the Lord of Light. Your faith grants purpose and, some say, power, and places you in a unique position in society.", "buffs": ["Hit Die: 1D6", "Saving throws: Learning and Attunement", "Choose 2 class skills on taking the class", "Life Proficiencies and faith-based features"]}, "Envoy": {"blurb": "Words are weapons and knowledge is power. Envoys master persuasion, negotiation and the subtle games that shape Westeros, operating in halls, markets, libraries and taverns rather than the battlefield.", "buffs": ["Hit Die: 1D8", "Saving throws: Stewardship and Diplomacy", "Choose 2 class skills on taking the class", "Features built around the Envoy Die"]}}, "specs": {"Knight": {"blurb": "A warrior sworn to chivalry and mounted war, whose reputation shapes how others judge their conduct.", "buffs": ["Path of the Warrior", "Knightly Conduct (Lvl 1): your reputation influences how others perceive your knightly conduct", "A Good Horse Never Dies (Lvl 3): proficiency in mounted combat, mount/dismount as a bonus action"]}, "Martial Archer": {"blurb": "A ranged specialist who crafts their own ammunition and braces for well-aimed shots.", "buffs": ["Path of the Warrior", "Unlimited Supply (Lvl 1): proficiency with a fletching kit and craft your own arrows and bolts", "Steady Hands (Lvl 3): brace as a bonus action to improve your first shot"]}, "Brute": {"blurb": "A ferocious fighter who channels injury into a primal battle frenzy and devastates on the charge.", "buffs": ["Path of the Warrior", "Battle Frenzy (Lvl 1): enter a battle frenzy when first injured in combat", "Fearless Charge (Lvl 3): Dash toward an enemy without the usual drawbacks"]}, "Mercenary": {"blurb": "A sword for hire who profits from the battlefield and knows his way around the negotiation table.", "buffs": ["Path of the Warrior", "Spoils of War (Lvl 1): add 1d4 to Loot rolls on bodies and hiding places", "Loyalty is Bought (Lvl 3): impose disadvantage on an opponent through cunning tactics"]}, "Hedge Knight": {"blurb": "A wandering knight who keeps his guard up on the road and holds to the truest ideals of knighthood.", "buffs": ["Path of the Survivalist", "Sleeping with One Eye Open (Lvl 1): you cannot be surprised by an ambush during a long rest", "The Truest of Knights (Lvl 3): the ideals of true knighthood"]}, "Strider": {"blurb": "A swift traveller and hunter who moves light and strikes from hiding.", "buffs": ["Path of the Survivalist", "Swift Strider (Lvl 1): +10 metres of movement entering combat, harder to catch with opportunity attacks", "A Hunter's Instincts (Lvl 3): extra damage when striking while hidden"]}, "Outlaw": {"blurb": "A broken man who gathers followers and fights dirty against armoured foes.", "buffs": ["Path of the Survivalist", "A Band of Broken Men (Lvl 1): gather followers through intimidation, charm or coin", "Guerrilla Fighter (Lvl 3): exploit weaknesses in armoured knights while lightly armoured"]}, "Red Priest": {"blurb": "A servant of R'hollor, the Lord of Light, who wields flame and prophecy.", "buffs": ["Path of the Priest", "Life Proficiencies: Writing and Reading", "A Flame in the Night (Lvl 1): light torches and bonfires by touch", "The Pink Priest's Boon (Lvl 3): set weapons alight by sacrificing your own blood"]}, "Septon": {"blurb": "A devotee of the Seven who each day draws on an aspect of their faith and is trusted on the road.", "buffs": ["Path of the Priest", "Aspects of the Seven (Lvl 1): each day choose an aspect of the Seven to guide you", "A Father's Face (Lvl 3): earn a trusted face when resting in a settlement"]}, "Greenseer": {"blurb": "A servant of the Old Gods who invokes guest right and bonds with animals through warging.", "buffs": ["Path of the Priest", "Laws of Hospitality (Lvl 1): invoke guest right with advantage on a Persuasion combat roll", "Warg Bond (Lvl 3): bond with and warg into an animal companion"]}, "Maester": {"blurb": "A scholar of the Citadel who forges the links of the maester's chain, each a field of mastery.", "buffs": ["Path of the Envoy", "Forging the Chain, Tin (Lvl 1): the link of Tin, skill in Remedies", "Forging the Chain, Black Iron (Lvl 3): the link of Black Iron, skill in ravenry"]}, "Minstrel": {"blurb": "A performer whose soothing voice captures the minds of those who listen.", "buffs": ["Path of the Envoy", "Soothing Voice (Lvl 1): perform to sway those who can hear you", "Court Jester (Lvl 3): a performer's role at court"]}, "Merchant": {"blurb": "A dealer who trusts coin over chance and builds a respectable reputation in a trade.", "buffs": ["Path of the Envoy", "Corporate Certainty (Lvl 1): treat an Envoy Die as its maximum value", "Respectable Reputation (Lvl 3): become a recognised dealer in a category of goods"]}, "Diplomat": {"blurb": "A courtier who uses standing and demeanour to hold sway and unsettle rivals with a sharp tongue.", "buffs": ["Path of the Envoy", "Holding some Sway (Lvl 1): influence others a number of times per long rest equal to your Diplomacy modifier", "Sharp Tongue (Lvl 3): make a visible foe doubt themselves on an attack"]}}};
+function _esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function _aspImg(type,name){var n=name; if(type==='Origin') n=n.replace(/^The\s+/,''); return 'Images/'+type+'-'+n+'.webp';}
+function _val(id){var e=document.getElementById(id); return e?(e.value||''):'';}
+function _mc(){var e=document.getElementById('multiclass_toggle'); return !!(e&&e.checked);}
+function renderAspectSummary(){
+  var nameEl=document.getElementById('aspectName');
+  var name=_val('charName').trim();
+  if(nameEl) nameEl.textContent = name || 'Unnamed Character';
+  var pills=document.getElementById('aspectPills'); if(!pills) return;
+  function pill(label,val,cls){ var v=val?_esc(val):'-'; return '<span class="aspect-pill '+cls+(val?'':' aspect-pill-empty')+'"><b>'+label+'</b><span class="asp-v'+(val?'':' asp-none')+'">'+v+'</span></span>'; }
+  var html = pill('Origin',_val('origin'),'ap-origin')+pill('Class',_val('class_'),'ap-class')
+           + pill('Culture',_val('culture'),'ap-culture')+pill('Spec',_val('spec'),'ap-spec');
+  if(_mc()){ html += pill('Class II',_val('class_2'),'ap-class')+pill('Spec II',_val('spec_2'),'ap-spec'); }
+  pills.innerHTML = html;
+}
+function _card(kind,typeLabel,name){
+  if(!name) return '';
+  var d=(ASPECT_INFO[kind]||{})[name]||{};
+  var buffs=(d.buffs||[]).map(function(b){return '<li>'+_esc(b)+'</li>';}).join('');
+  var img=_aspImg(typeLabel,name);
+  return '<div class="asp-card"><div class="asp-card-h"><span class="asp-card-type">'+typeLabel+'</span><h4>'+_esc(name)+'</h4></div>'
+   +'<div class="asp-card-body"><img class="asp-card-img" src="'+_esc(img)+'" alt="'+_esc(name)+'" onerror="this.style.display=\'none\'">'
+   +'<div class="asp-card-txt">'+(d.blurb?'<p class="asp-card-blurb">'+_esc(d.blurb)+'</p>':'')
+   +(buffs?'<div class="asp-buffs-h">Buffs &amp; Features</div><ul class="asp-card-buffs">'+buffs+'</ul>':'')+'</div></div></div>';
+}
+function renderAspectCards(){
+  var box=document.getElementById('aspectCards'); if(!box) return;
+  var h='';
+  h+=_card('origins','Origin',_val('origin'));
+  h+=_card('classes','Class',_val('class_')); if(_mc()) h+=_card('classes','Class',_val('class_2'));
+  h+=_card('cultures','Culture',_val('culture'));
+  h+=_card('specs','Specialisation',_val('spec')); if(_mc()) h+=_card('specs','Specialisation',_val('spec_2'));
+  box.innerHTML = h || '<div class="asp-empty-cards">Choose an origin, class, culture and specialisation on the left to see their details here.</div>';
+}
+window.openAspectsModal=function(){var m=document.getElementById('aspectsModal'); if(m){m.style.display='flex'; renderAspectCards();}};
+window.closeAspectsModal=function(){var m=document.getElementById('aspectsModal'); if(m){m.style.display='none';} renderAspectSummary();};
+window.renderAspectSummary=renderAspectSummary; window.renderAspectCards=renderAspectCards;
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){var m=document.getElementById('aspectsModal'); if(m&&m.style.display!=='none') closeAspectsModal();}});
+var _sig=null;
+function _tick(){ try{
+  var sig=[_val('charName'),_val('origin'),_val('class_'),_val('class_2'),_val('culture'),_val('spec'),_val('spec_2'),_mc()].join('\u0001');
+  if(sig!==_sig){ _sig=sig; renderAspectSummary(); var m=document.getElementById('aspectsModal'); if(m&&m.style.display!=='none') renderAspectCards(); }
+}catch(e){} }
+setInterval(_tick,300);
+if(document.readyState!=='loading') setTimeout(_tick,200); else document.addEventListener('DOMContentLoaded',function(){setTimeout(_tick,200);});
+})();
+</script>
+
 </body>
 </html>
