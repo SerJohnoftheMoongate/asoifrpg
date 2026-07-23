@@ -810,7 +810,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
 }
 
 /* ===== Task B: secondary colour on Initiative, Movement, attack hex rim, weapon-card borders, feat prompt ===== */
-#initiative,#movement{
+#initiative,#constitution_bonus{
   background:linear-gradient(to right,color-mix(in srgb,var(--sec) 30%,transparent),color-mix(in srgb,var(--sec) 8%,transparent)) !important;
   border:1px solid color-mix(in srgb,var(--sec) 55%,transparent) !important;border-radius:3px;
   color:color-mix(in srgb,var(--sec-text) 78%,#ffffff) !important;font-weight:700;text-align:center;
@@ -1165,8 +1165,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div></div>
     </div>
     <div class="meta-icon-cell">
-      <img class="meta-icon" src="Images/Movement Icon.webp" alt="Movement">
-      <div style="flex:1"><span class="meta-lbl">Movement</span><div class="meta-inp"><input type="text" id="movement" placeholder="—"></div></div>
+      <img class="meta-icon" src="Images/Menu Icon.webp" alt="Constitution">
+      <div style="flex:1"><span class="meta-lbl">Constitution</span><div class="meta-inp"><input type="text" id="constitution_bonus" readonly placeholder="—" style="text-align:center;font-weight:700;cursor:default"></div></div>
     </div>
   </div>
 
@@ -1208,24 +1208,12 @@ textarea{resize:none;font-weight:400;font-size:12px}
     </div>
   </div>
 
-  <div class="prof-section">
-    <div class="sec">Proficiencies</div>
-    <div class="prof-section-inner">
-      <div style="display:none">
-        <input type="checkbox" id="prof_wpn_simple_melee">
-        <input type="checkbox" id="prof_wpn_simple_ranged">
-        <input type="checkbox" id="prof_wpn_martial_melee">
-        <input type="checkbox" id="prof_wpn_martial_ranged">
-        <input type="checkbox" id="prof_wpn_unique">
-        <input type="checkbox" id="prof_other_reading">
-        <input type="checkbox" id="prof_other_writing">
-        <input type="checkbox" id="prof_other_swimming">
-        <textarea id="tools"></textarea>
-        <textarea id="languages"></textarea>
-      </div>
-      <button class="prof-select-btn" onclick="openProfModal()">Select Proficiencies</button>
-      <div id="prof_summary" class="prof-summary"></div>
-    </div>
+  <div class="hp-section">
+<div class="hp-icon-row"><img class="hp-icon" src="Images/Health Icon.webp" alt="HP"></div>    
+    <div class="hp-row hp-current"><div class="hp-lbl">Current</div><div class="hp-inp"><input type="number" id="hp_current" placeholder="—"></div></div>
+    <div class="hp-row hp-maximum"><div class="hp-lbl">Maximum</div><div class="hp-inp"><input type="number" id="hp_max" placeholder="—"></div></div>
+    <div class="hp-row hp-temporary"><div class="hp-lbl">Temporary</div><div class="hp-inp"><input type="number" id="hp_temp" placeholder="—"></div></div>
+    <div class="hp-row hp-hitdice"><div class="hp-lbl">Hit Dice</div><div class="hp-inp"><input type="text" id="hd_1" readonly placeholder="—" style="height:24px;font-size:13px;text-align:center;font-weight:700;flex:1;background:#2a0a3e;color:#d4a0ff;border-color:#7a2daa;cursor:default"><input type="text" id="hd_2" readonly placeholder="0/0" title="Current / Max hit dice" style="height:24px;font-size:12px;text-align:center;font-weight:700;flex:1;background:#1a1000;color:#e8c84a;border-color:rgba(139,106,0,.5);cursor:default"></div></div>
   </div>
   <!-- Hidden weapon category inputs (auto-saved) -->
   <div style="display:none">
@@ -1275,12 +1263,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <!-- REPUTATION DIAL with notorious/famed icons -->
   <div class="rep-widget">
     <div class="sec">Reputation</div>
-    <div class="rules-box" style="margin:3px 6px 2px;padding:5px 7px;position:relative;background:var(--quote-bg);border-color:var(--gold);">
-      <!-- Ghost spacer: always the longest quote so the box never shifts -->
-      <span aria-hidden="true" style="visibility:hidden;font-size:13.5px;line-height:1.55;font-family:'IM Fell English',serif;display:block;text-align:center;pointer-events:none;">"You have a good claim, a title, a birthright. But you have something more than that. The people who truly love you, love you for yourself. They love you because you're kind, because you're strong, because you're true. It's a rare enough thing."<br><span style="font-size:13px;font-family:var(--got);letter-spacing:.8px;">— Lady Olenna Tyrell</span></span>
-      <!-- Visible quote overlaid absolutely -->
-      <span id="repQuote" style="position:absolute;inset:5px 7px;font-size:13.5px;line-height:1.55;text-align:center;color:var(--quote-fg);font-family:'IM Fell English',serif;display:flex;align-items:center;justify-content:center;flex-direction:column;"></span>
-    </div>
+    
     <div class="rep-dial-area">
       <div class="rep-notorious">
           <img class="rep-side-icon" src="Images/Notorius Icon.webp" alt="Notorius">
@@ -1349,38 +1332,26 @@ textarea{resize:none;font-weight:400;font-size:12px}
 
 <!-- COL3: HP / INJURIES / FEATS -->
 <div class="col">
-  <div class="hp-section">
-<div class="hp-icon-row"><img class="hp-icon" src="Images/Health Icon.webp" alt="HP"></div>    
-    <div class="hp-row hp-current"><div class="hp-lbl">Current</div><div class="hp-inp"><input type="number" id="hp_current" placeholder="—"></div></div>
-    <div class="hp-row hp-maximum"><div class="hp-lbl">Maximum</div><div class="hp-inp"><input type="number" id="hp_max" placeholder="—"></div></div>
-    <div class="hp-row hp-temporary"><div class="hp-lbl">Temporary</div><div class="hp-inp"><input type="number" id="hp_temp" placeholder="—"></div></div>
-    <div class="hp-row hp-hitdice"><div class="hp-lbl">Hit Dice</div><div class="hp-inp"><input type="text" id="hd_1" readonly placeholder="—" style="height:24px;font-size:13px;text-align:center;font-weight:700;flex:1;background:#2a0a3e;color:#d4a0ff;border-color:#7a2daa;cursor:default"><input type="text" id="hd_2" readonly placeholder="0/0" title="Current / Max hit dice" style="height:24px;font-size:12px;text-align:center;font-weight:700;flex:1;background:#1a1000;color:#e8c84a;border-color:rgba(139,106,0,.5);cursor:default"></div></div>
-  </div>
-  <!-- CONSTITUTION SECTION -->
-  <div class="sec" style="margin-top:6px">Constitution</div>
-  <div style="display:flex;align-items:stretch;border-top:1px solid var(--gold)">
-    <div style="display:flex;align-items:center;gap:6px;padding:6px;flex:1;border-right:1px solid var(--gold)">
-      <div class="hp-icon-row"><img class="hp-icon" src="Images/Menu Icon.webp" style="width:42px;height:42px;border-radius:50%;border:2px solid var(--gold);flex-shrink:0;object-fit:cover"></div>
-      <div style="flex:1">
-        <span class="meta-lbl">Weight</span>
-        <div class="meta-inp" style="height:24px">
-          <select id="weight" onchange="calcConstitution()" style="width:100%;height:100%;font-family:'Cinzel',serif;font-size:10px;font-weight:700;background:var(--input-bg);border:none;color:#1a1000;cursor:pointer">
-            <option value="">— Select weight —</option>
-            <option value="-1">40 - 50 kg</option><option value="0">50 - 60 kg</option>
-            <option value="1">60 - 70 kg</option><option value="2">70 - 80 kg</option>
-            <option value="3">80 - 90 kg</option><option value="4">90 - 100 kg</option>
-            <option value="5">100 - 110 kg</option><option value="0">110 - 120 kg</option>
-          </select>
-        </div>
+  <div class="prof-section">
+    <div class="sec">Proficiencies</div>
+    <div class="prof-section-inner">
+      <div style="display:none">
+        <input type="checkbox" id="prof_wpn_simple_melee">
+        <input type="checkbox" id="prof_wpn_simple_ranged">
+        <input type="checkbox" id="prof_wpn_martial_melee">
+        <input type="checkbox" id="prof_wpn_martial_ranged">
+        <input type="checkbox" id="prof_wpn_unique">
+        <input type="checkbox" id="prof_other_reading">
+        <input type="checkbox" id="prof_other_writing">
+        <input type="checkbox" id="prof_other_swimming">
+        <textarea id="tools"></textarea>
+        <textarea id="languages"></textarea>
       </div>
-    </div>
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 10px;gap:3px;min-width:70px">
-      <span class="meta-lbl" style="font-size:8px">Constitution</span>
-      <div style="width:52px;height:24px;background:var(--sec-bg);border:1.5px solid var(--sec);display:flex;align-items:center;justify-content:center">
-        <input type="text" id="constitution_bonus" readonly placeholder="—" style="background:transparent;border:none;width:100%;text-align:center;font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--sec-text);cursor:default">
-      </div>
+      <button class="prof-select-btn" onclick="openProfModal()">Select Proficiencies</button>
+      <div id="prof_summary" class="prof-summary"></div>
     </div>
   </div>
+  
   <div class="feats-section">
     <div class="sec">Feats</div>
     <div class="feats-inner">
@@ -2611,42 +2582,11 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 let repVal=0;
 const CIRC=2*Math.PI*38;
-const REP_QUOTES={
-  '-10':'If you acquire a reputation as a mad dog, you\'ll be treated as a mad dog. Taken out and shot. — Roose Bolton',
-  '-9':'If you acquire a reputation as a mad dog, you\'ll be treated as a mad dog. Taken out and shot. — Roose Bolton',
-  '-8':'Ooo, I\'m a monster. Perhaps you should speak to me more softly then. Monsters are dangerous and just now kings are dying like flies. — Tyrion Lannister',
-  '-7':'Ooo, I\'m a monster. Perhaps you should speak to me more softly then. Monsters are dangerous and just now kings are dying like flies. — Tyrion Lannister',
-  '-6':'Godless? Why, Aeron, I am the godliest man ever to raise sail! You serve one god, Damphair, but I have served ten thousand. From Ib to Asshai, when men see my sails, they pray. — Euron Greyjoy',
-  '-5':'Godless? Why, Aeron, I am the godliest man ever to raise sail! You serve one god, Damphair, but I have served ten thousand. From Ib to Asshai, when men see my sails, they pray. — Euron Greyjoy',
-  '-4':'You\'re awful. I\'m honest. It\'s the world that\'s awful. — Sandor Clegane',
-  '-3':'You\'re awful. I\'m honest. It\'s the world that\'s awful. — Sandor Clegane',
-  '-2':'People work together, when it suits them. They\'re loyal, when it suits them. They love each other, when it suits them. And they kill each other, when it suits them. — Petyr Baelish',
-  '-1':'People work together, when it suits them. They\'re loyal, when it suits them. They love each other, when it suits them. And they kill each other, when it suits them. — Petyr Baelish',
-  '0':'When you play The Game of Thrones, you win or you die. There is no middle ground. — Cersei Lannister',
-  '1':'You waste time trying to get people to love you, you\'ll end up the most popular dead man in town. — Ser Bronn of the Blackwater',
-  '2':'You waste time trying to get people to love you, you\'ll end up the most popular dead man in town. — Ser Bronn of the Blackwater',
-  '3':'The man who passes the sentence should swing the sword. — Eddard Stark',
-  '4':'The man who passes the sentence should swing the sword. — Eddard Stark',
-  '5':'The grey sheep have closed their eyes, but the mastiff sees the truth. Old powers waken. Shadows stir. An age of wonder and terror will soon be upon us, an age for gods and heroes. — Leo Tyrell',
-  '6':'The grey sheep have closed their eyes, but the mastiff sees the truth. Old powers waken. Shadows stir. An age of wonder and terror will soon be upon us, an age for gods and heroes. — Leo Tyrell',
-  '7':'You have a good claim, a birthright. But you have something more than that. The people who truly love you, love you for yourself. They love you because you\'re kind, because you\'re strong, because you\'re true. It\'s a rare enough thing. — Lady Olenna Tyrell',
-  '8':'You have a good claim, a birthright. But you have something more than that. The people who truly love you, love you for yourself. They love you because you\'re kind, because you\'re strong, because you\'re true. It\'s a rare enough thing. — Lady Olenna Tyrell',
-  '9':'A man of honor keeps his vows, even if he\’s serving a drunk or a lunatic. Just once in my life before it\’s over, I want to know what it\’s like to serve with pride, to fight for someone I believe in. — Ser Barristan Selmy',
-  '10':'A man of honor keeps his vows, even if he\’s serving a drunk or a lunatic. Just once in my life before it\’s over, I want to know what it\’s like to serve with pride, to fight for someone I believe in. — Ser Barristan Selmy'
-};
 function updateRepDial(v){
   repVal=Math.max(-10,Math.min(10,v));
   const display=document.getElementById('repVal');
   display.textContent=(repVal>=0?'+':'')+repVal;
   display.style.color=repVal<0?'#ff6666':repVal>0?'#66cc66':'var(--text-gold)';
-  const quoteEl=document.getElementById('repQuote');
-  if(quoteEl){
-    const full=REP_QUOTES[String(repVal)]||'';
-    const parts=full.split(' — ');
-    const quoteText=parts[0]||'';
-    const attribution=parts.slice(1).join(' — ');
-    quoteEl.innerHTML=`<span style="font-style:italic;">\u201c${quoteText}\u201d</span>${attribution?`<br><span style="font-size:13px;font-family:var(--got);letter-spacing:.8px;opacity:.85;">\u2014 ${attribution}</span>`:''}`;
-  }
   const neg=document.getElementById('repArcNeg');
   const pos=document.getElementById('repArcPos');
   const maxArc=CIRC*0.75;
@@ -7618,6 +7558,17 @@ function showMenuWarning() {
     <select id="spec" onchange="applySpecFeatures()"><option value="">— Specialisation —</option></select>
     <select id="spec_2" onchange="applySpecFeatures()" style="display:none"><option value="">— 2nd Specialisation —</option></select>
   </div></div>
+        <div class="asp-field"><label>Weight</label>
+          <div style="height:34px;border:2px solid var(--gold);background:var(--input-bg);border-radius:2px;overflow:hidden;">
+            <select id="weight" onchange="calcConstitution()" style="width:100%;height:100%;font-family:'Cinzel',serif;font-size:12px;font-weight:700;background:transparent;border:none;color:#1a1000;cursor:pointer;padding:0 8px;">
+              <option value="">— Select weight —</option>
+              <option value="-1">40 - 50 kg</option><option value="0">50 - 60 kg</option>
+              <option value="1">60 - 70 kg</option><option value="2">70 - 80 kg</option>
+              <option value="3">80 - 90 kg</option><option value="4">90 - 100 kg</option>
+              <option value="5">100 - 110 kg</option><option value="0">110 - 120 kg</option>
+            </select>
+          </div>
+        </div>
         <label class="multiclass-toggle" onclick="event.stopPropagation()" title="Enable a secondary class & specialisation. Grants features only — no extra proficiencies or saves.">
     <input type="checkbox" id="multiclass_toggle" onchange="toggleMulticlass()">
     <span>⚔ Multiclass</span>
