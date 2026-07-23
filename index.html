@@ -858,11 +858,11 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .prof-opt.feat-disabled{opacity:.4;cursor:not-allowed;}
 
 /* ===== Feature cards (Character-Aspect style) ===== */
-.feat-block[data-spec-slot]{border:1px solid var(--gold-dk);border-left:3px solid var(--sec);border-radius:3px;background:linear-gradient(140deg,rgba(28,18,2,.5),rgba(10,5,0,.7));padding:8px 9px;margin:6px 0;}
+.feat-block[data-spec-slot]{position:relative;border:1px solid var(--gold-dk);border-left:3px solid var(--sec);border-radius:3px;padding:8px 9px;margin:6px 0;transition:border-color .15s;}
 .feat-block[data-spec-slot] .feat-short,.feat-block[data-spec-slot] .feat-textarea{display:none!important;}
 .feat-block[data-spec-slot] .fcard{order:0;display:flex;flex-direction:column;}
 .feat-block[data-spec-slot] .feat-top{order:2;justify-content:flex-end;gap:4px;background:none!important;padding:5px 0 0;border:none!important;}
-.feat-block[data-spec-slot] .feat-dots-row{order:3;border:none!important;padding-top:4px;}
+.feat-block[data-spec-slot] .feat-dots-row{position:absolute;top:7px;right:9px;order:0;border:none!important;padding:0;gap:3px;z-index:4;}
 .feat-block[data-spec-slot] > button{order:4;}
 .fcard-head{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:5px;}
 .fcard-tag{font-family:var(--got);font-size:8px;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:2px;border:1px solid;}
@@ -878,6 +878,17 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .feat-block[data-spec-slot] > button.rest-btn,.feat-block[data-spec-slot] > button.fs-pick-btn,.feat-block[data-spec-slot] > button.ht-pick-btn,.feat-block[data-spec-slot] > button.mnvr-pick-btn,.feat-block[data-spec-slot] > button.oath-pick-btn,.feat-block[data-spec-slot] > button.asp-pick-btn,.feat-block[data-spec-slot] > button.cod-popup-btn,.feat-block[data-spec-slot] > button.merchant-tg-btn,.feat-block[data-spec-slot] > button.wb-small-btn,.feat-block[data-spec-slot] > button.wb-large-btn,.feat-block[data-spec-slot] > button.ml-pick-btn,.feat-block[data-spec-slot] > button.ca-pick-btn,.feat-block[data-spec-slot] > button.ufe-pick-btn{
   width:100%!important;margin-top:7px!important;font-family:var(--got)!important;font-size:10px!important;letter-spacing:1px!important;text-transform:uppercase!important;color:var(--sec-text)!important;background:var(--near-black)!important;border:2px solid var(--sec)!important;border-radius:2px!important;padding:7px 8px!important;cursor:pointer;transition:all .15s;}
 .feat-block[data-spec-slot] > button[class*="pick"]:hover,.feat-block[data-spec-slot] > button.rest-btn:hover{background:color-mix(in srgb,var(--sec) 20%,transparent)!important;}
+
+/* Feature card: alternation + pressable + detail tag */
+.feat-block[data-spec-slot].fc-odd{background:linear-gradient(140deg,rgba(46,31,7,.62),rgba(14,9,1,.8));}
+.feat-block[data-spec-slot].fc-even{background:linear-gradient(140deg,rgba(15,15,24,.6),rgba(5,5,11,.82));}
+.feat-block[data-spec-slot] .fcard{cursor:pointer;}
+.feat-block[data-spec-slot]:hover{border-color:var(--sec);}
+.feat-block[data-spec-slot] .fcard:hover .fcard-title{filter:brightness(1.18);}
+.feat-block[data-spec-slot] .fcard-head{padding-right:2px;}
+.asp-card-type.fdt-class{background:#e0a866;color:#160c02;}
+.asp-card-type.fdt-spec{background:#b99be6;color:#160c02;}
+#featDetailModal .fcard-lvl{margin-left:2px;}
 </style>
 </head>
 <body>
@@ -3124,26 +3135,50 @@ function _featSplit(desc){
   return {intro:(parts[0]||''), bullets:parts.slice(1)};
 }
 function styleFeatureCards(){
+  var vis=0;
   document.querySelectorAll('.feat-block[data-spec-slot]').forEach(function(block){
     var old=block.querySelector('.fcard'); if(old) old.remove();
+    block.classList.remove('fc-even','fc-odd');
     if(block.style.display==='none' || block.classList.contains('spec-locked')) return;
     var nameEl=block.querySelector('.feat-short input');
-    var taEl=block.querySelector('.feat-textarea textarea');
     if(!nameEl || !nameEl.value.trim()) return;
+    vis++; block.classList.add(vis%2===0?'fc-even':'fc-odd');
     var raw=nameEl.value; var m=raw.match(/^Lvl\s*(\d+)\s*\u00b7\s*([\s\S]*)$/);
     var lvl=m?m[1]:''; var name=m?m[2]:raw;
     var source=block.dataset.featSource||''; var stype=block.dataset.featSourceType||'';
+    var taEl=block.querySelector('.feat-textarea textarea');
     var s=_featSplit(taEl?taEl.value:'');
     var card=document.createElement('div'); card.className='fcard';
     card.innerHTML='<div class="fcard-head">'
       +(source?'<span class="fcard-tag ft-'+(stype||'class')+'">'+_profEsc(source)+'</span>':'')
       +(lvl?'<span class="fcard-lvl">Lvl '+lvl+'</span>':'')
       +'<span class="fcard-title">'+_profEsc(name)+'</span></div>'
-      +'<div class="fcard-body">'+(s.intro?'<p class="fcard-intro">'+_profEsc(s.intro)+'</p>':'')
-      +(s.bullets.length?'<div class="fcard-bh">Buffs &amp; Features</div><ul class="fcard-buffs">'+s.bullets.map(function(b){return '<li>'+_profEsc(b)+'</li>';}).join('')+'</ul>':'')
-      +'</div>';
+      +'<div class="fcard-body">'+(s.intro?'<p class="fcard-intro">'+_profEsc(s.intro)+'</p>':'')+'</div>';
+    card.title='Click for full description';
+    card.onclick=function(){ openFeatureDetail(block); };
     block.insertBefore(card, block.firstChild);
   });
+}
+function openFeatureDetail(block){
+  var nameEl=block.querySelector('.feat-short input'); if(!nameEl)return;
+  var raw=nameEl.value; var m=raw.match(/^Lvl\s*(\d+)\s*\u00b7\s*([\s\S]*)$/);
+  var lvl=m?m[1]:''; var name=m?m[2]:raw;
+  var source=block.dataset.featSource||''; var stype=block.dataset.featSourceType||'';
+  var ta=block.querySelector('.feat-textarea textarea'); var s=_featSplit(ta?ta.value:'');
+  var img='Images/'+name+'.webp';
+  var ex=document.getElementById('featDetailModal'); if(ex)ex.remove();
+  var o=document.createElement('div'); o.className='asp-overlay'; o.id='featDetailModal';
+  o.onclick=function(e){ if(e.target===o) o.remove(); };
+  o.innerHTML='<div class="asp-modal" style="width:min(560px,95vw);" onclick="event.stopPropagation()">'
+    +'<div class="asp-head"><h3>'+_profEsc(name)+'</h3><button class="asp-x" onclick="document.getElementById(\'featDetailModal\').remove()" title="Close">&times;</button></div>'
+    +'<div style="padding:16px;">'
+    +'<div class="asp-card"><div class="asp-card-h"><span class="asp-card-type fdt-'+(stype||'class')+'">'+_profEsc(source||'Feature')+'</span>'
+    +(lvl?'<span class="fcard-lvl">Lvl '+lvl+'</span>':'')+'<h4>'+_profEsc(name)+'</h4></div>'
+    +'<div class="asp-card-body"><img class="asp-card-img" src="'+_profEsc(img)+'" alt="'+_profEsc(name)+'" onerror="this.style.display=\'none\'">'
+    +'<div class="asp-card-txt">'+(s.intro?'<p class="asp-card-blurb">'+_profEsc(s.intro)+'</p>':'')
+    +(s.bullets.length?'<div class="asp-buffs-h">Buffs &amp; Features</div><ul class="asp-card-buffs">'+s.bullets.map(function(b){return '<li>'+_profEsc(b)+'</li>';}).join('')+'</ul>':'')
+    +'</div></div></div></div></div>';
+  document.body.appendChild(o); o.style.display='flex';
 }
 
 // ── WEAPON PROFICIENCY HELPERS ──
@@ -5189,7 +5224,7 @@ function openAspectModal(){
   const o = document.createElement('div');
   o.className = 'modal-overlay'; o.id = 'aspectModal';
   o.innerHTML = `<div class="modal" style="max-width:560px;padding:30px 36px;">
-    <div style="font-family:var(--got);font-size:22px;color:var(--text-gold);letter-spacing:.5px;margin-bottom:6px;">Choose Today's Aspect</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 36px;margin:-30px -36px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">Choose Today's Aspect</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:22px;font-style:italic;">Each day you may choose one aspect of the Seven to guide you through the day. The chosen aspect grants you a skill proficiency advantage until you take a long rest.</div>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;" id="aspect_cards">
       ${SEPTON_ASPECTS.map(asp => `<div class="aspect-card" data-key="${asp.key}" style="cursor:pointer;border:2px solid ${_septonAspect===asp.key?'var(--gold)':'rgba(180,140,60,.35)'};border-radius:5px;padding:14px 16px;background:${_septonAspect===asp.key?'rgba(120,80,0,.35)':'rgba(20,12,0,.5)'};transition:border .15s,background .15s;">
@@ -5240,7 +5275,7 @@ function openChildOfDarknessModal(){
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
       <div style="font-size:36px;line-height:1;filter:drop-shadow(0 0 10px #aa44ff);">🌑</div>
       <div>
-        <div style="font-family:var(--got);font-size:22px;color:var(--text-gold);letter-spacing:.5px;">Child of Darkness</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 44px;margin:-32px -44px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">Child of Darkness</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
         <div style="font-family:'IM Fell English',serif;font-size:12px;color:#9966cc;font-style:italic;margin-top:2px;">Translucent shadow of the Red Priest · Magical construct</div>
       </div>
     </div>
@@ -5301,7 +5336,7 @@ function openOathModal(){
   const o=document.createElement('div');
   o.className='modal-overlay'; o.id='oathModal';
   o.innerHTML=`<div class="modal" style="max-width:520px;padding:30px 36px;">
-    <div style="font-family:var(--got);font-size:22px;color:var(--text-gold);letter-spacing:.5px;margin-bottom:6px;">Choose Your Oath</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 36px;margin:-30px -36px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">Choose Your Oath</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:22px;font-style:italic;">Once per day, swear one oath to fulfil. The oath persists until its condition is met.</div>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;" id="oath_cards">
       ${OATHS.map(oath=>`<div class="oath-card" data-key="${oath.key}" style="cursor:pointer;border:2px solid ${_hedgeKnightOath===oath.key?'var(--gold)':'rgba(180,140,60,.35)'};border-radius:5px;padding:14px 16px;background:${_hedgeKnightOath===oath.key?'rgba(120,80,0,.35)':'rgba(20,12,0,.5)'};transition:border .15s,background .15s;">
@@ -5348,7 +5383,7 @@ function openManeuverModal(){
   const o=document.createElement('div');
   o.className='modal-overlay'; o.id='mnvrModal';
   o.innerHTML=`<div class="modal" style="max-width:500px;padding:30px 36px;">
-    <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Battle Maneuvers</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 36px;margin:-30px -36px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">Battle Maneuvers</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:20px;font-style:italic;">Choose your 3 battle maneuvers for Commanding Presence.</div>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:22px;">
       <select id="mnvr_dd1" style="${ddStyle}">${opts(sel[0]||'')}</select>
@@ -5390,48 +5425,40 @@ let _chosenStyles = {};
 function saveChosenStyles(){ try{ localStorage.setItem('cs_fighting_styles',JSON.stringify(_chosenStyles)); }catch(e){} }
 
 function openFightingStyleModal(slotKey, excludeKey){
-  const existing=document.getElementById('fsModal');
-  if(existing) existing.remove();
+  const existing=document.getElementById('fsModal'); if(existing) existing.remove();
   const exclude=excludeKey?(_chosenStyles[excludeKey]||''):'';
   let _picked=_chosenStyles[slotKey]||'';
   const available=FIGHTING_STYLES.filter(s=>s.key!==exclude);
-  const o=document.createElement('div');
-  o.className='modal-overlay'; o.id='fsModal';
-  o.innerHTML=`<div class="modal" style="max-width:520px;padding:30px 36px;">
-    <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Fighting Style</div>
-    <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:20px;font-style:italic;">Choose your fighting style specialty.</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;" id="fs_cards">
-      ${available.map(s=>`<div class="fs-card" data-key="${s.key}" style="cursor:pointer;border:2px solid ${_picked===s.key?'var(--gold)':'rgba(180,140,60,.35)'};border-radius:5px;padding:12px 14px;background:${_picked===s.key?'rgba(120,80,0,.35)':'rgba(20,12,0,.5)'};transition:border .15s,background .15s;">
-        <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--text-gold);margin-bottom:4px;">${s.name}</div>
-        <div style="font-family:'IM Fell English',serif;font-size:12px;color:#c8b87a;line-height:1.5;">${s.desc}</div>
-      </div>`).join('')}
-    </div>
-    <div style="display:flex;gap:10px;">
-      <button id="fs_confirm" class="rest-btn" style="flex:1;">✓ Confirm</button>
-      <button class="rest-btn" style="background:rgba(80,40,0,.4);" onclick="document.getElementById('fsModal').remove()">Cancel</button>
+  const o=document.createElement('div'); o.className='asp-overlay'; o.id='fsModal';
+  o.innerHTML=`<div class="asp-modal" style="width:min(560px,95vw);" onclick="event.stopPropagation()">
+    <div class="asp-head"><h3>Fighting Style</h3><button class="asp-x" onclick="document.getElementById('fsModal').remove()" title="Close">&times;</button></div>
+    <div style="padding:16px;">
+      <div style="font-family:'IM Fell English',serif;font-size:12px;color:#c8b87a;font-style:italic;margin-bottom:12px;">Choose your fighting style specialty.</div>
+      <div id="fs_cards" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+        ${available.map(s=>`<div class="prof-opt${_picked===s.key?' on':''}" data-key="${s.key}">
+          <div class="prof-opt-check"></div>
+          <div class="prof-opt-body"><div class="prof-opt-name">${s.name}</div><div class="prof-opt-desc">${s.desc}</div></div>
+        </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button id="fs_confirm" class="prof-select-btn" style="flex:1;border-color:var(--sec);color:var(--sec-text);">&#10003; Confirm</button>
+        <button class="prof-select-btn" style="flex:1;color:#888;border-color:rgba(100,80,0,.4);background:rgba(40,30,10,.4);" onclick="document.getElementById('fsModal').remove()">Cancel</button>
+      </div>
     </div>
   </div>`;
+  o.onclick=e=>{ if(e.target===o) o.remove(); };
   document.body.appendChild(o);
-  o.querySelectorAll('.fs-card').forEach(card=>{
+  o.querySelectorAll('#fs_cards .prof-opt').forEach(card=>{
     card.addEventListener('click',()=>{
       _picked=card.dataset.key;
-      o.querySelectorAll('.fs-card').forEach(c2=>{
-        const act=c2.dataset.key===_picked;
-        c2.style.border=`2px solid ${act?'var(--gold)':'rgba(180,140,60,.35)'}`;
-        c2.style.background=act?'rgba(120,80,0,.35)':'rgba(20,12,0,.5)';
-      });
+      o.querySelectorAll('#fs_cards .prof-opt').forEach(c2=>c2.classList.toggle('on', c2.dataset.key===_picked));
     });
   });
   o.querySelector('#fs_confirm').addEventListener('click',()=>{
-    if(!_picked){ alert('Please choose a fighting style.'); return; }
-    _chosenStyles[slotKey]=_picked;
-    saveChosenStyles();
-    o.remove();
-    applySpecFeatures();
-    // Re-derive bonus-action damage in case Two-Weapon Fighting was added/removed
+    if(!_picked) return;
+    _chosenStyles[slotKey]=_picked; saveChosenStyles(); o.remove(); applySpecFeatures();
     try{ recomputeAllBonusActionDR(); }catch(e){}
   });
-  o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
 }
 
 
@@ -5491,7 +5518,7 @@ function openMerchantTradeGoodModal(){
   const safeVal = _merchantTradeGood.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
   overlay.innerHTML = `
     <div class="modal" style="max-width:480px;padding:30px 40px;text-align:center;">
-      <h2 style="font-size:18px;letter-spacing:1.5px;margin-bottom:6px;color:var(--text-gold);">&#x1FA99; Specialized Trade Good</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 40px;margin:-30px -40px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">&#x1FA99; Specialized Trade Good</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
       <p style="font-family:'IM Fell English',serif;font-size:13px;color:#bbb;margin-bottom:20px;line-height:1.6;">
         Enter the category of goods you specialize in &mdash; e.g. <em>Arms &amp; Armor</em>, <em>Horses</em>, <em>Grain</em>, <em>Luxury Items</em>, <em>Raw Materials</em>.
       </p>
@@ -5653,10 +5680,10 @@ function openWargBondModal(){
   let _customText = _wargBondAnimals.find(k=>!knownKeys.includes(k)) || '';
   const o=document.createElement('div'); o.className='modal-overlay'; o.id='wargBondModal';
   function isCustomActive(){ return _picked.length===0 && _customText.trim()!==''; }
-  function cardBorder(key){ return _picked.includes(key)?'var(--gold)':'rgba(100,160,80,.35)'; }
+  function cardBorder(key){ return _picked.includes(key)?'var(--sec)':'rgba(100,160,80,.35)'; }
   function cardBg(key){ return _picked.includes(key)?'rgba(0,60,20,.55)':'rgba(5,20,5,.5)'; }
   o.innerHTML=`<div class="modal" style="max-width:520px;padding:28px 32px;">
-    <div style="font-family:var(--got);font-size:17px;color:#8ecf6a;margin-bottom:6px;text-shadow:0 0 10px rgba(80,200,60,.4);">🐾 Warg Bond — Small Animals</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 32px;margin:-28px -32px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">🐾 Warg Bond — Small Animals</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <div style="color:#b0c890;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:18px;font-style:italic;">Choose one small animal to bond with through the gift of the Old Gods.</div>
     <div id="wb_cards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">${WARG_BOND_ANIMALS.map(a=>`<div class="wb-card" data-key="${a.key}" style="cursor:pointer;border:2px solid ${cardBorder(a.key)};border-radius:5px;padding:10px 14px;background:${cardBg(a.key)};transition:border .15s,background .15s;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">${a.emoji}</span><span style="font-family:'Cinzel',serif;font-size:12px;color:#d4e8a0;">${a.name}</span>${_picked.includes(a.key)?'<span style="margin-left:auto;color:#8ecf6a;font-size:14px;">✓</span>':''}</div>`).join('')}
     <div id="wb_custom_tile" style="grid-column:span 2;border:2px solid rgba(100,160,80,.35);border-radius:5px;padding:10px 14px;background:rgba(5,20,5,.5);display:flex;align-items:center;gap:10px;transition:border .15s,background .15s;">
@@ -5722,10 +5749,10 @@ function openGreaterWargBondModal(){
   // custom is "active" (selected) when there's text and it's not a list key — shown as extra slot
   function customSelected(){ return _greaterWargBondAnimals.some(k=>!knownKeys.includes(k)) && _customText===(_greaterWargBondAnimals.find(k=>!knownKeys.includes(k))||''); }
   let _customActive = _greaterWargBondAnimals.some(k=>!knownKeys.includes(k));
-  function cardBorder(key){ return _picked.includes(key)?'var(--gold)':'rgba(100,160,80,.35)'; }
+  function cardBorder(key){ return _picked.includes(key)?'var(--sec)':'rgba(100,160,80,.35)'; }
   function cardBg(key){ return _picked.includes(key)?'rgba(0,60,20,.55)':'rgba(5,20,5,.5)'; }
   o.innerHTML=`<div class="modal" style="max-width:560px;padding:28px 32px;">
-    <div style="font-family:var(--got);font-size:17px;color:#8ecf6a;margin-bottom:6px;text-shadow:0 0 10px rgba(80,200,60,.4);">🐺 Greater Warg Bond — Large Beasts</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 32px;margin:-28px -32px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">🐺 Greater Warg Bond — Large Beasts</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <div style="color:#b0c890;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:4px;font-style:italic;">Choose up to 2 large beasts to bond with. The Old Gods grant dominion over greater creatures.</div>
     <div style="color:#6a8a40;font-size:11px;font-family:'IM Fell English',serif;margin-bottom:16px;font-style:italic;">(Second bonded animal unlocks with Greater Warg Bond at Lvl 10)</div>
     <div id="gwb_cards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">${GREATER_WARG_BOND_ANIMALS.map(a=>`<div class="gwb-card" data-key="${a.key}" style="cursor:pointer;border:2px solid ${cardBorder(a.key)};border-radius:5px;padding:10px 14px;background:${cardBg(a.key)};transition:border .15s,background .15s;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">${a.emoji}</span><span style="font-family:'Cinzel',serif;font-size:12px;color:#d4e8a0;">${a.name}</span>${_picked.includes(a.key)?'<span style="margin-left:auto;color:#8ecf6a;font-size:14px;">✓</span>':''}</div>`).join('')}
@@ -5798,15 +5825,15 @@ function openHomeTurfModal(){
   const o=document.createElement('div');
   o.className='modal-overlay'; o.id='htModal';
   const slotLabels = ['Primary terrain','Second terrain','Third terrain'];
-  function cardBorder(key){ return _picked.includes(key)?'var(--gold)':'rgba(180,140,60,.35)'; }
-  function cardBg(key){ return _picked.includes(key)?'rgba(120,80,0,.35)':'rgba(20,12,0,.5)'; }
+  function cardBorder(key){ return _picked.includes(key)?'var(--sec)':'rgba(180,140,60,.35)'; }
+  function cardBg(key){ return _picked.includes(key)?'color-mix(in srgb,var(--sec) 24%,transparent)':'rgba(20,12,0,.5)'; }
   o.innerHTML=`<div class="modal" style="max-width:500px;padding:30px 36px;">
-    <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Home Turf</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 36px;margin:-30px -36px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);">Home Turf</h2><button onclick="document.getElementById('htModal').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;">&times;</button></div>
     <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:6px;font-style:italic;">Choose up to ${maxPicks} favoured environment${maxPicks>1?'s':''} — click to select, click again to deselect.</div>
     ${maxPicks>1?`<div style="color:#8a7040;font-size:11px;font-family:'IM Fell English',serif;margin-bottom:16px;font-style:italic;">(Second environment unlocks at Lvl 13 · Third at Lvl 19)</div>`:'<div style="margin-bottom:16px;"></div>'}
     <div id="ht_cards" style="display:flex;flex-direction:column;gap:8px;margin-bottom:22px;">${HOME_TURF_ENVIRONMENTS.map(e=>`<div class="ht-card" data-key="${e.key}" style="cursor:pointer;border:2px solid ${cardBorder(e.key)};border-radius:5px;padding:10px 14px;background:${cardBg(e.key)};transition:border .15s,background .15s;display:flex;align-items:center;gap:10px;"><span style="font-family:'Cinzel',serif;font-size:13px;color:var(--text-gold);">${e.name}</span>${_picked.includes(e.key)?`<span data-label="1" style="margin-left:auto;font-family:'IM Fell English',serif;font-size:11px;color:#c8b87a;font-style:italic;">${slotLabels[_picked.indexOf(e.key)]}</span>`:''}</div>`).join('')}</div>
     <div style="display:flex;gap:10px;">
-      <button id="ht_confirm" class="rest-btn" style="flex:1;">✓ Confirm</button>
+      <button id="ht_confirm" class="rest-btn" style="flex:1;border-color:var(--sec);color:var(--sec-text);">✓ Confirm</button>
       <button class="rest-btn" style="background:rgba(80,40,0,.4);" onclick="document.getElementById('htModal').remove()">Cancel</button>
     </div>
   </div>`;
@@ -5899,7 +5926,7 @@ function openUnfaultableExpertModal(){
     }
 
     return `<div class="modal" style="max-width:560px;padding:28px 32px;">
-      <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Unfaultable Expert</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 32px;margin:-28px -32px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">Unfaultable Expert</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
       <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:18px;font-style:italic;">Choose an ability other than Diplomacy. You gain half-proficiency on its skills, and the buff associated with it.</div>
       <div style="display:flex;flex-direction:column;gap:8px;">${abilityCards}</div>
       <div id="ufe_sub_section">${subHTML}</div>
@@ -5957,10 +5984,10 @@ function openMaesterLinkModal(){
   const o = document.createElement('div');
   o.className = 'modal-overlay'; o.id = 'maesterLinkModal';
   let _picked = _maesterLink;
-  function cardBorder(key){ return _picked === key ? 'var(--gold)' : 'rgba(180,140,60,.35)'; }
-  function cardBg(key){ return _picked === key ? 'rgba(120,80,0,.35)' : 'rgba(20,12,0,.5)'; }
+  function cardBorder(key){ return _picked === key ? 'var(--sec)' : 'rgba(180,140,60,.35)'; }
+  function cardBg(key){ return _picked === key ? 'color-mix(in srgb,var(--sec) 24%,transparent)' : 'rgba(20,12,0,.5)'; }
   o.innerHTML = `<div class="modal" style="max-width:540px;padding:30px 36px;">
-    <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Forge Your Chain Link</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 36px;margin:-30px -36px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">Forge Your Chain Link</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:6px;font-style:italic;">At Lvl 10 you forge your specialisation link. Choose wisely — this choice is permanent.</div>
     <div style="color:#8a7040;font-size:11px;font-family:'IM Fell English',serif;margin-bottom:18px;font-style:italic;">Gold & Iron grant an Action feature · Bronze & Valyrian Steel grant a passive feature.</div>
     <div id="ml_cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;">
@@ -6015,7 +6042,7 @@ function openStellarPointsModal(){
   function buildInner(){
     return `<div class="modal" style="max-width:380px;padding:28px 36px;text-align:center;">
       <div style="font-size:28px;margin-bottom:6px;">🌟</div>
-      <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Stellar Points</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 36px;margin:-28px -36px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">Stellar Points</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
       <div style="font-family:'IM Fell English',serif;font-size:12px;color:#c8b87a;font-style:italic;margin-bottom:18px;">Spend a point to roll an extra d20 and choose which to use. Resets on long rest.</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;">
         <button onclick="adjustStellarPoints(-1)" style="width:36px;height:36px;font-size:20px;background:rgba(80,20,20,.5);border:1px solid #883;color:var(--text-gold);cursor:pointer;border-radius:2px;">−</button>
@@ -6049,7 +6076,7 @@ function openWarChestModal(){
     const pips = Array.from({length:10}, (_,i) => `<div style="width:13px;height:13px;border-radius:50%;border:2px solid var(--gold);background:${i < _warChest ? 'var(--gold)' : 'transparent'};transition:background .15s;"></div>`).join('');
     return `<div class="modal" style="max-width:400px;padding:28px 36px;text-align:center;">
       <div style="font-size:28px;margin-bottom:6px;">💰</div>
-      <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">War Chest</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 36px;margin:-28px -36px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">War Chest</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
       <div style="font-family:'IM Fell English',serif;font-size:12px;color:#c8b87a;font-style:italic;margin-bottom:18px;">Envoy Dice stored for allies' attack rolls. Max 10. Distribute up to 2 per Action (within 30 ft).</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px;">
         <button onclick="adjustWarChest(-1)" style="width:36px;height:36px;font-size:20px;background:rgba(80,20,20,.5);border:1px solid #883;color:var(--text-gold);cursor:pointer;border-radius:2px;">−</button>
@@ -6081,10 +6108,10 @@ function openCulturalAmbassadorModal(){
   const o=document.createElement('div');
   o.className='modal-overlay'; o.id='caModal';
   const slotLabels = ['Primary culture','Second culture'];
-  function cardBorder(key){ return _picked.includes(key)?'var(--gold)':'rgba(180,140,60,.35)'; }
-  function cardBg(key){ return _picked.includes(key)?'rgba(120,80,0,.35)':'rgba(20,12,0,.5)'; }
+  function cardBorder(key){ return _picked.includes(key)?'var(--sec)':'rgba(180,140,60,.35)'; }
+  function cardBg(key){ return _picked.includes(key)?'color-mix(in srgb,var(--sec) 24%,transparent)':'rgba(20,12,0,.5)'; }
   o.innerHTML=`<div class="modal" style="max-width:500px;padding:30px 36px;">
-    <div style="font-family:var(--got);font-size:17px;color:var(--text-gold);margin-bottom:6px;">Cultural Ambassador</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 36px;margin:-30px -36px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">Cultural Ambassador</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <div style="color:#c8b87a;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:6px;font-style:italic;">Choose ${maxPicks===2?'up to 2 cultures':'one culture'} to specialise in — you gain advantage on all Persuasion, Intimidation and Negotiation rolls when conferring with someone of that culture.</div>
     ${maxPicks===1?`<div style="color:#8a7040;font-size:11px;font-family:'IM Fell English',serif;margin-bottom:16px;font-style:italic;">(Second culture unlocks at Lvl 17)</div>`:'<div style="margin-bottom:16px;"></div>'}
     <div id="ca_cards" style="display:flex;flex-direction:column;gap:8px;margin-bottom:22px;">${CULTURAL_AMBASSADOR_CULTURES.map(e=>`<div class="ca-card" data-key="${e.key}" style="cursor:pointer;border:2px solid ${cardBorder(e.key)};border-radius:5px;padding:10px 14px;background:${cardBg(e.key)};transition:border .15s,background .15s;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;flex-shrink:0;">${e.emoji}</span><span style="font-family:'Cinzel',serif;font-size:13px;color:var(--text-gold);">${e.name}</span>${_picked.includes(e.key)?`<span data-label="1" style="margin-left:auto;font-family:'IM Fell English',serif;font-size:11px;color:#c8b87a;font-style:italic;">${slotLabels[_picked.indexOf(e.key)]}</span>`:''}</div>`).join('')}</div>
