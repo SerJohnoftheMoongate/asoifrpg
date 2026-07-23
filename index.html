@@ -15,7 +15,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --gold:#b8860b;--gold-lt:#d4a017;--gold-dk:#7a5800;--gold-bg:#8B6A00;--ink-gold:#12100a;--ink-gold-lt:#12100a;--ink-gold-dk:#f5efe2;--ink-gold-bg:#12100a;
+  --gold:#b8860b;--gold-lt:#d4a017;--gold-dk:#7a5800;--gold-bg:#8B6A00;--ink-gold:#12100a;--ink-gold-lt:#12100a;--ink-gold-dk:#f5efe2;--ink-gold-bg:#12100a;--sec:#8f2634;--sec-lt:#b0384a;--sec-dk:#3a0f18;--sec-bg:#50141e;--sec-text:#b23a48;--ink-sec:#f5efe2;--ink-sec-bg:#f5efe2;
   --black:#0a0901;--near-black:#111008;--panel:#1a1400;
   --white:#f5f0e8;--input-bg:#faf7f0;--text-gold:#e8c84a;
   --quote-bg:#8B6A00;--quote-fg:#f5f0e8;
@@ -772,6 +772,42 @@ textarea{resize:none;font-weight:400;font-size:12px}
 #pR{clip-path:path('M22,4 H128 V94 C128,131 105,157 75,167 C45,157 22,131 22,94 Z');}
 .pfr-coat{position:absolute;right:10px;top:10px;width:150px;height:170px;z-index:11;pointer-events:none;}
 .pfr-coat svg{width:100%;height:100%;display:block;}
+
+/* ===== Secondary colour: tag-styled value boxes, checkboxes, buttons & tags ===== */
+.ability-stat-box,.skill-score,.prof-num,.save-inp{
+  background:linear-gradient(to right,color-mix(in srgb,var(--sec) 30%,transparent),color-mix(in srgb,var(--sec) 8%,transparent)) !important;
+  border:1px solid color-mix(in srgb,var(--sec) 55%,transparent) !important;border-radius:3px;overflow:hidden;
+}
+.ability-stat-box input,.skill-score input,.prof-num input,.save-inp input{
+  background:transparent !important;border:none !important;color:color-mix(in srgb,var(--sec-text) 78%,#ffffff) !important;font-weight:700;
+}
+.ability-mod-box{
+  background:linear-gradient(to right,color-mix(in srgb,var(--gold) 32%,transparent),color-mix(in srgb,var(--gold) 9%,transparent)) !important;
+  border:1px solid color-mix(in srgb,var(--gold) 55%,transparent) !important;border-radius:3px;
+}
+.ability-mod-box input{color:color-mix(in srgb,var(--text-gold) 85%,#ffffff) !important;}
+/* Attack button + Add Weapon -> secondary */
+.attack-hex-btn .hex-inner{border-color:var(--sec) !important;}
+.attack-hex-btn .hex-icon{color:var(--sec-text) !important;}
+.attack-hex-btn .hex-label{color:var(--sec-text) !important;}
+.attack-hex-btn:hover .hex-inner{border-color:var(--sec-lt) !important;}
+.attack-hex-btn:hover .hex-icon{color:var(--sec-lt) !important;text-shadow:0 0 8px color-mix(in srgb,var(--sec) 65%,transparent) !important;}
+.attack-hex-btn:hover .hex-label{color:var(--sec-lt) !important;}
+.wpn-add-btn{border-color:var(--sec) !important;color:var(--sec-text) !important;}
+.wpn-add-btn:hover{background:color-mix(in srgb,var(--sec) 20%,transparent) !important;}
+/* Hit Dice tags + LVL tags -> secondary */
+.hp-hitdice .hp-lbl{background:var(--sec-bg) !important;color:var(--ink-sec-bg) !important;border:1px solid var(--sec) !important;}
+.feat-lvl-badge{background:var(--sec-bg) !important;color:var(--ink-sec-bg) !important;border:1px solid var(--sec) !important;}
+.fpk{background:var(--sec-bg) !important;color:var(--ink-sec-bg) !important;border:1px solid var(--sec) !important;}
+/* Checkboxes -> square, primary when empty, secondary + checkmark when selected */
+.skill-check,.save-check,.dot{
+  border-radius:2px !important;background:color-mix(in srgb,var(--gold) 14%,transparent) !important;border:1.5px solid var(--gold) !important;position:relative;
+}
+.skill-check:checked,.save-check:checked,.dot:checked{background:var(--sec) !important;border-color:var(--sec-lt) !important;}
+.skill-check:checked::after,.save-check:checked::after,.dot:checked::after{
+  content:'';position:absolute;left:50%;top:46%;width:3.5px;height:7px;
+  border:solid var(--ink-sec);border-width:0 2px 2px 0;transform:translate(-50%,-50%) rotate(45deg);
+}
 </style>
 </head>
 <body>
@@ -1293,10 +1329,29 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <div class="hp-row hp-temporary"><div class="hp-lbl">Temporary</div><div class="hp-inp"><input type="number" id="hp_temp" placeholder="—"></div></div>
     <div class="hp-row hp-hitdice"><div class="hp-lbl">Hit Dice</div><div class="hp-inp"><input type="text" id="hd_1" readonly placeholder="—" style="height:24px;font-size:13px;text-align:center;font-weight:700;flex:1;background:#2a0a3e;color:#d4a0ff;border-color:#7a2daa;cursor:default"><input type="text" id="hd_2" readonly placeholder="0/0" title="Current / Max hit dice" style="height:24px;font-size:12px;text-align:center;font-weight:700;flex:1;background:#1a1000;color:#e8c84a;border-color:rgba(139,106,0,.5);cursor:default"></div></div>
   </div>
-  <div class="inj-section">
-    <div class="sec">Permanent Injuries</div>
-    <div class="inj-inner">
-      <div class="inj-hdr"><div class="inj-col-lbl">Injury</div><div class="inj-col-lbl">Penalty</div></div><div class="inj-row"><div class="inj-inp"><input type="text" id="inj_1"></div><div class="inj-inp"><input type="text" id="pen_1"></div></div><div class="inj-row"><div class="inj-inp"><input type="text" id="inj_2"></div><div class="inj-inp"><input type="text" id="pen_2"></div></div><div class="inj-row"><div class="inj-inp"><input type="text" id="inj_3"></div><div class="inj-inp"><input type="text" id="pen_3"></div></div><div class="inj-row"><div class="inj-inp"><input type="text" id="inj_4"></div><div class="inj-inp"><input type="text" id="pen_4"></div></div><div class="inj-row"><div class="inj-inp"><input type="text" id="inj_5"></div><div class="inj-inp"><input type="text" id="pen_5"></div></div><div class="inj-row"><div class="inj-inp"><input type="text" id="inj_6"></div><div class="inj-inp"><input type="text" id="pen_6"></div></div>
+  <!-- CONSTITUTION SECTION -->
+  <div class="sec" style="margin-top:6px">Constitution</div>
+  <div style="display:flex;align-items:stretch;border-top:1px solid var(--gold)">
+    <div style="display:flex;align-items:center;gap:6px;padding:6px;flex:1;border-right:1px solid var(--gold)">
+      <div class="hp-icon-row"><img class="hp-icon" src="Images/Menu Icon.webp" style="width:42px;height:42px;border-radius:50%;border:2px solid var(--gold);flex-shrink:0;object-fit:cover"></div>
+      <div style="flex:1">
+        <span class="meta-lbl">Weight</span>
+        <div class="meta-inp" style="height:24px">
+          <select id="weight" onchange="calcConstitution()" style="width:100%;height:100%;font-family:'Cinzel',serif;font-size:10px;font-weight:700;background:var(--input-bg);border:none;color:#1a1000;cursor:pointer">
+            <option value="">— Select weight —</option>
+            <option value="-1">40 - 50 kg</option><option value="0">50 - 60 kg</option>
+            <option value="1">60 - 70 kg</option><option value="2">70 - 80 kg</option>
+            <option value="3">80 - 90 kg</option><option value="4">90 - 100 kg</option>
+            <option value="5">100 - 110 kg</option><option value="0">110 - 120 kg</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 10px;gap:3px;min-width:70px">
+      <span class="meta-lbl" style="font-size:8px">Constitution</span>
+      <div style="width:52px;height:24px;background:var(--gold-bg);border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center">
+        <input type="text" id="constitution_bonus" readonly placeholder="—" style="background:transparent;border:none;width:100%;text-align:center;font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--text-gold);cursor:default">
+      </div>
     </div>
   </div>
   <div class="feats-section">
@@ -1326,31 +1381,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
     </div>
   </div>
 
-  <!-- CONSTITUTION SECTION -->
-  <div class="sec" style="margin-top:6px">Constitution</div>
-  <div style="display:flex;align-items:stretch;border-top:1px solid var(--gold)">
-    <div style="display:flex;align-items:center;gap:6px;padding:6px;flex:1;border-right:1px solid var(--gold)">
-      <div class="hp-icon-row"><img class="hp-icon" src="Images/Menu Icon.webp" style="width:42px;height:42px;border-radius:50%;border:2px solid var(--gold);flex-shrink:0;object-fit:cover"></div>
-      <div style="flex:1">
-        <span class="meta-lbl">Weight</span>
-        <div class="meta-inp" style="height:24px">
-          <select id="weight" onchange="calcConstitution()" style="width:100%;height:100%;font-family:'Cinzel',serif;font-size:10px;font-weight:700;background:var(--input-bg);border:none;color:#1a1000;cursor:pointer">
-            <option value="">— Select weight —</option>
-            <option value="-1">40 - 50 kg</option><option value="0">50 - 60 kg</option>
-            <option value="1">60 - 70 kg</option><option value="2">70 - 80 kg</option>
-            <option value="3">80 - 90 kg</option><option value="4">90 - 100 kg</option>
-            <option value="5">100 - 110 kg</option><option value="0">110 - 120 kg</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 10px;gap:3px;min-width:70px">
-      <span class="meta-lbl" style="font-size:8px">Constitution</span>
-      <div style="width:52px;height:24px;background:var(--gold-bg);border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center">
-        <input type="text" id="constitution_bonus" readonly placeholder="—" style="background:transparent;border:none;width:100%;text-align:center;font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--text-gold);cursor:default">
-      </div>
-    </div>
-  </div>
+  
   </div>
 </div>
 
@@ -1952,28 +1983,36 @@ function doRest(type){
   const srNote=`<p style="font-family:var(--got);font-size:9px;color:${srRemaining===0?'#ff4444':'rgba(232,200,74,.5)'};letter-spacing:.5px;margin-bottom:6px;">${srRemaining===0?'⚠ No short rests remaining today':'Short rests remaining today: '+srRemaining}</p>`;
 
   const hdSection=maxHD>0?`
-    <div style="margin:12px 0;padding:12px;background:rgba(0,0,0,.35);border:1px solid rgba(139,106,0,.4);border-radius:4px;">
-      <p style="font-family:var(--got);font-size:11px;color:var(--gold-lt);margin-bottom:10px;letter-spacing:.5px;">SPEND HIT DICE <span style="opacity:1;color:var(--text-gold);font-size:12px;">(${curHD}/${maxHD} available · ${dieName} each)</span></p>
-      <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
-        <button onclick="adjustHDSpend(-1)" style="width:32px;height:32px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.5);border:none;color:var(--text-gold);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
-        <div style="text-align:center;">
-          <div id="hdSpendNum" style="font-family:var(--got);font-size:28px;color:var(--text-gold);line-height:1;text-shadow:0 0 10px rgba(232,200,74,.5);">0</div>
-          <div style="font-family:var(--got);font-size:8px;color:rgba(232,200,74,.4);letter-spacing:1px;margin-top:2px;">DICE TO SPEND</div>
+    <div style="margin:2px 0 16px;padding:14px 16px;background:rgba(0,0,0,.3);border:1px solid var(--gold-dk);border-radius:4px;">
+      <p style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:1px;text-transform:uppercase;text-align:center;margin:0 0 12px;">Spend Hit Dice <span style="color:var(--text-gold);">(${curHD}/${maxHD} \u00b7 ${dieName})</span></p>
+      <div style="display:flex;align-items:center;justify-content:center;gap:18px;">
+        <button onclick="adjustHDSpend(-1)" style="width:34px;height:34px;border-radius:50%;background:var(--gold-bg);border:1px solid var(--gold);color:var(--ink-gold-bg);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">\u2212</button>
+        <div style="text-align:center;min-width:58px;">
+          <div id="hdSpendNum" style="font-family:var(--got);font-size:30px;color:var(--text-gold);line-height:1;">0</div>
+          <div style="font-family:var(--got);font-size:8px;color:var(--gold-lt);letter-spacing:1.5px;margin-top:3px;">DICE</div>
         </div>
-        <button onclick="adjustHDSpend(+1)" style="width:32px;height:32px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:rgba(139,106,0,.5);border:none;color:var(--text-gold);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        <button onclick="adjustHDSpend(+1)" style="width:34px;height:34px;border-radius:50%;background:var(--gold-bg);border:1px solid var(--gold);color:var(--ink-gold-bg);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
       </div>
     </div>
-    <button onclick="confirmShortRest()" style="margin-right:8px;">Confirm &amp; Rest</button>`
-    :`<p style="color:#888;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:16px;">No hit dice available.</p><button onclick="this.closest('.modal-overlay').remove()" style="margin-right:8px;">Close</button>`;
+    <div style="display:flex;gap:10px;">
+      <button onclick="confirmShortRest()" style="flex:1;">Confirm &amp; Rest</button>
+      <button onclick="document.getElementById('restModal').remove()" style="flex:1;background:rgba(40,30,10,.4);color:#888;border-color:rgba(100,80,0,.3);">Cancel</button>
+    </div>`
+    :`<p style="color:#888;font-size:12px;font-family:'IM Fell English',serif;margin-bottom:16px;text-align:center;">No hit dice available.</p><button onclick="this.closest('.modal-overlay').remove()" style="width:100%;">Close</button>`;
 
   const o=document.createElement('div');o.className='modal-overlay';
   o.id='restModal';
-  o.innerHTML=`<div class="modal" style="max-width:560px;padding:30px 48px;">
-    <h2 style="font-size:22px;margin-bottom:8px;">⚔ Short Rest</h2>
-    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:15px;color:var(--text-gold);line-height:1.6;margin:0 auto 10px;max-width:300px;text-align:center;"><em>"Sleep is good. And books are better."</em><br><span style="font-size:13px;opacity:.85">~ Tyrion Lannister</span></p>
-    ${srNote}
-    ${hdSection}
-    ${maxHD>0?`<button onclick="document.getElementById('restModal').remove()" style="background:rgba(80,50,4,.4);color:#888;border:1px solid rgba(139,106,0,.3);margin-top:6px;">Cancel</button>`:''}
+  o.innerHTML=`<div class="modal" style="max-width:440px;padding:0;overflow:hidden;text-align:left;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);">
+      <h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);">Short Rest</h2>
+      <button onclick="document.getElementById('restModal').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;">&times;</button>
+    </div>
+    <div style="padding:20px 26px 24px;">
+      <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:var(--text-gold);line-height:1.5;text-align:center;margin:0 0 3px;opacity:.9;"><em>"Sleep is good. And books are better."</em></p>
+      <p style="font-family:var(--got);font-size:9px;color:var(--gold-lt);letter-spacing:1px;text-align:center;margin:0 0 14px;">~ Tyrion Lannister</p>
+      ${srNote}
+      ${hdSection}
+    </div>
   </div>`;
   document.body.appendChild(o);
   o.onclick=e=>{if(e.target===o)o.remove()};
@@ -2633,6 +2672,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Load saved data FIRST so repVal is set before updateRepDial(0) would clobber it
   load();
   loadAccentColour(); // apply accent if not already set by load()
+  loadSecondaryColour();
   updateLevel();
   document.getElementById('repDialSvg').addEventListener('wheel',e=>{e.preventDefault();changeRep(e.deltaY<0?1:-1);},{passive:false});
 });
@@ -4317,6 +4357,27 @@ function applyAccentColour(hex){
   // also update glow rgba references in inline tick/dial (approximated)
   try{localStorage.setItem('cs_accent',hex);}catch(e){}
 }
+function applySecondaryColour(hex){
+  const [h,s,l]=hexToHSL(hex);
+  const root=document.documentElement;
+  var _s=hslToHex(h,Math.min(s+10,100),Math.max(l-15,10));
+  var _slt=hslToHex(h,Math.min(s+5,100), Math.max(l-5,10));
+  var _sdk=hslToHex(h,Math.min(s+15,100),Math.max(l-35,5));
+  var _sbg=hslToHex(h,Math.min(s+10,100),Math.max(l-30,5));
+  root.style.setProperty('--sec',      _s);
+  root.style.setProperty('--sec-lt',   _slt);
+  root.style.setProperty('--sec-dk',   _sdk);
+  root.style.setProperty('--sec-bg',   _sbg);
+  root.style.setProperty('--sec-text', hex);
+  root.style.setProperty('--ink-sec',    _accentInk(_s));
+  root.style.setProperty('--ink-sec-bg', _accentInk(_sbg));
+  try{localStorage.setItem('cs_accent2',hex);}catch(e){}
+}
+function loadSecondaryColour(){
+  var c='#b23a48';
+  try{var v=localStorage.getItem('cs_accent2'); if(v) c=v;}catch(e){}
+  applySecondaryColour(c);
+}
 function loadAccentColour(){
   try{const c=localStorage.getItem('cs_accent');if(c)applyAccentColour(c);}catch(e){}
 }
@@ -4337,12 +4398,18 @@ const PRESET_COLOURS=[
 function openEditModal(){
   let currentHex='#e8c84a';
   try{const c=localStorage.getItem('cs_accent');if(c)currentHex=c;}catch(e){}
+  let currentSec='#b23a48';
+  try{const c2=localStorage.getItem('cs_accent2');if(c2)currentSec=c2;}catch(e){}
   const presetHTML=PRESET_COLOURS.map(p=>`
     <div onclick="document.getElementById('accentPicker').value='${p.hex}';previewAccent('${p.hex}')"
       title="${p.name}"
       style="width:28px;height:28px;border-radius:50%;background:${p.hex};cursor:pointer;border:2px solid rgba(0,0,0,.4);box-shadow:0 0 6px rgba(0,0,0,.5);transition:transform .15s;flex-shrink:0;"
       onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'">
     </div>`).join('');
+  const presetHTMLSec=PRESET_COLOURS.map(p=>`
+    <div onclick="document.getElementById('secPicker').value='${p.hex}';previewSecondary('${p.hex}')" title="${p.name}"
+      style="width:26px;height:26px;border-radius:50%;background:${p.hex};cursor:pointer;border:2px solid rgba(0,0,0,.4);box-shadow:0 0 6px rgba(0,0,0,.5);transition:transform .15s;flex-shrink:0;"
+      onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'"></div>`).join('');
 
   const o=document.createElement('div');o.className='modal-overlay';o.id='editModal';
   o.innerHTML=`<div class="modal" style="max-width:520px;padding:30px 42px;">
@@ -4351,7 +4418,7 @@ function openEditModal(){
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:15px;color:var(--text-gold);line-height:1.7;margin-bottom:6px;opacity:.85;">"All the color had been leached from Winterfell until only grey and white remained. The Stark colors."</p>
     <p style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:20px;">~ Theon Greyjoy</p>
 
-    <p style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:10px;">PRESETS</p>
+    <p style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:10px;">PRIMARY COLOUR</p>
     <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;">${presetHTML}</div>
 
     <p style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:8px;">CUSTOM COLOUR</p>
@@ -4363,6 +4430,14 @@ function openEditModal(){
       <div id="accentPreviewSwatch" style="flex:1;height:36px;border-radius:3px;border:1px solid rgba(255,255,255,.2);background:${currentHex};"></div>
     </div>
 
+    <p style="font-family:var(--got);font-size:10px;color:var(--sec-text);letter-spacing:.8px;margin:2px 0 10px;">SECONDARY COLOUR <span style="opacity:.6;text-transform:none;font-family:'IM Fell English',serif;font-style:italic;letter-spacing:0;">(stat boxes, checkboxes, attack &amp; add-weapon, hit-dice &amp; level tags)</span></p>
+    <div style="display:flex;flex-wrap:wrap;gap:9px;margin-bottom:14px;">${presetHTMLSec}</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;">
+      <input type="color" id="secPicker" value="${currentSec}" oninput="previewSecondary(this.value)"
+        style="width:52px;height:40px;border:2px solid var(--sec);background:none;cursor:pointer;border-radius:4px;padding:2px;">
+      <span id="secHexLabel" style="font-family:var(--got);font-size:12px;color:var(--sec-text);letter-spacing:1px;">${currentSec.toUpperCase()}</span>
+      <div id="secPreviewSwatch" style="flex:1;height:36px;border-radius:3px;border:1px solid rgba(255,255,255,.2);background:${currentSec};"></div>
+    </div>
     <div style="display:flex;gap:10px;">
       <button onclick="confirmAccent()" style="flex:1;">Apply</button>
       <button onclick="resetAccent()" style="flex:1;background:rgba(80,50,4,.3);color:#aaa;border-color:rgba(139,106,0,.3);">Reset to Gold</button>
@@ -4379,9 +4454,18 @@ function previewAccent(hex){
   if(lbl)lbl.textContent=hex.toUpperCase();
   if(sw)sw.style.background=hex;
 }
+function previewSecondary(hex){
+  applySecondaryColour(hex);
+  const lbl=document.getElementById('secHexLabel');
+  const sw=document.getElementById('secPreviewSwatch');
+  if(lbl)lbl.textContent=hex.toUpperCase();
+  if(sw)sw.style.background=hex;
+}
 function confirmAccent(){
   const picker=document.getElementById('accentPicker');
   if(picker){applyAccentColour(picker.value);try{localStorage.setItem('cs_accent',picker.value);}catch(e){}}
+  const sp=document.getElementById('secPicker');
+  if(sp){applySecondaryColour(sp.value);try{localStorage.setItem('cs_accent2',sp.value);}catch(e){}}
   document.getElementById('editModal').remove();
 }
 function resetAccent(){
@@ -4398,8 +4482,13 @@ function resetAccent(){
   document.documentElement.style.setProperty('--quote-bg','#8B6A00');
   document.documentElement.style.setProperty('--quote-fg','#f5f0e8');
   try{localStorage.removeItem('cs_accent');}catch(e){}
+  const secDef='#b23a48';
+  try{localStorage.removeItem('cs_accent2');}catch(e){}
+  applySecondaryColour(secDef);
   const picker=document.getElementById('accentPicker');
   if(picker){picker.value=def;previewAccent(def);}
+  const sp=document.getElementById('secPicker');
+  if(sp){sp.value=secDef;previewSecondary(secDef);}
 }
 
 
