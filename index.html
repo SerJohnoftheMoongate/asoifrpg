@@ -203,10 +203,10 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .feats-inner{padding:5px}
 .feat-inp{height:24px;margin-bottom:3px}
 .feat-inp input{height:100%;font-size:13px}
-.feat-inp input[readonly]{cursor:pointer!important;color:var(--text-gold);}
+.feat-inp input[readonly]{cursor:pointer!important;color:var(--sec-text);}
 .feat-inp input[readonly]::placeholder{color:#e8c84a;font-style:italic;font-weight:700;}
 .feat-desc{font-family:'IM Fell English',serif;font-size:11px;color:#bbb;line-height:1.45;
-           padding:4px 6px 5px;border-left:2px solid rgba(139,106,0,.4);
+           padding:4px 6px 5px;border-left:2px solid var(--sec);
            margin:0 0 5px 2px;display:none;}
 .feat-desc.has-feat{display:block;}
 .feat-desc .feat-bonus-badge{display:inline-block;font-family:var(--got);font-size:8px;color:#8ecf6a;
@@ -808,6 +808,40 @@ textarea{resize:none;font-weight:400;font-size:12px}
   content:'';position:absolute;left:50%;top:46%;width:3.5px;height:7px;
   border:solid var(--ink-sec);border-width:0 2px 2px 0;transform:translate(-50%,-50%) rotate(45deg);
 }
+
+/* ===== Task B: secondary colour on Initiative, Movement, attack hex rim, weapon-card borders, feat prompt ===== */
+#initiative,#movement{
+  background:linear-gradient(to right,color-mix(in srgb,var(--sec) 30%,transparent),color-mix(in srgb,var(--sec) 8%,transparent)) !important;
+  border:1px solid color-mix(in srgb,var(--sec) 55%,transparent) !important;border-radius:3px;
+  color:color-mix(in srgb,var(--sec-text) 78%,#ffffff) !important;font-weight:700;text-align:center;
+}
+.attack-hex-btn{background:linear-gradient(135deg,var(--sec-lt) 0%,var(--sec) 50%,var(--sec-lt) 100%) !important;}
+.wpn-card{border-color:color-mix(in srgb,var(--sec) 55%,transparent);border-left-color:var(--sec);}
+.wpn-card:hover{border-color:var(--sec-lt);}
+.feat-inp input[readonly]::placeholder{color:var(--sec-text) !important;}
+
+/* ===== Select Proficiencies button + summary + pop-up ===== */
+.prof-select-btn{width:100%;font-family:var(--got);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-gold);background:var(--near-black);border:2px solid var(--gold);padding:8px;cursor:pointer;transition:all .15s;}
+.prof-select-btn:hover{background:var(--gold-bg);color:var(--ink-gold-bg);border-color:var(--gold-lt);}
+.prof-summary{display:flex;flex-direction:column;gap:7px;margin-top:8px;}
+.prof-sum-head{font-family:var(--got);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-lt);margin-bottom:3px;}
+.prof-sum-tags{display:flex;flex-wrap:wrap;gap:4px;}
+.prof-sum-tag{font-family:var(--got);font-size:8.5px;letter-spacing:.3px;padding:2px 6px;border-radius:2px;border:1px solid;white-space:nowrap;}
+.prof-sum-empty{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.35);}
+.prof-cat-tab{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:var(--got);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-lt);background:rgba(0,0,0,.25);border:1px solid var(--gold-dk);border-radius:3px;padding:11px 12px;cursor:pointer;transition:all .15s;}
+.prof-cat-tab:hover{background:rgba(139,106,0,.18);}
+.prof-cat-tab.active{background:var(--gold-bg);color:var(--ink-gold-bg);border-color:var(--gold);}
+.prof-cat-count{font-family:var(--got);font-size:9px;background:var(--sec);color:var(--ink-sec);border-radius:8px;padding:1px 6px;min-width:14px;text-align:center;}
+.prof-opt{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border:1px solid var(--gold-dk);border-radius:3px;background:rgba(0,0,0,.2);cursor:pointer;transition:all .15s;}
+.prof-opt:hover{background:rgba(139,106,0,.12);}
+.prof-opt.on{border-color:var(--sec);background:color-mix(in srgb,var(--sec) 16%,transparent);}
+.prof-opt-check{flex:0 0 auto;width:16px;height:16px;border-radius:2px;border:1.5px solid var(--gold);margin-top:1px;position:relative;background:color-mix(in srgb,var(--gold) 14%,transparent);}
+.prof-opt.on .prof-opt-check{background:var(--sec);border-color:var(--sec-lt);}
+.prof-opt.on .prof-opt-check::after{content:'';position:absolute;left:50%;top:46%;width:3.5px;height:7px;border:solid var(--ink-sec);border-width:0 2px 2px 0;transform:translate(-50%,-50%) rotate(45deg);}
+.prof-opt-body{flex:1;min-width:0;}
+.prof-opt-name{font-family:var(--got);font-size:12px;letter-spacing:.5px;color:var(--text-gold);}
+.prof-opt.on .prof-opt-name{color:var(--sec-text);}
+.prof-opt-desc{font-family:'IM Fell English',serif;font-size:11.5px;color:#c8bb92;line-height:1.4;margin-top:2px;}
 </style>
 </head>
 <body>
@@ -1163,41 +1197,20 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div class="prof-section">
     <div class="sec">Proficiencies</div>
     <div class="prof-section-inner">
-      <div class="prof-field">
-        <div class="prof-field-lbl">Weapons:</div>
-        <div id="wpn_prof_display" onclick="openWeaponProfModal()" title="Click to edit weapon proficiencies"
-          style="min-height:30px;border:1px solid var(--gold);padding:4px 6px;cursor:pointer;
-                 background:rgba(10,8,0,.55);display:flex;align-items:center;flex-wrap:wrap;gap:4px;
-                 transition:background .15s;"
-          onmouseover="this.style.background='rgba(139,106,0,.2)'"
-          onmouseout="this.style.background='rgba(10,8,0,.55)'">
-          <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;
-                       color:rgba(232,200,74,.35);">None selected</span>
-        </div>
-        <!-- Hidden checkboxes — auto-saved by _collectSheetData -->
-        <input type="checkbox" id="prof_wpn_simple_melee"   style="display:none">
-        <input type="checkbox" id="prof_wpn_simple_ranged"  style="display:none">
-        <input type="checkbox" id="prof_wpn_martial_melee"  style="display:none">
-        <input type="checkbox" id="prof_wpn_martial_ranged" style="display:none">
-        <input type="checkbox" id="prof_wpn_unique"         style="display:none">
+      <div style="display:none">
+        <input type="checkbox" id="prof_wpn_simple_melee">
+        <input type="checkbox" id="prof_wpn_simple_ranged">
+        <input type="checkbox" id="prof_wpn_martial_melee">
+        <input type="checkbox" id="prof_wpn_martial_ranged">
+        <input type="checkbox" id="prof_wpn_unique">
+        <input type="checkbox" id="prof_other_reading">
+        <input type="checkbox" id="prof_other_writing">
+        <input type="checkbox" id="prof_other_swimming">
+        <textarea id="tools"></textarea>
+        <textarea id="languages"></textarea>
       </div>
-      <div class="prof-field"><div class="prof-field-lbl">Tools:</div><textarea id="tools" rows="2"></textarea></div>
-      <div class="prof-field"><div class="prof-field-lbl">Languages:</div><textarea id="languages" rows="2"></textarea></div>
-      <div class="prof-field">
-        <div class="prof-field-lbl">Other:</div>
-        <div id="other_prof_display" onclick="openOtherProfModal()" title="Click to edit other proficiencies"
-          style="min-height:30px;border:1px solid var(--gold);padding:4px 6px;cursor:pointer;
-                 background:rgba(10,8,0,.55);display:flex;align-items:center;flex-wrap:wrap;gap:4px;
-                 transition:background .15s;"
-          onmouseover="this.style.background='rgba(139,106,0,.2)'"
-          onmouseout="this.style.background='rgba(10,8,0,.55)'">
-          <span style="font-family:'IM Fell English',serif;font-style:italic;font-size:11px;
-                       color:rgba(232,200,74,.35);">None selected</span>
-        </div>
-        <input type="checkbox" id="prof_other_reading"  style="display:none">
-        <input type="checkbox" id="prof_other_writing"  style="display:none">
-        <input type="checkbox" id="prof_other_swimming" style="display:none">
-      </div>
+      <button class="prof-select-btn" onclick="openProfModal()">Select Proficiencies</button>
+      <div id="prof_summary" class="prof-summary"></div>
     </div>
   </div>
   <!-- Hidden weapon category inputs (auto-saved) -->
@@ -1349,8 +1362,8 @@ textarea{resize:none;font-weight:400;font-size:12px}
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 10px;gap:3px;min-width:70px">
       <span class="meta-lbl" style="font-size:8px">Constitution</span>
-      <div style="width:52px;height:24px;background:var(--gold-bg);border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center">
-        <input type="text" id="constitution_bonus" readonly placeholder="—" style="background:transparent;border:none;width:100%;text-align:center;font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--text-gold);cursor:default">
+      <div style="width:52px;height:24px;background:var(--sec-bg);border:1.5px solid var(--sec);display:flex;align-items:center;justify-content:center">
+        <input type="text" id="constitution_bonus" readonly placeholder="—" style="background:transparent;border:none;width:100%;text-align:center;font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--sec-text);cursor:default">
       </div>
     </div>
   </div>
@@ -1376,7 +1389,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
       </div>
       <div id="origin_feat_desc" class="feat-desc has-feat"
         style="display:block;font-family:'IM Fell English',serif;font-size:11px;color:#bbb;
-               line-height:1.45;padding:4px 6px 5px;border-left:2px solid rgba(139,106,0,.4);
+               line-height:1.45;padding:4px 6px 5px;border-left:2px solid var(--sec);
                margin:0 0 0 2px;"></div>
     </div>
   </div>
@@ -2860,6 +2873,7 @@ function load(){
   try { if(d._cs_feat_bonuses !== undefined) _appliedFeatBonuses = d._cs_feat_bonuses; } catch(e){}
   updateWpnProfDisplay();
   updateOtherProfDisplay();
+  try{updateProfSummary();}catch(e){}
   refreshWeaponProfColors();
   refreshAllWeaponTags();
   refreshAllWeaponConditionDots();
@@ -3071,6 +3085,99 @@ const OTHER_PROF_DEFS = [
   { id: 'prof_other_writing',  label: 'Writing',  color: 'rgba(100,180,220,.9)' },
   { id: 'prof_other_swimming', label: 'Swimming', color: 'rgba(80,160,200,.9)'  },
 ];
+
+// ===== Unified Proficiencies pop-up (aspect-modal style) =====
+const TOOLKIT_DEFS=["Alchemist's Supplies","Brewer's Supplies","Calligrapher's Supplies","Carpenter's Tool","Cartographer's Tool","Cobbler's Tool","Cook's Utensils","Disguise Kit","Forgery Kit","Fletching Kit","Gaming Kit","Glassblower's Tool","Herbalism Kit","Jeweler's Tool","Leatherworker's Tools","Mason's Tool","Navigator's Tool","Painter's Supplies","Poisoner's Kit","Potter's Tool","Smith's Tool","Thieves' Tool","Tinker's Tool","Weaver's Tools","Weapons Kit"];
+const LANGUAGE_DEFS=[
+ {name:"Common Tongue", desc:"The shared speech of the Seven Kingdoms, from Dorne to the Wall."},
+ {name:"The Old Tongue", desc:"Ancient speech of the First Men, kept by giants and free folk beyond the Wall."},
+ {name:"High Valyrian", desc:"The refined tongue of old Valyria, taught to the highborn and to maesters."},
+ {name:"Low Valyrian", desc:"The everyday bastard dialects spoken across the Free Cities and the east."},
+ {name:"Dothraki", desc:"The harsh riding-tongue of the horselords of the great grass sea."},
+ {name:"Lhazareen", desc:"The soft, singsong speech of the Lamb Men of Lhazar."},
+ {name:"Old Ghiscari", desc:"A near-dead tongue of fallen Ghis, surviving in glyphs and a few old mouths."},
+ {name:"Summer Tongue", desc:"The melodic language of the distant Summer Isles."},
+ {name:"Ibbenese", desc:"A guttural, grunting tongue from the cold isle of Ib."},
+ {name:"Speech of Asshai", desc:"The strange tongue of the shadow city, said to give shape to spells."},
+ {name:"Trade Talk", desc:"A rough dockside argot of a dozen tongues and hand-signs."},
+ {name:"Rhoynish", desc:"The old river-tongue of the Rhoynar, whispered by the orphans of the Greenblood."},
+ {name:"True Tongue", desc:"The song-speech of the children of the forest, taught to some ravens."},
+ {name:"Skroth", desc:"The ice-cracking speech of the Others, out of the haunted North."}
+];
+const PROF_CATS=[{key:"weapons",label:"Weapons"},{key:"toolkits",label:"Toolkits"},{key:"languages",label:"Languages"},{key:"other",label:"Other"}];
+let _profActiveCat="weapons";
+function _profEsc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function _profGetCSV(id){var e=document.getElementById(id); if(!e||!e.value)return []; return e.value.split(",").map(function(s){return s.trim();}).filter(Boolean);}
+function _profSetCSV(id,arr){var e=document.getElementById(id); if(e)e.value=arr.join(", ");}
+function _profCsvHas(id,name){return _profGetCSV(id).indexOf(name)!==-1;}
+function _profCsvToggle(id,name){var a=_profGetCSV(id); var i=a.indexOf(name); if(i===-1)a.push(name); else a.splice(i,1); _profSetCSV(id,a);}
+function _profCount(cat){
+  if(cat==="weapons") return WPN_PROF_DEFS.filter(function(p){var e=document.getElementById(p.id);return e&&e.checked;}).length;
+  if(cat==="other")   return OTHER_PROF_DEFS.filter(function(p){var e=document.getElementById(p.id);return e&&e.checked;}).length;
+  if(cat==="toolkits")return _profGetCSV("tools").length;
+  if(cat==="languages")return _profGetCSV("languages").length;
+  return 0;
+}
+window.openProfModal=function(){
+  var m=document.getElementById("profModal");
+  if(!m){
+    m=document.createElement("div"); m.id="profModal"; m.className="asp-overlay";
+    m.onclick=function(e){if(e.target===m)closeProfModal();};
+    m.innerHTML='<div class="asp-modal" onclick="event.stopPropagation()">'+
+      '<div class="asp-head"><h3>Proficiencies</h3><button class="asp-x" onclick="closeProfModal()" title="Close">&times;</button></div>'+
+      '<div class="asp-cols"><div class="asp-left" id="profCats"></div><div class="asp-right" id="profOpts"></div></div></div>';
+    document.body.appendChild(m);
+  }
+  m.style.display="flex"; renderProfCats(); profSwitchCat(_profActiveCat);
+};
+window.closeProfModal=function(){var m=document.getElementById("profModal"); if(m)m.style.display="none"; updateProfSummary();};
+function renderProfCats(){
+  var box=document.getElementById("profCats"); if(!box)return;
+  box.innerHTML=PROF_CATS.map(function(c){
+    var n=_profCount(c.key);
+    return '<div class="prof-cat-tab'+(c.key===_profActiveCat?" active":"")+'" onclick="profSwitchCat(\''+c.key+'\')"><span>'+c.label+'</span>'+(n>0?'<span class="prof-cat-count">'+n+'</span>':'')+'</div>';
+  }).join("");
+}
+function _profOpt(onclick,name,desc,on){
+  return '<div class="prof-opt'+(on?" on":"")+'" onclick="'+onclick+'"><div class="prof-opt-check"></div><div class="prof-opt-body"><div class="prof-opt-name">'+_profEsc(name)+'</div>'+(desc?'<div class="prof-opt-desc">'+_profEsc(desc)+'</div>':"")+'</div></div>';
+}
+window.profSwitchCat=function(cat){
+  _profActiveCat=cat; renderProfCats();
+  var box=document.getElementById("profOpts"); if(!box)return; var html="";
+  if(cat==="weapons"){
+    html=WPN_PROF_DEFS.map(function(p){var e=document.getElementById(p.id);var on=e&&e.checked;return _profOpt("toggleProfCB('"+p.id+"',this)",p.label,"",on);}).join("");
+  } else if(cat==="other"){
+    html=OTHER_PROF_DEFS.map(function(p){var e=document.getElementById(p.id);var on=e&&e.checked;return _profOpt("toggleProfCB('"+p.id+"',this)",p.label,"",on);}).join("");
+  } else if(cat==="toolkits"){
+    html=TOOLKIT_DEFS.map(function(name,i){var on=_profCsvHas("tools",name);return _profOpt("toggleProfCSV('tools',"+i+",this)",name,"",on);}).join("");
+  } else if(cat==="languages"){
+    html=LANGUAGE_DEFS.map(function(l,i){var on=_profCsvHas("languages",l.name);return _profOpt("toggleProfCSV('languages',"+i+",this)",l.name,l.desc,on);}).join("");
+  }
+  box.innerHTML=html;
+};
+window.toggleProfCB=function(id,el){var cb=document.getElementById(id); if(!cb)return; cb.checked=!cb.checked; el.classList.toggle("on",cb.checked); _profAfterToggle();};
+window.toggleProfCSV=function(field,idx,el){var name=field==="tools"?TOOLKIT_DEFS[idx]:LANGUAGE_DEFS[idx].name; _profCsvToggle(field,name); el.classList.toggle("on",_profCsvHas(field,name)); _profAfterToggle();};
+function _profAfterToggle(){
+  renderProfCats(); updateProfSummary();
+  try{ if(typeof updateWpnProfDisplay==="function")updateWpnProfDisplay(); }catch(e){}
+  try{ if(typeof updateOtherProfDisplay==="function")updateOtherProfDisplay(); }catch(e){}
+  try{ if(typeof save==="function")save(); }catch(e){}
+}
+function updateProfSummary(){
+  var box=document.getElementById("prof_summary"); if(!box)return;
+  var groups=[
+    {label:"Weapons",   color:"var(--sec)",    items:WPN_PROF_DEFS.filter(function(p){var e=document.getElementById(p.id);return e&&e.checked;}).map(function(p){return p.label;})},
+    {label:"Tools",     color:"var(--gold-lt)", items:_profGetCSV("tools")},
+    {label:"Languages", color:"#6fb0d0",        items:_profGetCSV("languages")},
+    {label:"Other",     color:"#78c8a0",        items:OTHER_PROF_DEFS.filter(function(p){var e=document.getElementById(p.id);return e&&e.checked;}).map(function(p){return p.label;})}
+  ];
+  if(!groups.some(function(g){return g.items.length>0;})){box.innerHTML='<span class="prof-sum-empty">No proficiencies selected. Click to choose.</span>'; return;}
+  box.innerHTML=groups.filter(function(g){return g.items.length>0;}).map(function(g){
+    var tags=g.items.map(function(t){return '<span class="prof-sum-tag" style="color:'+g.color+';border-color:'+g.color+';background:color-mix(in srgb,'+g.color+' 14%,transparent);">'+_profEsc(t)+'</span>';}).join("");
+    return '<div class="prof-sum-group"><div class="prof-sum-head">'+g.label+'</div><div class="prof-sum-tags">'+tags+'</div></div>';
+  }).join("");
+}
+
 
 function updateOtherProfDisplay() {
   const disp = document.getElementById('other_prof_display');
