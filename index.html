@@ -856,6 +856,28 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .feat-card-bonus{font-family:var(--got);font-size:8px;color:#8ecf6a;border:1px solid rgba(100,180,80,.4);background:rgba(20,50,10,.35);padding:1px 5px;border-radius:2px;flex-shrink:0;}
 .feat-card-desc{font-family:'IM Fell English',serif;font-size:11px;color:#c8bb92;line-height:1.4;}
 .prof-opt.feat-disabled{opacity:.4;cursor:not-allowed;}
+
+/* ===== Feature cards (Character-Aspect style) ===== */
+.feat-block[data-spec-slot]{border:1px solid var(--gold-dk);border-left:3px solid var(--sec);border-radius:3px;background:linear-gradient(140deg,rgba(28,18,2,.5),rgba(10,5,0,.7));padding:8px 9px;margin:6px 0;}
+.feat-block[data-spec-slot] .feat-short,.feat-block[data-spec-slot] .feat-textarea{display:none!important;}
+.feat-block[data-spec-slot] .fcard{order:0;display:flex;flex-direction:column;}
+.feat-block[data-spec-slot] .feat-top{order:2;justify-content:flex-end;gap:4px;background:none!important;padding:5px 0 0;border:none!important;}
+.feat-block[data-spec-slot] .feat-dots-row{order:3;border:none!important;padding-top:4px;}
+.feat-block[data-spec-slot] > button{order:4;}
+.fcard-head{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:5px;}
+.fcard-tag{font-family:var(--got);font-size:8px;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:2px;border:1px solid;}
+.fcard-tag.ft-class{color:#f4d8bd;border-color:rgba(201,119,46,.6);background:rgba(201,119,46,.16);}
+.fcard-tag.ft-spec{color:#e2d2f2;border-color:rgba(155,108,201,.6);background:rgba(155,108,201,.16);}
+.fcard-lvl{font-family:var(--got);font-size:8px;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:2px;color:var(--text-gold);border:1px solid var(--gold-dk);background:rgba(139,106,0,.18);}
+.fcard-title{font-family:var(--got);font-size:12px;letter-spacing:.4px;color:var(--sec-text);flex:1 1 100%;margin-top:1px;}
+.fcard-intro{font-family:'IM Fell English',serif;font-size:11.5px;color:#d8cba0;line-height:1.45;margin:0 0 5px;}
+.fcard-bh{font-family:var(--got);font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-lt);margin-bottom:2px;}
+.fcard-buffs{margin:0 0 2px;padding-left:15px;}
+.fcard-buffs li{font-family:'IM Fell English',serif;font-size:11px;color:#c8bb92;line-height:1.4;margin-bottom:1px;}
+/* choice/pick buttons -> Select-Aspects style */
+.feat-block[data-spec-slot] > button.rest-btn,.feat-block[data-spec-slot] > button.fs-pick-btn,.feat-block[data-spec-slot] > button.ht-pick-btn,.feat-block[data-spec-slot] > button.mnvr-pick-btn,.feat-block[data-spec-slot] > button.oath-pick-btn,.feat-block[data-spec-slot] > button.asp-pick-btn,.feat-block[data-spec-slot] > button.cod-popup-btn,.feat-block[data-spec-slot] > button.merchant-tg-btn,.feat-block[data-spec-slot] > button.wb-small-btn,.feat-block[data-spec-slot] > button.wb-large-btn,.feat-block[data-spec-slot] > button.ml-pick-btn,.feat-block[data-spec-slot] > button.ca-pick-btn,.feat-block[data-spec-slot] > button.ufe-pick-btn{
+  width:100%!important;margin-top:7px!important;font-family:var(--got)!important;font-size:10px!important;letter-spacing:1px!important;text-transform:uppercase!important;color:var(--sec-text)!important;background:var(--near-black)!important;border:2px solid var(--sec)!important;border-radius:2px!important;padding:7px 8px!important;cursor:pointer;transition:all .15s;}
+.feat-block[data-spec-slot] > button[class*="pick"]:hover,.feat-block[data-spec-slot] > button.rest-btn:hover{background:color-mix(in srgb,var(--sec) 20%,transparent)!important;}
 </style>
 </head>
 <body>
@@ -3092,6 +3114,36 @@ function updateFeatCards(){
       (bonus?'<span class="feat-card-bonus">'+_profEsc(bonus)+'</span>':'')+'</div>'+
       '<div class="feat-card-desc">'+_profEsc(f.desc)+'</div></div>';
   }).join('');
+}
+
+
+// ===== Feature cards: Character-Aspect-style rendering of the feature column =====
+function _featSplit(desc){
+  var d=String(desc||'').trim(); if(!d) return {intro:'',bullets:[]};
+  var parts=d.split(/(?<=[.!?])\s+/).filter(Boolean);
+  return {intro:(parts[0]||''), bullets:parts.slice(1)};
+}
+function styleFeatureCards(){
+  document.querySelectorAll('.feat-block[data-spec-slot]').forEach(function(block){
+    var old=block.querySelector('.fcard'); if(old) old.remove();
+    if(block.style.display==='none' || block.classList.contains('spec-locked')) return;
+    var nameEl=block.querySelector('.feat-short input');
+    var taEl=block.querySelector('.feat-textarea textarea');
+    if(!nameEl || !nameEl.value.trim()) return;
+    var raw=nameEl.value; var m=raw.match(/^Lvl\s*(\d+)\s*\u00b7\s*([\s\S]*)$/);
+    var lvl=m?m[1]:''; var name=m?m[2]:raw;
+    var source=block.dataset.featSource||''; var stype=block.dataset.featSourceType||'';
+    var s=_featSplit(taEl?taEl.value:'');
+    var card=document.createElement('div'); card.className='fcard';
+    card.innerHTML='<div class="fcard-head">'
+      +(source?'<span class="fcard-tag ft-'+(stype||'class')+'">'+_profEsc(source)+'</span>':'')
+      +(lvl?'<span class="fcard-lvl">Lvl '+lvl+'</span>':'')
+      +'<span class="fcard-title">'+_profEsc(name)+'</span></div>'
+      +'<div class="fcard-body">'+(s.intro?'<p class="fcard-intro">'+_profEsc(s.intro)+'</p>':'')
+      +(s.bullets.length?'<div class="fcard-bh">Buffs &amp; Features</div><ul class="fcard-buffs">'+s.bullets.map(function(b){return '<li>'+_profEsc(b)+'</li>';}).join('')+'</ul>':'')
+      +'</div>';
+    block.insertBefore(card, block.firstChild);
+  });
 }
 
 // ── WEAPON PROFICIENCY HELPERS ──
@@ -6757,7 +6809,7 @@ const PASSIVE_FEAT_SLOTS= [1,2,3,4,5,6,7,8,9].map(n=>({
   btnPfx:`${n}`, dotPfx:`df${n-1}`
 }));
 
-function _applyFeatureToSlot(slot, f, forLevel){
+function _applyFeatureToSlot(slot, f, forLevel, meta){
   // forLevel = the class level that governs this feature's unlock-gate & scaling.
   //   For primary-class/spec features → _cachedPrimaryLevel
   //   For secondary-class/spec features → _cachedSecondaryLevel
@@ -6842,6 +6894,8 @@ function _applyFeatureToSlot(slot, f, forLevel){
 
   if(unlocked){
     nameEl.value = `Lvl ${f.level_required} · ${f.name}`;
+    if(block){ block.dataset.featSource=(meta&&meta.source)||''; block.dataset.featSourceType=(meta&&meta.sourceType)||'';
+      block.dataset.featAction=(f.action_type||((f.desc_fn&&f.desc_fn(forLevel).startsWith('Reaction:'))?'R':'P')); }
     nameEl.title = 'Specialisation feature (auto-filled)'; nameEl.readOnly = true;
     if(textEl){ textEl.value = f.desc_fn(forLevel); textEl.readOnly = false; }
     // Maneuver picker button for Commanding Presence
@@ -7183,7 +7237,11 @@ function applySpecFeatures(){
         return { name: m.name, action_type: m.action_type, recovery: null, uses_fn: () => 0, desc_fn: () => m.desc, level_required: 7 };
       }).filter(Boolean);
     }
-    return [...classFeats, ...specFeats, ...maneuverFeats].map(f => ({ feat: f, lvl }));
+    return [
+      ...classFeats.map(f=>({feat:f, source:cls,  sourceType:'class'})),
+      ...specFeats.map(f=>({feat:f, source:spec, sourceType:'spec'})),
+      ...maneuverFeats.map(f=>({feat:f, source:spec, sourceType:'spec'}))
+    ].map(o => ({ feat: o.feat, lvl, source:o.source, sourceType:o.sourceType }));
   };
 
   // Build the combined pool: every tuple carries the level that governs its feature.
@@ -7221,9 +7279,10 @@ function applySpecFeatures(){
 
   // Apply each feature with its own governing level so desc_fn / uses_fn / unlock checks
   // scale against the correct class's progression
-  ACTION_FEAT_SLOTS.forEach( (slot,i) => _applyFeatureToSlot(slot, actionFeats[i] ?.feat || null, actionFeats[i] ?.lvl));
-  BONUS_FEAT_SLOTS.forEach(  (slot,i) => _applyFeatureToSlot(slot, baFeats[i]     ?.feat || null, baFeats[i]     ?.lvl));
-  PASSIVE_FEAT_SLOTS.forEach((slot,i) => _applyFeatureToSlot(slot, passiveFeats[i]?.feat || null, passiveFeats[i]?.lvl));
+  ACTION_FEAT_SLOTS.forEach( (slot,i) => _applyFeatureToSlot(slot, actionFeats[i] ?.feat || null, actionFeats[i] ?.lvl, actionFeats[i]));
+  BONUS_FEAT_SLOTS.forEach(  (slot,i) => _applyFeatureToSlot(slot, baFeats[i]     ?.feat || null, baFeats[i]     ?.lvl, baFeats[i]));
+  PASSIVE_FEAT_SLOTS.forEach((slot,i) => _applyFeatureToSlot(slot, passiveFeats[i]?.feat || null, passiveFeats[i]?.lvl, passiveFeats[i]));
+  try{ styleFeatureCards(); }catch(e){}
 }
 
 
