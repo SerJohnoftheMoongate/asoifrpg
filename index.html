@@ -842,6 +842,20 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .prof-opt-name{font-family:var(--got);font-size:12px;letter-spacing:.5px;color:var(--text-gold);}
 .prof-opt.on .prof-opt-name{color:var(--sec-text);}
 .prof-opt-desc{font-family:'IM Fell English',serif;font-size:11.5px;color:#c8bb92;line-height:1.4;margin-top:2px;}
+
+/* ===== Select Feats: cards + action badges ===== */
+.feat-cards{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.feat-cards-empty{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.35);padding:4px 2px;}
+.feat-card{border:1px solid var(--gold-dk);border-left:3px solid var(--sec);border-radius:3px;background:linear-gradient(140deg,rgba(28,18,2,.6),rgba(10,5,0,.75));padding:6px 8px;}
+.feat-card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;}
+.feat-card-title{font-family:var(--got);font-size:11px;letter-spacing:.4px;color:var(--sec-text);flex:1;min-width:0;}
+.feat-card-act,.feat-opt-act{font-family:var(--got);font-size:8px;font-weight:700;padding:1px 5px;border-radius:2px;border:1px solid;flex-shrink:0;}
+.feat-act-A{color:#e6a86a;border-color:rgba(230,168,106,.6);background:rgba(230,168,106,.12);}
+.feat-act-BA{color:#82d18f;border-color:rgba(130,209,143,.6);background:rgba(130,209,143,.12);}
+.feat-act-R{color:#7fcdea;border-color:rgba(127,205,234,.6);background:rgba(127,205,234,.12);}
+.feat-card-bonus{font-family:var(--got);font-size:8px;color:#8ecf6a;border:1px solid rgba(100,180,80,.4);background:rgba(20,50,10,.35);padding:1px 5px;border-radius:2px;flex-shrink:0;}
+.feat-card-desc{font-family:'IM Fell English',serif;font-size:11px;color:#c8bb92;line-height:1.4;}
+.prof-opt.feat-disabled{opacity:.4;cursor:not-allowed;}
 </style>
 </head>
 <body>
@@ -1370,12 +1384,13 @@ textarea{resize:none;font-weight:400;font-size:12px}
   <div class="feats-section">
     <div class="sec">Feats</div>
     <div class="feats-inner">
-      <div class="feat-inp"><input type="text" id="feat_1" placeholder="Click to choose feat…" readonly onclick="openFeatPicker(1)"></div>
-      <div id="feat_desc_1" class="feat-desc"></div>
-      <div class="feat-inp"><input type="text" id="feat_2" placeholder="Click to choose feat…" readonly onclick="openFeatPicker(2)"></div>
-      <div id="feat_desc_2" class="feat-desc"></div>
-      <div class="feat-inp"><input type="text" id="feat_3" placeholder="Click to choose feat…" readonly onclick="openFeatPicker(3)"></div>
-      <div id="feat_desc_3" class="feat-desc"></div>
+      <div style="display:none">
+        <input type="text" id="feat_1" readonly><div id="feat_desc_1" class="feat-desc"></div>
+        <input type="text" id="feat_2" readonly><div id="feat_desc_2" class="feat-desc"></div>
+        <input type="text" id="feat_3" readonly><div id="feat_desc_3" class="feat-desc"></div>
+      </div>
+      <button class="prof-select-btn" onclick="openFeatsModal()">Select Feats</button>
+      <div id="feat_cards" class="feat-cards"></div>
     </div>
 
   <!-- ORIGIN FEAT SECTION -->
@@ -1964,7 +1979,7 @@ function doRest(type){
       :`HP fully restored. Temporary HP cleared.`;
     const o=document.createElement('div');o.className='modal-overlay';o.id='restModal';
     o.innerHTML=`<div class="modal" style="max-width:560px;padding:30px 48px;">
-      <h2 style="font-size:22px;margin-bottom:8px;">🌙 Long Rest</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 48px;margin:-30px -48px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:18px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">🌙 Long Rest</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
       <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:15px;color:var(--text-gold);line-height:1.6;margin:0 auto 12px;max-width:340px;text-align:center;">
         <em>"I think mothers and fathers made up the Gods because they wanted their children to sleep through the night."</em><br>
         <span style="font-size:13px;opacity:.85">— Davos Seaworth</span>
@@ -2054,7 +2069,7 @@ function confirmLongRest(){
   const dieName=document.getElementById('hd_1').value||'HD';
   const o=document.createElement('div');o.className='modal-overlay';o.id='restModal';
   o.innerHTML=`<div class="modal" style="max-width:560px;padding:30px 48px;">
-    <h2 style="font-size:22px;margin-bottom:8px;">🌙 Long Rest</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 48px;margin:-30px -48px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:18px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">🌙 Long Rest</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:15px;color:var(--text-gold);line-height:1.6;margin:0 auto 10px;max-width:300px;text-align:center;">
       <em>"I think mothers and fathers made up the Gods because they wanted their children to sleep through the night."</em><br>
       <span style="font-size:13px;opacity:.85">— Davos Seaworth</span>
@@ -2884,6 +2899,7 @@ function load(){
     const name = document.getElementById('feat_'+i)?.value;
     if (name) _restoreFeatDisplay(i, name);
   });
+  try{updateFeatCards();}catch(e){}
 }
 // ── FEATS SYSTEM ──
 // Ability bonus mapping: feat text refers to game-world skill names mapped to stat ids
@@ -3068,6 +3084,74 @@ function clearFeat(slot, modalId) {
   if (descEl) { descEl.className = 'feat-desc'; descEl.innerHTML = ''; }
   document.getElementById(modalId)?.remove();
   save();
+}
+
+
+// ===== Select Feats pop-up (categorised by ability bonus) =====
+const FEAT_CATS=[{key:'strength',label:'Martial'},{key:'charisma',label:'Diplomacy'},{key:'subtlety',label:'Intrigue'},{key:'wisdom',label:'Stewardship'},{key:'knowledge',label:'Learning'},{key:'spirit',label:'Attunement'},{key:'none',label:'No Bonus'}];
+let _featActiveCat='strength';
+function _featAction(desc){var d=' '+String(desc||'').toLowerCase()+' '; if(/\breaction\b/.test(d))return 'R'; if(/\bbonus action\b/.test(d))return 'BA'; if(/\baction\b/.test(d))return 'A'; return '';}
+function _featSlots(){return [1,2,3].map(function(i){return document.getElementById('feat_'+i);});}
+function _featSelectedNames(){return _featSlots().map(function(s){return s?s.value:'';}).filter(Boolean);}
+function _featInCat(f,cat){return cat==='none'?!f.bonus:(f.bonus&&f.bonus.ability===cat);}
+function _featCatCount(cat){var names=_featSelectedNames();return FEATS_DATA.filter(function(f){return _featInCat(f,cat)&&names.indexOf(f.name)!==-1;}).length;}
+window.openFeatsModal=function(){
+  var m=document.getElementById('featsModal');
+  if(!m){
+    m=document.createElement('div'); m.id='featsModal'; m.className='asp-overlay';
+    m.onclick=function(e){if(e.target===m)closeFeatsModal();};
+    m.innerHTML='<div class="asp-modal" onclick="event.stopPropagation()">'+
+      '<div class="asp-head"><h3>Select Feats <span id="featCountBadge" style="font-size:11px;letter-spacing:1px;opacity:.75;"></span></h3><button class="asp-x" onclick="closeFeatsModal()" title="Close">&times;</button></div>'+
+      '<div class="asp-cols"><div class="asp-left" id="featCats"></div><div class="asp-right" id="featOpts"></div></div></div>';
+    document.body.appendChild(m);
+  }
+  m.style.display='flex'; renderFeatCats(); featSwitchCat(_featActiveCat);
+};
+window.closeFeatsModal=function(){var m=document.getElementById('featsModal'); if(m)m.style.display='none'; updateFeatCards();};
+function renderFeatCats(){
+  var box=document.getElementById('featCats'); if(!box)return;
+  box.innerHTML='<div style="font-family:var(--got);font-size:9px;letter-spacing:1px;color:var(--gold-lt);text-transform:uppercase;margin-bottom:2px;">Feat Ability Bonus</div>'+
+    FEAT_CATS.map(function(c){var n=_featCatCount(c.key);
+      return '<div class="prof-cat-tab'+(c.key===_featActiveCat?' active':'')+'" onclick="featSwitchCat(\''+c.key+'\')"><span>'+c.label+'</span>'+(n>0?'<span class="prof-cat-count">'+n+'</span>':'')+'</div>';}).join('');
+  var badge=document.getElementById('featCountBadge'); if(badge)badge.textContent='('+_featSelectedNames().length+'/3)';
+}
+window.featSwitchCat=function(cat){
+  _featActiveCat=cat; renderFeatCats();
+  var box=document.getElementById('featOpts'); if(!box)return;
+  var names=_featSelectedNames(); var full=names.length>=3; var out=[];
+  FEATS_DATA.forEach(function(f,gi){
+    if(!_featInCat(f,cat))return;
+    var on=names.indexOf(f.name)!==-1; var disabled=full&&!on;
+    var bonus=f.bonus?('+'+f.bonus.amount+' '+(FEAT_ABILITY_DISPLAY[f.bonus.ability]||f.bonus.ability)):'';
+    var act=_featAction(f.desc);
+    var badges=(act?'<span class="feat-opt-act feat-act-'+act+'">'+act+'</span>':'')+(bonus?'<span class="feat-card-bonus">'+_profEsc(bonus)+'</span>':'');
+    out.push('<div class="prof-opt'+(on?' on':'')+(disabled?' feat-disabled':'')+'"'+(disabled?'':' onclick="toggleFeat('+gi+')"')+'>'+
+      '<div class="prof-opt-check"></div><div class="prof-opt-body">'+
+      '<div class="prof-opt-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="flex:1;min-width:0;">'+_profEsc(f.name)+'</span>'+badges+'</div>'+
+      '<div class="prof-opt-desc">'+_profEsc(f.desc)+'</div></div></div>');
+  });
+  box.innerHTML=out.join('');
+};
+window.toggleFeat=function(gi){
+  var f=FEATS_DATA[gi]; if(!f)return; var name=f.name; var slots=_featSlots();
+  var idx=-1; for(var i=0;i<slots.length;i++){if(slots[i]&&slots[i].value===name){idx=i;break;}}
+  if(idx!==-1){ clearFeat(idx+1,null); }
+  else { var empty=-1; for(var j=0;j<slots.length;j++){if(slots[j]&&!slots[j].value){empty=j;break;}} if(empty===-1)return; selectFeat(empty+1,name,null); }
+  renderFeatCats(); featSwitchCat(_featActiveCat); updateFeatCards();
+};
+function updateFeatCards(){
+  var box=document.getElementById('feat_cards'); if(!box)return;
+  var names=_featSelectedNames();
+  if(names.length===0){box.innerHTML='<div class="feat-cards-empty">No feats selected. Click Select Feats to choose.</div>'; return;}
+  box.innerHTML=names.map(function(name){
+    var f=FEATS_DATA.find(function(x){return x.name===name;}); if(!f)return '';
+    var bonus=f.bonus?('+'+f.bonus.amount+' '+(FEAT_ABILITY_DISPLAY[f.bonus.ability]||f.bonus.ability)):'';
+    var act=_featAction(f.desc);
+    return '<div class="feat-card"><div class="feat-card-top"><span class="feat-card-title">'+_profEsc(f.name)+'</span>'+
+      (act?'<span class="feat-card-act feat-act-'+act+'">'+act+'</span>':'')+
+      (bonus?'<span class="feat-card-bonus">'+_profEsc(bonus)+'</span>':'')+'</div>'+
+      '<div class="feat-card-desc">'+_profEsc(f.desc)+'</div></div>';
+  }).join('');
 }
 
 // ── WEAPON PROFICIENCY HELPERS ──
@@ -3652,7 +3736,7 @@ function openWeaponModal(prefix, idx){
   o.className = 'modal-overlay';
   o.id = 'wpnModal';
   o.innerHTML = `<div class="modal" style="max-width:760px;padding:22px 28px;text-align:left;">
-    <h2 style="font-size:17px;margin-bottom:2px;letter-spacing:.5px;">⚔ Configure Weapon</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 28px;margin:-22px -28px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">⚔ Configure Weapon</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:#888;margin-bottom:14px;">
       Select a weapon from the list — all stats are filled in automatically. Adjust condition, mark as Unique, or pick a stat for Finesse weapons.
     </p>
@@ -4102,7 +4186,7 @@ function openAttackModal(prefix){
   o.className = 'modal-overlay';
   const title = prefix === 'act' ? 'Action Attack' : 'Bonus Action Attack';
   o.innerHTML = `<div class="modal" style="max-width:680px;padding:24px 30px;text-align:left;">
-    <h2 style="font-size:18px;text-align:center;margin-bottom:2px;letter-spacing:1.6px;">${title}</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 30px;margin:-24px -30px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:17px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">${title}</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <div id="atk_stepper" class="atk-stepper"></div>
     <div id="atk_content"></div>
     <div class="atk-nav">
@@ -4520,7 +4604,7 @@ function openEditModal(){
 
   const o=document.createElement('div');o.className='modal-overlay';o.id='editModal';
   o.innerHTML=`<div class="modal" style="max-width:520px;padding:30px 42px;">
-    <h2 style="font-size:20px;margin-bottom:6px;">⚙ Edit Appearance</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 42px;margin:-30px -42px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:18px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">⚙ Edit Appearance</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:#aaa;margin-bottom:14px;">Customise the accent colour of all gilded elements.</p>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:15px;color:var(--text-gold);line-height:1.7;margin-bottom:6px;opacity:.85;">"All the color had been leached from Winterfell until only grey and white remained. The Stark colors."</p>
     <p style="font-family:var(--got);font-size:10px;color:var(--gold-lt);letter-spacing:.8px;margin-bottom:20px;">~ Theon Greyjoy</p>
@@ -4694,7 +4778,7 @@ function openFeaturesModal(){
   o.className = 'modal-overlay';
   o.id = 'featuresModal';
   o.innerHTML = `<div class="modal" style="max-width:680px;padding:30px 46px;text-align:left;">
-    <h2 style="font-size:22px;margin-bottom:6px;">&#9733; Specialisation Features</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:12px 46px;margin:-30px -46px 18px;border-radius:3px 3px 0 0;"><h2 style="margin:0;font-size:18px;letter-spacing:2px;color:var(--ink-gold-bg);text-align:left;">&#9733; Specialisation Features</h2><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:var(--ink-gold-bg);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;">&times;</button></div>
     <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:#aaa;margin-bottom:22px;">Upload up to 5 feature cards (image or PDF). Claude will extract the details and automatically populate the <em>Additional Features</em> column when you reach the required level — including charges, action cost and rest recovery.</p>
     <div>${slotsHTML}</div>
     <div style="display:flex;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid rgba(139,106,0,.3);">
