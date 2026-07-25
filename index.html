@@ -864,12 +864,13 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .feat-block[data-spec-slot] .feat-top{order:2;justify-content:flex-end;gap:4px;background:none!important;padding:5px 0 0;border:none!important;}
 .feat-block[data-spec-slot] .feat-dots-row{position:absolute;top:7px;right:9px;order:0;border:none!important;padding:0;gap:3px;z-index:4;}
 .feat-block[data-spec-slot] > button{order:4;}
-.fcard-head{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:5px;}
+.fcard-head{display:flex;flex-direction:column;gap:3px;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);margin:-8px -9px 8px;padding:6px 9px;border-radius:2px 2px 0 0;position:relative;}
+.fcard-tags{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding-right:60px;min-height:13px;}
 .fcard-tag{font-family:var(--got);font-size:8px;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:2px;border:1px solid;}
 .fcard-tag.ft-class{color:#f4d8bd;border-color:rgba(201,119,46,.6);background:rgba(201,119,46,.16);}
 .fcard-tag.ft-spec{color:#e2d2f2;border-color:rgba(155,108,201,.6);background:rgba(155,108,201,.16);}
 .fcard-lvl{font-family:var(--got);font-size:8px;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:2px;color:var(--text-gold);border:1px solid var(--gold-dk);background:rgba(139,106,0,.18);}
-.fcard-title{font-family:var(--got);font-size:12px;letter-spacing:.4px;color:var(--sec-text);flex:1 1 100%;margin-top:1px;}
+.fcard-title{font-family:var(--got);font-size:12px;letter-spacing:.4px;color:var(--ink-gold-bg);font-weight:700;}
 .fcard-intro{font-family:'IM Fell English',serif;font-size:11.5px;color:#d8cba0;line-height:1.45;margin:0 0 5px;}
 .fcard-bh{font-family:var(--got);font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-lt);margin-bottom:2px;}
 .fcard-buffs{margin:0 0 2px;padding-left:15px;}
@@ -889,6 +890,44 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .asp-card-type.fdt-class{background:#e0a866;color:#160c02;}
 .asp-card-type.fdt-spec{background:#b99be6;color:#160c02;}
 #featDetailModal .fcard-lvl{margin-left:2px;}
+
+/* Feature card header bar (Task: title as pop-up header style) */
+.fcard-head .fcard-lvl{color:var(--ink-gold-bg);background:rgba(0,0,0,.22);border-color:rgba(0,0,0,.3);}
+.feat-block[data-spec-slot] .feat-dots-row{top:8px;}
+.feat-block[data-spec-slot] .feat-dots-row input,.feat-block[data-spec-slot] .feat-dots-row .dot{border-color:rgba(0,0,0,.45)!important;}
+
+/* ===== Reworked Health element ===== */
+.hp-section{padding:0!important;}
+.health-inner{padding:8px 8px 10px;display:flex;flex-direction:column;gap:8px;}
+.hp-action-btns{display:flex;gap:12px;justify-content:center;}
+.hp-hex-btn{width:66px;height:62px;cursor:pointer;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);padding:2px;position:relative;transition:filter .2s,transform .2s;flex-shrink:0;}
+.hp-hex-btn .hex-inner{width:100%;height:100%;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+.hp-hex-btn .hex-icon{font-size:16px;line-height:1;}
+.hp-hex-btn .hex-label{font-family:var(--got);font-size:8px;letter-spacing:1px;}
+.hp-dmg{background:linear-gradient(135deg,#ff6b6b 0%,#8a1010 50%,#ff6b6b 100%);}
+.hp-dmg .hex-inner{background:radial-gradient(ellipse at center,#3a0a0a 0%,#0d0000 100%);}
+.hp-dmg .hex-icon,.hp-dmg .hex-label{color:#ff8a8a;}
+.hp-dmg:hover{filter:drop-shadow(0 0 9px rgba(255,80,80,.6));transform:scale(1.06);}
+.hp-heal{background:linear-gradient(135deg,#7be08a 0%,#0f7a2a 50%,#7be08a 100%);}
+.hp-heal .hex-inner{background:radial-gradient(ellipse at center,#0a2a12 0%,#00120a 100%);}
+.hp-heal .hex-icon,.hp-heal .hex-label{color:#8ee89a;}
+.hp-heal:hover{filter:drop-shadow(0 0 9px rgba(90,220,110,.6));transform:scale(1.06);}
+.hp-hex-btn:active{transform:scale(.95);}
+.hp-big-display{text-align:center;padding:2px 0;}
+.hp-temp-line{min-height:15px;margin-bottom:2px;}
+.hp-temp-badge{font-family:var(--got);font-size:9px;letter-spacing:1px;color:#7fcdea;border:1px solid rgba(127,205,234,.6);background:rgba(127,205,234,.14);padding:2px 8px;border-radius:8px;}
+.hp-big{font-family:var(--got);font-weight:700;font-size:34px;line-height:1;letter-spacing:1px;}
+.hp-big-sep{opacity:.35;margin:0 3px;font-size:24px;}
+#hpBigMax{opacity:.55;font-size:24px;}
+.hp-big.hp-good{color:#6ede7e;text-shadow:0 0 12px rgba(90,220,110,.35);}
+.hp-big.hp-warn{color:#e8c84a;text-shadow:0 0 12px rgba(232,200,74,.4);}
+.hp-big.hp-crit{color:#ff4d4d;text-shadow:0 0 15px rgba(255,60,60,.55);}
+.hp-big-lbl{font-family:var(--got);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-lt);margin-top:1px;}
+.hp-hd-display{display:flex;align-items:center;gap:5px;}
+.hp-hd-lbl{font-family:var(--got);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-lt);flex-shrink:0;}
+.hm-field{margin-bottom:12px;}
+.hm-field label{display:block;font-family:var(--got);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-lt);margin-bottom:4px;}
+.hm-field input{width:100%;height:38px;box-sizing:border-box;font-family:'Cinzel',serif;font-size:18px;font-weight:700;text-align:center;background:var(--input-bg);border:2px solid var(--gold);color:#1a1000;border-radius:2px;}
 </style>
 </head>
 <body>
@@ -1242,11 +1281,29 @@ textarea{resize:none;font-weight:400;font-size:12px}
   </div>
 
   <div class="hp-section">
-<div class="hp-icon-row"><img class="hp-icon" src="Images/Health Icon.webp" alt="HP"></div>    
-    <div class="hp-row hp-current"><div class="hp-lbl">Current</div><div class="hp-inp"><input type="number" id="hp_current" placeholder="—"></div></div>
-    <div class="hp-row hp-maximum"><div class="hp-lbl">Maximum</div><div class="hp-inp"><input type="number" id="hp_max" placeholder="—"></div></div>
-    <div class="hp-row hp-temporary"><div class="hp-lbl">Temporary</div><div class="hp-inp"><input type="number" id="hp_temp" placeholder="—"></div></div>
-    <div class="hp-row hp-hitdice"><div class="hp-lbl">Hit Dice</div><div class="hp-inp"><input type="text" id="hd_1" readonly placeholder="—" style="height:24px;font-size:13px;text-align:center;font-weight:700;flex:1;background:#2a0a3e;color:#d4a0ff;border-color:#7a2daa;cursor:default"><input type="text" id="hd_2" readonly placeholder="0/0" title="Current / Max hit dice" style="height:24px;font-size:12px;text-align:center;font-weight:700;flex:1;background:#1a1000;color:#e8c84a;border-color:rgba(139,106,0,.5);cursor:default"></div></div>
+    <div class="sec">Health</div>
+    <div class="health-inner">
+      <div style="display:none">
+        <input type="number" id="hp_current" placeholder="—">
+        <input type="number" id="hp_max" placeholder="—">
+        <input type="number" id="hp_temp" placeholder="—">
+      </div>
+      <button class="prof-select-btn" onclick="openHealthModal()">Select Health</button>
+      <div class="hp-action-btns">
+        <div class="hp-hex-btn hp-dmg" onclick="openDamageModal()" title="Take damage"><div class="hex-inner"><span class="hex-icon">🩸</span><span class="hex-label">DAMAGE</span></div></div>
+        <div class="hp-hex-btn hp-heal" onclick="openHealModal()" title="Heal"><div class="hex-inner"><span class="hex-icon">✚</span><span class="hex-label">HEAL</span></div></div>
+      </div>
+      <div class="hp-big-display">
+        <div class="hp-temp-line" id="hpTempLine"></div>
+        <div class="hp-big hp-good" id="hpBig"><span id="hpBigCur">—</span><span class="hp-big-sep">/</span><span id="hpBigMax">—</span></div>
+        <div class="hp-big-lbl">Hit Points</div>
+      </div>
+      <div class="hp-hd-display">
+        <span class="hp-hd-lbl">Hit Dice</span>
+        <input type="text" id="hd_1" readonly placeholder="—" style="height:24px;font-size:13px;text-align:center;font-weight:700;flex:1;background:#2a0a3e;color:#d4a0ff;border-color:#7a2daa;cursor:default">
+        <input type="text" id="hd_2" readonly placeholder="0/0" title="Current / Max hit dice" style="height:24px;font-size:12px;text-align:center;font-weight:700;flex:1;background:#1a1000;color:#e8c84a;border-color:rgba(139,106,0,.5);cursor:default">
+      </div>
+    </div>
   </div>
   <!-- Hidden weapon category inputs (auto-saved) -->
   <div style="display:none">
@@ -2058,6 +2115,7 @@ function confirmLongRest(){
   const mx=document.getElementById('hp_max'),cr=document.getElementById('hp_current'),tmp=document.getElementById('hp_temp');
   if(mx&&cr&&mx.value) cr.value=mx.value;
   if(tmp) tmp.value='0';
+  try{updateHealthDisplay();}catch(e){}
   resetInspiration();
   const regain=Math.max(1,Math.floor(_cachedLevel/2));
   setHD(Math.min(_cachedLevel, _currentHD+regain));
@@ -2862,6 +2920,7 @@ function load(){
   updateWpnProfDisplay();
   updateOtherProfDisplay();
   try{updateProfSummary();}catch(e){}
+  try{updateHealthDisplay();}catch(e){}
   refreshWeaponProfColors();
   refreshAllWeaponTags();
   refreshAllWeaponConditionDots();
@@ -3150,9 +3209,11 @@ function styleFeatureCards(){
     var s=_featSplit(taEl?taEl.value:'');
     var card=document.createElement('div'); card.className='fcard';
     card.innerHTML='<div class="fcard-head">'
+      +'<div class="fcard-tags">'
       +(source?'<span class="fcard-tag ft-'+(stype||'class')+'">'+_profEsc(source)+'</span>':'')
       +(lvl?'<span class="fcard-lvl">Lvl '+lvl+'</span>':'')
-      +'<span class="fcard-title">'+_profEsc(name)+'</span></div>'
+      +'</div>'
+      +'<div class="fcard-title">'+_profEsc(name)+'</div></div>'
       +'<div class="fcard-body">'+(s.intro?'<p class="fcard-intro">'+_profEsc(s.intro)+'</p>':'')+'</div>';
     card.title='Click for full description';
     card.onclick=function(){ openFeatureDetail(block); };
@@ -3179,6 +3240,69 @@ function openFeatureDetail(block){
     +(s.bullets.length?'<div class="asp-buffs-h">Buffs &amp; Features</div><ul class="asp-card-buffs">'+s.bullets.map(function(b){return '<li>'+_profEsc(b)+'</li>';}).join('')+'</ul>':'')
     +'</div></div></div></div></div>';
   document.body.appendChild(o); o.style.display='flex';
+}
+
+
+// ===== Reworked Health: display, select, damage, heal =====
+function updateHealthDisplay(){
+  var curEl=document.getElementById('hpBigCur'); if(!curEl)return;
+  var cur=parseInt((document.getElementById('hp_current')||{}).value);
+  var mx=parseInt((document.getElementById('hp_max')||{}).value);
+  var tmp=parseInt((document.getElementById('hp_temp')||{}).value)||0;
+  curEl.textContent=isNaN(cur)?'\u2014':cur;
+  var maxEl=document.getElementById('hpBigMax'); if(maxEl)maxEl.textContent=isNaN(mx)?'\u2014':mx;
+  var tl=document.getElementById('hpTempLine'); if(tl)tl.innerHTML=tmp>0?('<span class="hp-temp-badge">+'+tmp+' TEMP</span>'):'';
+  var big=document.getElementById('hpBig'); if(big){ big.classList.remove('hp-good','hp-warn','hp-crit');
+    var cls='hp-good'; if(!isNaN(cur)&&!isNaN(mx)&&mx>0){ var pct=cur/mx; cls=pct<0.25?'hp-crit':(pct<0.5?'hp-warn':'hp-good'); }
+    big.classList.add(cls); }
+}
+function openHealthModal(){
+  var ex=document.getElementById('healthModal'); if(ex)ex.remove();
+  var mx=(document.getElementById('hp_max')||{}).value||'', tmp=(document.getElementById('hp_temp')||{}).value||'';
+  var o=document.createElement('div'); o.className='asp-overlay'; o.id='healthModal'; o.onclick=function(e){if(e.target===o)o.remove();};
+  o.innerHTML='<div class="asp-modal" style="width:min(400px,95vw);" onclick="event.stopPropagation()">'
+    +'<div class="asp-head"><h3>Health</h3><button class="asp-x" onclick="document.getElementById(\'healthModal\').remove()" title="Close">&times;</button></div>'
+    +'<div style="padding:18px;">'
+    +'<div class="hm-field"><label>Maximum Hit Points</label><input type="number" id="hm_max" value="'+mx+'" placeholder="\u2014"></div>'
+    +'<div class="hm-field"><label>Temporary Hit Points</label><input type="number" id="hm_temp" value="'+tmp+'" placeholder="0"></div>'
+    +'<div style="display:flex;gap:10px;margin-top:16px;"><button class="prof-select-btn" style="flex:1;border-color:var(--sec);color:var(--sec-text);" onclick="confirmHealth()">&#10003; Confirm</button>'
+    +'<button class="prof-select-btn" style="flex:1;color:#888;border-color:rgba(100,80,0,.4);background:rgba(40,30,10,.4);" onclick="document.getElementById(\'healthModal\').remove()">Cancel</button></div>'
+    +'</div></div>';
+  document.body.appendChild(o);
+}
+function confirmHealth(){
+  var mx=document.getElementById('hm_max').value, tmp=document.getElementById('hm_temp').value;
+  document.getElementById('hp_max').value=mx; document.getElementById('hp_temp').value=(tmp||'0');
+  var cr=document.getElementById('hp_current'); if((!cr.value||cr.value==='')&&mx) cr.value=mx;
+  document.getElementById('healthModal').remove(); updateHealthDisplay(); try{save();}catch(e){}
+}
+function _hpAmtModal(id,title,barCss,btnLabel,btnCss,onApply){
+  var ex=document.getElementById(id); if(ex)ex.remove();
+  var o=document.createElement('div'); o.className='asp-overlay'; o.id=id; o.onclick=function(e){if(e.target===o)o.remove();};
+  o.innerHTML='<div class="asp-modal" style="width:min(360px,95vw);" onclick="event.stopPropagation()">'
+    +'<div class="asp-head" style="'+barCss+'"><h3 style="color:#fff;">'+title+'</h3><button class="asp-x" style="color:#fff;" onclick="document.getElementById(\''+id+'\').remove()" title="Close">&times;</button></div>'
+    +'<div style="padding:18px;"><div class="hm-field"><label>'+btnLabel+'</label><input type="number" id="'+id+'_amt" min="0" placeholder="0"></div>'
+    +'<button class="prof-select-btn" style="width:100%;margin-top:8px;'+btnCss+'" id="'+id+'_go">Apply</button></div></div>';
+  document.body.appendChild(o);
+  document.getElementById(id+'_go').onclick=function(){ onApply(parseInt(document.getElementById(id+'_amt').value)||0); };
+  setTimeout(function(){var i=document.getElementById(id+'_amt'); if(i)i.focus();},60);
+}
+function openDamageModal(){
+  _hpAmtModal('dmgModal','Damage','background:linear-gradient(90deg,#7a1515,#4a0d0d);','Damage taken','border-color:#c0392b;color:#ff9a8a;',function(d){
+    if(d>0){ var tmpEl=document.getElementById('hp_temp'), curEl=document.getElementById('hp_current');
+      var tmp=parseInt(tmpEl.value)||0, cur=parseInt(curEl.value)||0;
+      if(tmp>=d){ tmp-=d; } else { d-=tmp; tmp=0; cur=Math.max(0,cur-d); }
+      tmpEl.value=(tmp>0?tmp:'0'); curEl.value=cur; }
+    document.getElementById('dmgModal').remove(); updateHealthDisplay(); try{save();}catch(e){}
+  });
+}
+function openHealModal(){
+  _hpAmtModal('healModal','Heal','background:linear-gradient(90deg,#155a26,#0a3d17);','Healing received','border-color:#2ea043;color:#8ee89a;',function(hAmt){
+    if(hAmt>0){ var curEl=document.getElementById('hp_current'), mxEl=document.getElementById('hp_max');
+      var cur=(parseInt(curEl.value)||0)+hAmt, mx=parseInt(mxEl.value);
+      if(!isNaN(mx)) cur=Math.min(cur,mx); curEl.value=cur; }
+    document.getElementById('healModal').remove(); updateHealthDisplay(); try{save();}catch(e){}
+  });
 }
 
 // ── WEAPON PROFICIENCY HELPERS ──
