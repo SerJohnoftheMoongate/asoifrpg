@@ -928,6 +928,44 @@ textarea{resize:none;font-weight:400;font-size:12px}
 .hm-field{margin-bottom:12px;}
 .hm-field label{display:block;font-family:var(--got);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-lt);margin-bottom:4px;}
 .hm-field input{width:100%;height:38px;box-sizing:border-box;font-family:'Cinzel',serif;font-size:18px;font-weight:700;text-align:center;background:var(--input-bg);border:2px solid var(--gold);color:#1a1000;border-radius:2px;}
+
+/* ===== Quest Tracker ===== */
+.quest-section{background:var(--panel);border-top:1px solid var(--gold);flex-shrink:0;}
+.quest-inner{padding:8px 8px 10px;display:flex;flex-direction:column;gap:7px;}
+.quest-cards{display:flex;flex-direction:column;gap:6px;}
+.quest-cards-empty{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:rgba(232,200,74,.35);padding:2px;}
+.qcard{border:1px solid var(--gold-dk);border-left:3px solid var(--sec);border-radius:3px;background:linear-gradient(140deg,rgba(28,18,2,.55),rgba(10,5,0,.72));cursor:pointer;position:relative;overflow:hidden;}
+.qcard.q-side{border-left-color:#6fb0d0;}
+.qcard-head{display:flex;align-items:center;gap:6px;background:var(--gold-bg);border-bottom:2px solid var(--gold-dk);padding:5px 8px;}
+.qcard-tag{font-family:var(--got);font-size:8px;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:2px;color:#160c02;background:#e0a866;flex-shrink:0;}
+.qcard.q-side .qcard-tag{background:#8fd0ea;}
+.qcard-title{font-family:var(--got);font-size:11px;letter-spacing:.4px;color:var(--ink-gold-bg);font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.qcard-body{padding:7px 8px;}
+.qcard-row{font-family:'IM Fell English',serif;font-size:11px;color:#c8bb92;line-height:1.45;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.qcard-row .ql{font-family:var(--got);font-size:8px;letter-spacing:.5px;text-transform:uppercase;color:var(--gold-lt);margin-right:5px;}
+.qcard:hover{border-color:var(--sec);}
+.qcard.q-side:hover{border-color:#6fb0d0;}
+.q-create-btn{width:100%;font-family:var(--got);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-gold);background:rgba(139,106,0,.16);border:2px dashed var(--gold);padding:9px;cursor:pointer;border-radius:3px;margin-bottom:12px;transition:all .15s;}
+.q-create-btn:hover{background:var(--gold-bg);color:var(--ink-gold-bg);border-style:solid;}
+.q-opt{border:1px solid var(--gold-dk);border-radius:3px;background:rgba(0,0,0,.2);padding:9px 11px;margin-bottom:8px;}
+.q-opt.active{border-color:var(--sec);background:color-mix(in srgb,var(--sec) 14%,transparent);}
+.q-opt-head{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.q-opt-select{flex:0 0 auto;width:16px;height:16px;border-radius:50%;border:2px solid var(--gold);position:relative;cursor:pointer;}
+.q-opt.active .q-opt-select{border-color:var(--sec-lt);background:var(--sec);}
+.q-opt.active .q-opt-select::after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;background:var(--ink-sec);transform:translate(-50%,-50%);}
+.q-opt-giver{font-family:var(--got);font-size:12px;letter-spacing:.4px;color:var(--text-gold);flex:1;min-width:0;}
+.q-opt.active .q-opt-giver{color:var(--sec-text);}
+.q-opt-edit{font-family:var(--got);font-size:8px;letter-spacing:.5px;text-transform:uppercase;color:var(--gold-lt);background:rgba(139,106,0,.2);border:1px solid var(--gold-dk);border-radius:2px;padding:3px 8px;cursor:pointer;flex-shrink:0;}
+.q-opt-edit:hover{background:var(--gold-bg);color:var(--ink-gold-bg);}
+.q-opt-body{font-family:'IM Fell English',serif;font-size:11.5px;color:#c8bb92;line-height:1.45;}
+.q-opt-body .ql{font-family:var(--got);font-size:8px;letter-spacing:.5px;text-transform:uppercase;color:var(--gold-lt);}
+.q-empty{font-family:'IM Fell English',serif;font-style:italic;font-size:12px;color:rgba(232,200,74,.4);text-align:center;padding:14px 0;}
+.qf-field{margin-bottom:12px;}
+.qf-field label{display:flex;justify-content:space-between;align-items:center;font-family:var(--got);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-lt);margin-bottom:4px;}
+.qf-field input,.qf-field textarea{width:100%;box-sizing:border-box;font-family:'IM Fell English',serif;font-size:14px;background:var(--input-bg);border:2px solid var(--gold);color:#1a1000;border-radius:2px;padding:7px 9px;}
+.qf-field textarea{resize:vertical;min-height:54px;line-height:1.4;}
+.qf-count{color:var(--gold-lt);font-size:9px;letter-spacing:.5px;}
+.q-detail-val{font-family:'IM Fell English',serif;font-size:14px;color:#d8cba0;line-height:1.5;background:rgba(0,0,0,.25);border:1px solid var(--gold-dk);border-radius:2px;padding:8px 10px;white-space:pre-wrap;min-height:20px;}
 </style>
 </head>
 <body>
@@ -1350,6 +1388,15 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <input type="text" id="bon_w_8"><input type="text" id="bon_m_8"><input type="text" id="bon_a_8"><input type="text" id="bon_d_8">
   </div>
 
+  <!-- QUEST TRACKER -->
+  <div class="quest-section">
+    <div class="sec">Quest Tracker</div>
+    <div class="quest-inner">
+      <textarea id="quests_json" style="display:none"></textarea>
+      <button class="prof-select-btn" onclick="openQuestModal()">Select Active Quests</button>
+      <div id="quest_cards" class="quest-cards"></div>
+    </div>
+  </div>
   <!-- REPUTATION DIAL with notorious/famed icons -->
   <div class="rep-widget">
     <div class="sec">Reputation</div>
@@ -2116,6 +2163,7 @@ function confirmLongRest(){
   if(mx&&cr&&mx.value) cr.value=mx.value;
   if(tmp) tmp.value='0';
   try{updateHealthDisplay();}catch(e){}
+  try{renderQuestCards();}catch(e){}
   resetInspiration();
   const regain=Math.max(1,Math.floor(_cachedLevel/2));
   setHD(Math.min(_cachedLevel, _currentHD+regain));
@@ -2921,6 +2969,7 @@ function load(){
   updateOtherProfDisplay();
   try{updateProfSummary();}catch(e){}
   try{updateHealthDisplay();}catch(e){}
+  try{renderQuestCards();}catch(e){}
   refreshWeaponProfColors();
   refreshAllWeaponTags();
   refreshAllWeaponConditionDots();
@@ -3303,6 +3352,117 @@ function openHealModal(){
       if(!isNaN(mx)) cur=Math.min(cur,mx); curEl.value=cur; }
     document.getElementById('healModal').remove(); updateHealthDisplay(); try{save();}catch(e){}
   });
+}
+
+
+// ===== Quest Tracker =====
+function _getQuests(){
+  var el=document.getElementById('quests_json'); var d={quests:[],activeMain:null,activeSide:null};
+  if(el&&el.value){ try{ var p=JSON.parse(el.value); d.quests=p.quests||[]; d.activeMain=p.activeMain||null; d.activeSide=p.activeSide||null; }catch(e){} }
+  return d;
+}
+function _saveQuests(d){ var el=document.getElementById('quests_json'); if(el)el.value=JSON.stringify(d); try{save();}catch(e){} }
+function _questById(d,id){ return d.quests.filter(function(q){return q.id===id;})[0]; }
+var _questActiveCat='main';
+function openQuestModal(){
+  var m=document.getElementById('questModal');
+  if(!m){
+    m=document.createElement('div'); m.id='questModal'; m.className='asp-overlay';
+    m.onclick=function(e){if(e.target===m)closeQuestModal();};
+    m.innerHTML='<div class="asp-modal" onclick="event.stopPropagation()">'
+      +'<div class="asp-head"><h3>Quest Tracker</h3><button class="asp-x" onclick="closeQuestModal()" title="Close">&times;</button></div>'
+      +'<div class="asp-cols"><div class="asp-left" id="questCats"></div><div class="asp-right" id="questOpts"></div></div></div>';
+    document.body.appendChild(m);
+  }
+  m.style.display='flex'; renderQuestCats(); questSwitchCat(_questActiveCat);
+}
+function closeQuestModal(){ var m=document.getElementById('questModal'); if(m)m.style.display='none'; renderQuestCards(); }
+function renderQuestCats(){
+  var box=document.getElementById('questCats'); if(!box)return; var d=_getQuests();
+  var cats=[{key:'main',label:'Main Quest'},{key:'side',label:'Side Quest'}];
+  box.innerHTML=cats.map(function(c){var n=d.quests.filter(function(q){return q.type===c.key;}).length;
+    return '<div class="prof-cat-tab'+(c.key===_questActiveCat?' active':'')+'" onclick="questSwitchCat(\''+c.key+'\')"><span>'+c.label+'</span>'+(n>0?'<span class="prof-cat-count">'+n+'</span>':'')+'</div>';}).join('');
+}
+function questSwitchCat(type){
+  _questActiveCat=type; renderQuestCats();
+  var box=document.getElementById('questOpts'); if(!box)return; var d=_getQuests();
+  var list=d.quests.filter(function(q){return q.type===type;});
+  var active=type==='main'?d.activeMain:d.activeSide; var lbl=type==='main'?'Main':'Side';
+  var html='<button class="q-create-btn" onclick="openQuestForm(\''+type+'\')">+ Create '+lbl+' Quest</button>';
+  if(list.length===0){ html+='<div class="q-empty">No '+lbl.toLowerCase()+' quests yet.<br>Create one above.</div>'; }
+  else { html+=list.map(function(q){ var on=q.id===active;
+    return '<div class="q-opt'+(on?' active':'')+'">'
+      +'<div class="q-opt-head"><div class="q-opt-select" onclick="setActiveQuest(\''+type+'\',\''+q.id+'\')" title="Set as active"></div>'
+      +'<span class="q-opt-giver">'+_profEsc(q.giver||'(no giver)')+'</span>'
+      +'<button class="q-opt-edit" onclick="openQuestForm(\''+type+'\',\''+q.id+'\')">Edit</button></div>'
+      +'<div class="q-opt-body"><span class="ql">Reward:</span> '+_profEsc(q.reward||'\u2014')+'<br><span class="ql">Objective:</span> '+_profEsc(q.objective||'\u2014')+'</div></div>';
+  }).join(''); }
+  box.innerHTML=html;
+}
+function setActiveQuest(type,id){
+  var d=_getQuests();
+  if(type==='main') d.activeMain=(d.activeMain===id?null:id); else d.activeSide=(d.activeSide===id?null:id);
+  _saveQuests(d); questSwitchCat(type); renderQuestCards();
+}
+function openQuestForm(type,id){
+  var d=_getQuests(); var q=id?_questById(d,id):null;
+  var ex=document.getElementById('questFormModal'); if(ex)ex.remove();
+  var o=document.createElement('div'); o.className='asp-overlay'; o.id='questFormModal'; o.style.zIndex='10070';
+  o.onclick=function(e){if(e.target===o)o.remove();};
+  var lbl=type==='main'?'Main':'Side';
+  o.innerHTML='<div class="asp-modal" style="width:min(460px,95vw);" onclick="event.stopPropagation()">'
+    +'<div class="asp-head"><h3>'+(id?'Edit':'Create')+' '+lbl+' Quest</h3><button class="asp-x" onclick="document.getElementById(\'questFormModal\').remove()" title="Close">&times;</button></div>'
+    +'<div style="padding:18px;">'
+    +'<div class="qf-field"><label>Quest Giver</label><input type="text" id="qf_giver" value="'+_profEsc(q?q.giver:'')+'"></div>'
+    +'<div class="qf-field"><label>Quest Reward</label><input type="text" id="qf_reward" value="'+_profEsc(q?q.reward:'')+'"></div>'
+    +'<div class="qf-field"><label>Quest Objective <span class="qf-count"><span id="qf_obj_count">0</span>/150</span></label><textarea id="qf_objective" maxlength="150" oninput="var c=document.getElementById(\'qf_obj_count\');if(c)c.textContent=this.value.length">'+_profEsc(q?q.objective:'')+'</textarea></div>'
+    +'<div class="qf-field"><label>Quest Progress</label><textarea id="qf_progress">'+_profEsc(q?q.progress:'')+'</textarea></div>'
+    +'<div style="display:flex;gap:10px;margin-top:6px;"><button class="prof-select-btn" style="flex:1;border-color:var(--sec);color:var(--sec-text);" onclick="saveQuestForm(\''+type+'\','+(id?"'"+id+"'":'null')+')">&#10003; Save</button>'
+    +(id?'<button class="prof-select-btn" style="flex:0 0 auto;color:#d98a7a;border-color:rgba(150,60,40,.5);" onclick="deleteQuest(\''+id+'\')">Delete</button>':'')
+    +'<button class="prof-select-btn" style="flex:1;color:#888;border-color:rgba(100,80,0,.4);" onclick="document.getElementById(\'questFormModal\').remove()">Cancel</button></div>'
+    +'</div></div>';
+  document.body.appendChild(o);
+  var oc=document.getElementById('qf_obj_count'), ot=document.getElementById('qf_objective'); if(oc&&ot)oc.textContent=ot.value.length;
+}
+function saveQuestForm(type,id){
+  var d=_getQuests();
+  var giver=document.getElementById('qf_giver').value, reward=document.getElementById('qf_reward').value,
+      objective=document.getElementById('qf_objective').value, progress=document.getElementById('qf_progress').value;
+  if(id){ var q=_questById(d,id); if(q){ q.giver=giver;q.reward=reward;q.objective=objective;q.progress=progress; } }
+  else { d.quests.push({id:'q'+Date.now()+Math.floor(Math.random()*1000),type:type,giver:giver,reward:reward,objective:objective,progress:progress}); }
+  _saveQuests(d); document.getElementById('questFormModal').remove(); questSwitchCat(type); renderQuestCards();
+}
+function deleteQuest(id){
+  var d=_getQuests(); d.quests=d.quests.filter(function(q){return q.id!==id;});
+  if(d.activeMain===id)d.activeMain=null; if(d.activeSide===id)d.activeSide=null;
+  _saveQuests(d); var fm=document.getElementById('questFormModal'); if(fm)fm.remove(); questSwitchCat(_questActiveCat); renderQuestCards();
+}
+function renderQuestCards(){
+  var box=document.getElementById('quest_cards'); if(!box)return; var d=_getQuests(); var cards=[];
+  [['main',d.activeMain],['side',d.activeSide]].forEach(function(pair){
+    var type=pair[0], id=pair[1]; if(!id)return; var q=_questById(d,id); if(!q)return;
+    var tag=type==='main'?'Main Quest':'Side Quest';
+    cards.push('<div class="qcard '+(type==='side'?'q-side':'q-main')+'" onclick="openQuestDetail(\''+q.id+'\')">'
+      +'<div class="qcard-head"><span class="qcard-tag">'+tag+'</span><span class="qcard-title">'+_profEsc(q.giver||'(no giver)')+'</span></div>'
+      +'<div class="qcard-body"><div class="qcard-row"><span class="ql">Reward</span>'+_profEsc(q.reward||'\u2014')+'</div>'
+      +'<div class="qcard-row"><span class="ql">Objective</span>'+_profEsc(q.objective||'\u2014')+'</div></div></div>');
+  });
+  box.innerHTML=cards.length?cards.join(''):'<div class="quest-cards-empty">No active quests. Click Select Active Quests.</div>';
+}
+function openQuestDetail(id){
+  var d=_getQuests(); var q=_questById(d,id); if(!q)return; var tag=q.type==='main'?'Main Quest':'Side Quest';
+  var ex=document.getElementById('questDetailModal'); if(ex)ex.remove();
+  var o=document.createElement('div'); o.className='asp-overlay'; o.id='questDetailModal'; o.onclick=function(e){if(e.target===o)o.remove();};
+  o.innerHTML='<div class="asp-modal" style="width:min(520px,95vw);" onclick="event.stopPropagation()">'
+    +'<div class="asp-head"><h3>'+tag+'</h3><button class="asp-x" onclick="document.getElementById(\'questDetailModal\').remove()" title="Close">&times;</button></div>'
+    +'<div style="padding:18px;">'
+    +'<div class="qf-field"><label>Quest Giver</label><div class="q-detail-val">'+_profEsc(q.giver||'\u2014')+'</div></div>'
+    +'<div class="qf-field"><label>Quest Reward</label><div class="q-detail-val">'+_profEsc(q.reward||'\u2014')+'</div></div>'
+    +'<div class="qf-field"><label>Quest Objective</label><div class="q-detail-val">'+_profEsc(q.objective||'\u2014')+'</div></div>'
+    +'<div class="qf-field"><label>Quest Progress</label><div class="q-detail-val">'+_profEsc(q.progress||'\u2014')+'</div></div>'
+    +'<button class="prof-select-btn" style="width:100%;margin-top:4px;border-color:var(--sec);color:var(--sec-text);" onclick="document.getElementById(\'questDetailModal\').remove();openQuestForm(\''+q.type+'\',\''+q.id+'\')">Edit Quest</button>'
+    +'</div></div>';
+  document.body.appendChild(o);
 }
 
 // ── WEAPON PROFICIENCY HELPERS ──
