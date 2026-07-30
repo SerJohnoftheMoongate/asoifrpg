@@ -1403,15 +1403,7 @@ textarea{resize:none;font-weight:400;font-size:12px}
     <input type="text" id="bon_w_8"><input type="text" id="bon_m_8"><input type="text" id="bon_a_8"><input type="text" id="bon_d_8">
   </div>
 
-  <!-- QUEST TRACKER -->
-  <div class="quest-section">
-    <div class="sec">Quest Tracker</div>
-    <div class="quest-inner">
-      <textarea id="quests_json" style="display:none"></textarea>
-      <button class="prof-select-btn" onclick="openQuestModal()">Select Active Quests</button>
-      <div id="quest_cards" class="quest-cards"></div>
-    </div>
-  </div>
+  
   <!-- REPUTATION DIAL with notorious/famed icons -->
   <div class="rep-widget">
     <div class="sec">Reputation</div>
@@ -1438,6 +1430,15 @@ textarea{resize:none;font-weight:400;font-size:12px}
 
 <!-- COL3: HP / INJURIES / FEATS -->
 <div class="col">
+  <!-- QUEST TRACKER -->
+  <div class="quest-section">
+    <div class="sec">Quest Tracker</div>
+    <div class="quest-inner">
+      <textarea id="quests_json" style="display:none"></textarea>
+      <button class="prof-select-btn" onclick="openQuestModal()">Select Active Quests</button>
+      <div id="quest_cards" class="quest-cards"></div>
+    </div>
+  </div>
   <div class="prof-section">
     <div class="sec">Proficiencies</div>
     <div class="prof-section-inner">
@@ -5317,11 +5318,9 @@ const CLASS_LEVEL_FEATURES = {
       desc_fn: (lvl) => {
         const attEl = document.getElementById('attunement_bonus');
         const att = Math.max(parseInt((attEl||{}).value) || 1, 1);
-        const renEl = document.getElementById('renown');
-        const ren = parseInt((renEl||{}).value) || 0;
-        const tempHp = Math.max(Math.abs(ren) * 2, 1);
+        const tempHp = Math.max(lvl * 2, 1);
         const uses = lvl >= 17 ? 2 : 1;
-        return `Perform a 1-minute blessing ritual on up to ${att} target${att>1?'s':''} (minimum 1, equal to your Attunement modifier). Blessed creatures gain ${tempHp} temporary hit points (twice your Renown) and advantage on their next saving throw against fear or mental influence. Lasts until used or until the next dawn.\n\nUsable ${uses} time${uses>1?'s':''} per long rest${lvl < 17 ? ' (second use at Lvl 17)' : ''}.`;
+        return `Perform a 1-minute blessing ritual on up to ${att} target${att>1?'s':''} (minimum 1, equal to your Attunement modifier). Blessed creatures gain ${tempHp} temporary hit points (twice your Renown level) and advantage on their next saving throw against fear or mental influence. Lasts until used or until the next dawn.\n\nUsable ${uses} time${uses>1?'s':''} per long rest${lvl < 17 ? ' (second use at Lvl 17)' : ''}.`;
       },
       level_required: 11
     },
@@ -5427,19 +5426,19 @@ function saveHedgeKnightOath(){ try{ localStorage.setItem('cs_hk_oath',_hedgeKni
 
 // ── SEPTON ASPECTS OF THE SEVEN ──
 const SEPTON_ASPECTS = [
-  { key:'father',   name:'⚖ The Father',   skill:'persuasion',
+  { key:'father',   name:'The Father',   skill:'persuasion',
     desc:'The Father portrays the aspect of justice. You gain advantage on the Persuasion skill.' },
-  { key:'mother',   name:'🕊 The Mother',   skill:'negotiation',
+  { key:'mother',   name:'The Mother',   skill:'negotiation',
     desc:'The Mother is a loving and forgiving aspect of the Seven. You gain advantage on the Negotiation skill.' },
-  { key:'warrior',  name:'⚔ The Warrior',  skill:'prowess',
+  { key:'warrior',  name:'The Warrior',  skill:'prowess',
     desc:'The Warrior protects followers of the Seven from their foes. You gain advantage on the Prowess skill.' },
-  { key:'maiden',   name:'🌸 The Maiden',   skill:'medicine',
+  { key:'maiden',   name:'The Maiden',   skill:'medicine',
     desc:'The Maiden lends courage to young women and protects their innocence. You gain advantage on the Medicine skill.' },
-  { key:'smith',    name:'🔨 The Smith',    skill:'management',
+  { key:'smith',    name:'The Smith',    skill:'management',
     desc:'The Smith is the mender of broken things, who puts the world of men to right. You gain advantage on the Management skill.' },
-  { key:'crone',    name:'🦉 The Crone',    skill:'sense',
+  { key:'crone',    name:'The Crone',    skill:'sense',
     desc:'The Crone is often prayed to for wisdom and guidance. You gain advantage on the Sense skill.' },
-  { key:'stranger', name:'🌑 The Stranger', skill:'deception',
+  { key:'stranger', name:'The Stranger', skill:'deception',
     desc:'The Stranger is the outcast, the wanderer from far places, less and more than human, unknown and unknowable. You gain advantage on the Deception skill.' },
 ];
 let _septonAspect = '';
@@ -6747,14 +6746,14 @@ const SPEC_LEVEL_FEATURES = {
   ]
   ,'Septon': [
     {
-      name: 'Aspect of the Septon',
+      name: 'Aspects of the Seven',
       action_type: null, recovery: 'LR',
       uses_fn: () => 1,
       special: 'aspect_picker',
       desc_fn: (lvl) => {
         const asp = SEPTON_ASPECTS.find(a => a.key === _septonAspect);
-        if(asp) return `Today's aspect: ${asp.name}.\n\n${asp.desc}\n\nThe chosen aspect grants proficiency (advantage) on the associated skill for the day. Resets on long rest.`;
-        return `Each day, choose one of the Seven Aspects to guide you:\n\n⚖ The Father — advantage on Persuasion\n🕊 The Mother — advantage on Negotiation\n⚔ The Warrior — advantage on Prowess\n🌸 The Maiden — advantage on Medicine\n🔨 The Smith — advantage on Management\n🦉 The Crone — advantage on Sense\n🌑 The Stranger — advantage on Deception`;
+        if(asp) return `Today's aspect: ${asp.name}. ${asp.desc} The chosen aspect grants advantage on the associated skill for the day, and resets on a long rest.`;
+        return `Each day, choose one of the Seven Aspects to guide you. The Father grants advantage on Persuasion. The Mother grants advantage on Negotiation. The Warrior grants advantage on Prowess. The Maiden grants advantage on Medicine. The Smith grants advantage on Management. The Crone grants advantage on Sense. The Stranger grants advantage on Deception.`;
       },
       level_required: 1
     },
@@ -7214,7 +7213,7 @@ function _applyFeatureToSlot(slot, f, forLevel, meta){
           : 'width:100%;margin-top:6px;font-size:11px;padding:5px 8px;background:rgba(140,0,0,.55);border-color:rgba(220,40,40,.7);color:#ffaaaa;';
         oathBtn.onclick = openOathModal;
       } else if(oathBtn){ oathBtn.remove(); }
-      // Aspect picker button for Septon's Aspect of the Septon
+      // Aspect picker button for Septon's Aspects of the Seven
       let aspBtn = block.querySelector('.asp-pick-btn');
       if(f.special === 'aspect_picker'){
         if(!aspBtn){
